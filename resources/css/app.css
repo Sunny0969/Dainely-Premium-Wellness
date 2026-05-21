@@ -1,0 +1,379 @@
+/* =====================================================
+   DAINELY — Main Stylesheet
+   Premium Wellness Commerce Platform
+   Built with Tailwind CSS 3 + Custom Components
+   ===================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base Layer ──────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  body {
+    @apply font-sans antialiased text-slate-800 bg-white;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold leading-tight text-navy-900;
+    text-wrap: balance;
+  }
+
+  img {
+    @apply max-w-full h-auto;
+    display: block;
+  }
+
+  a {
+    @apply transition-colors duration-200;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-navy-600 ring-offset-2;
+  }
+
+  ::selection {
+    @apply bg-navy-100 text-navy-900;
+  }
+}
+
+/* ─── Component Layer ─────────────────────────────────── */
+@layer components {
+
+  /* ── Buttons ────────────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-semibold
+           rounded-xl transition-all duration-200 focus:outline-none
+           focus-visible:ring-2 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed
+           cursor-pointer select-none;
+  }
+
+  .btn-primary {
+    @apply btn bg-navy-600 text-white hover:bg-navy-700 active:bg-navy-800
+           shadow-navy focus-visible:ring-navy-600
+           px-6 py-3.5 text-sm;
+  }
+
+  .btn-primary-lg {
+    @apply btn bg-navy-600 text-white hover:bg-navy-700 active:bg-navy-800
+           shadow-navy focus-visible:ring-navy-600
+           px-8 py-4 text-base;
+  }
+
+  .btn-gold {
+    @apply btn bg-gold-400 text-white hover:bg-gold-500 active:bg-gold-600
+           shadow-gold focus-visible:ring-gold-400
+           px-6 py-3.5 text-sm;
+  }
+
+  .btn-gold-lg {
+    @apply btn bg-gold-400 text-white hover:bg-gold-500 active:bg-gold-600
+           shadow-gold focus-visible:ring-gold-400
+           px-8 py-4 text-base;
+  }
+
+  .btn-outline {
+    @apply btn border-2 border-navy-600 text-navy-600 hover:bg-navy-600
+           hover:text-white focus-visible:ring-navy-600
+           px-6 py-3.5 text-sm;
+  }
+
+  .btn-ghost {
+    @apply btn text-navy-600 hover:bg-navy-50 focus-visible:ring-navy-600
+           px-4 py-2.5 text-sm;
+  }
+
+  /* ── Cards ──────────────────────────────────────── */
+  .card {
+    @apply bg-white rounded-2xl shadow-card border border-trust-line
+           overflow-hidden transition-all duration-300;
+  }
+
+  .card:hover {
+    @apply shadow-card-hover -translate-y-0.5;
+  }
+
+  .card-glass {
+    @apply rounded-2xl border border-white/20 backdrop-blur-sm
+           bg-white/10 overflow-hidden;
+  }
+
+  /* ── Section Layout ─────────────────────────────── */
+  .section {
+    @apply py-16 md:py-24;
+  }
+
+  .section-sm {
+    @apply py-10 md:py-16;
+  }
+
+  .container-site {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-narrow {
+    @apply max-w-3xl mx-auto px-4 sm:px-6;
+  }
+
+  .container-wide {
+    @apply max-w-8xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* ── Typography ─────────────────────────────────── */
+  .heading-display {
+    @apply font-display font-bold text-navy-900;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .heading-section {
+    @apply font-display font-semibold text-navy-900;
+    font-size: clamp(1.875rem, 3.5vw, 2.5rem);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+  }
+
+  .heading-card {
+    @apply font-display font-semibold text-navy-900 text-xl leading-tight;
+  }
+
+  .text-lead {
+    @apply text-lg md:text-xl text-slate-600 leading-relaxed;
+  }
+
+  .text-body {
+    @apply text-base text-slate-700 leading-relaxed;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-widest text-gold-500;
+  }
+
+  /* ── Trust Signals ──────────────────────────────── */
+  .trust-badge {
+    @apply inline-flex items-center gap-2 bg-sage-50 text-sage-700
+           border border-sage-200 rounded-full px-4 py-1.5
+           text-xs font-semibold;
+  }
+
+  .trust-badge-navy {
+    @apply inline-flex items-center gap-2 bg-navy-50 text-navy-700
+           border border-navy-200 rounded-full px-4 py-1.5
+           text-xs font-semibold;
+  }
+
+  /* ── Star Rating ────────────────────────────────── */
+  .stars {
+    @apply flex items-center gap-0.5;
+  }
+
+  .star {
+    @apply text-gold-400 text-lg leading-none;
+  }
+
+  /* ── Forms ──────────────────────────────────────── */
+  .form-input {
+    @apply w-full rounded-xl border border-slate-300 bg-white
+           px-4 py-3 text-slate-900 placeholder-slate-400
+           focus:outline-none focus:ring-2 focus:ring-navy-500
+           focus:border-transparent transition-all duration-200
+           text-base;
+  }
+
+  .form-label {
+    @apply block text-sm font-semibold text-slate-700 mb-1.5;
+  }
+
+  .form-error {
+    @apply text-xs text-red-600 mt-1.5;
+  }
+
+  /* ── Navigation ─────────────────────────────────── */
+  .nav-link {
+    @apply text-slate-700 hover:text-navy-600 font-medium text-sm
+           transition-colors duration-200 relative;
+  }
+
+  .nav-link.active {
+    @apply text-navy-600;
+  }
+
+  /* ── Testimonial Card ────────────────────────────── */
+  .testimonial-card {
+    @apply card p-6 flex flex-col gap-4;
+  }
+
+  /* ── FAQ Accordion ──────────────────────────────── */
+  .faq-item {
+    @apply border-b border-trust-line last:border-0;
+  }
+
+  .faq-trigger {
+    @apply w-full flex items-center justify-between gap-4
+           py-5 text-left font-semibold text-slate-800
+           hover:text-navy-600 transition-colors duration-200
+           focus:outline-none;
+  }
+
+  .faq-content {
+    @apply pb-5 text-slate-600 leading-relaxed;
+  }
+
+  /* ── Product Badge ──────────────────────────────── */
+  .product-badge {
+    @apply absolute top-4 left-4 z-10 bg-gold-400 text-white
+           text-xs font-bold uppercase tracking-wider
+           px-3 py-1 rounded-full;
+  }
+
+  /* ── Section Divider ─────────────────────────────── */
+  .divider {
+    @apply border-t border-trust-line;
+  }
+
+  /* ── Breadcrumb ─────────────────────────────────── */
+  .breadcrumb {
+    @apply flex items-center gap-2 text-sm text-slate-500;
+  }
+
+  .breadcrumb-sep {
+    @apply text-slate-300;
+  }
+
+  /* ── Alert / Banner ─────────────────────────────── */
+  .alert-success {
+    @apply bg-sage-50 border border-sage-200 text-sage-800
+           rounded-xl p-4 flex items-start gap-3;
+  }
+
+  .alert-error {
+    @apply bg-red-50 border border-red-200 text-red-800
+           rounded-xl p-4 flex items-start gap-3;
+  }
+
+  .alert-info {
+    @apply bg-navy-50 border border-navy-200 text-navy-800
+           rounded-xl p-4 flex items-start gap-3;
+  }
+
+  /* ── Progress Steps (Checkout) ───────────────────── */
+  .step-indicator {
+    @apply flex items-center gap-3;
+  }
+
+  .step-dot {
+    @apply w-8 h-8 rounded-full flex items-center justify-center
+           text-xs font-bold border-2 transition-all duration-300;
+  }
+
+  .step-dot.active {
+    @apply bg-navy-600 border-navy-600 text-white;
+  }
+
+  .step-dot.completed {
+    @apply bg-sage-500 border-sage-500 text-white;
+  }
+
+  .step-dot.pending {
+    @apply bg-white border-slate-300 text-slate-400;
+  }
+
+  /* ── Loading Spinner ────────────────────────────── */
+  .spinner {
+    @apply w-5 h-5 border-2 border-current border-t-transparent
+           rounded-full animate-spin;
+  }
+}
+
+/* ─── Utilities Layer ─────────────────────────────────── */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Gradient text */
+  .text-gradient-navy {
+    @apply bg-gradient-to-r from-navy-600 to-navy-800 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent;
+  }
+
+  /* Section backgrounds */
+  .bg-section-alt {
+    @apply bg-slate-50;
+  }
+
+  .bg-section-dark {
+    @apply bg-navy-900;
+  }
+
+  /* Staggered animation delays */
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+
+  /* Intersection observer animate classes */
+  .animate-on-scroll {
+    @apply opacity-0;
+  }
+  .animate-on-scroll.is-visible {
+    @apply animate-slide-up;
+  }
+
+  /* Glass morphism */
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+
+  .glass-dark {
+    @apply bg-navy-900/80 backdrop-blur-md border border-navy-700/50;
+  }
+}
+
+/* ─── Custom global styles ────────────────────────────── */
+
+/* Smooth page transitions */
+.page-content {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Dropdown menus */
+[x-cloak] { display: none !important; }
+
+/* Square payment form iframe */
+#card-container {
+  min-height: 90px;
+}
+
+/* Trustpilot widget container */
+.trustpilot-widget {
+  margin: 0 auto;
+}
