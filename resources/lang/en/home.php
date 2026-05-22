@@ -62,6 +62,18 @@ return [
     'add_to_cart'           => 'Add to Cart',
     'learn_more'            => 'Learn More',
 
+    // ─── Shopify Store Slider ───────────────────────────────────────────────
+    'shop_slider_eyebrow'   => 'From Our Store',
+    'shop_slider_headline'  => 'Shop Wellness Essentials',
+    'shop_slider_desc'      => 'Curated products from our Shopify store — medical-grade support for your daily recovery.',
+    'shop_slider_view_all'  => 'View All Products',
+    'shop_slider_prev'      => 'Previous products',
+    'shop_slider_next'      => 'Next products',
+    'shop_slider_empty'     => 'Products are loading from Shopify. Please check back shortly.',
+    'shop_slider_error'     => 'Unable to load store products right now.',
+    'shop_view_product'     => 'View Product',
+    'shop_add_to_cart'      => 'Shop Now',
+
     // ─── Testimonials ───────────────────────────────────────────────────────
     'testimonials_eyebrow'  => 'Real Results',
     'testimonials_headline' => 'Lives Changed by Dainely',

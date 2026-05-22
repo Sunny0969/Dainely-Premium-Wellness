@@ -3,14 +3,25 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Services\ShopifyService;
 // use App\Models\Product;
 // use App\Models\Testimonial;
 
 class HomeController extends Controller
 {
+    public function __construct(protected ShopifyService $shopify) {}
+
     public function index()
     {
         $locale = app()->getLocale();
+
+        $shopifyResult = $this->shopify->fetchProducts(12);
+        $shopifyProducts = $shopifyResult['success']
+            ? $this->shopify->mapProductsForDisplay($shopifyResult['products'])
+            : [];
+        $shopifyProductSlides = array_chunk($shopifyProducts, 3);
+        $shopifyProductsError = $shopifyResult['success'] ? null : $shopifyResult['error'];
+        $shopifyProductsSource = $shopifyResult['source'] ?? null;
 
         // Database disabled — home view uses hardcoded products & testimonials
         // $products = Product::with('translations')
@@ -25,6 +36,12 @@ class HomeController extends Controller
         //     ->limit(3)
         //     ->get();
 
-        return view('pages.home', compact('locale'));
+        return view('pages.home', compact(
+            'locale',
+            'shopifyProducts',
+            'shopifyProductSlides',
+            'shopifyProductsError',
+            'shopifyProductsSource',
+        ));
     }
 }

@@ -246,97 +246,10 @@
   </div>
 </section>
 
-{{-- ============================================================
-     FEATURED PRODUCTS
-     ============================================================ --}}
-<section class="section bg-section-alt" aria-label="Featured products">
-  <div class="container-site">
-    <div class="flex items-end justify-between mb-12">
-      <div>
-        <p class="eyebrow mb-2">{{ __('home.products_eyebrow') }}</p>
-        <h2 class="heading-section">{{ __('home.products_headline') }}</h2>
-      </div>
-      <a href="#" class="btn-outline hidden md:inline-flex">{{ __('home.products_view_all') }}</a>
-    </div>
-
-    <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-
-      {{-- Product Card: Dainely Belt --}}
-      <div class="card group overflow-visible">
-        <div class="relative overflow-hidden rounded-t-2xl">
-          <div class="absolute top-4 left-4 z-10">
-            <span class="product-badge">{{ __('home.product_bestseller') }}</span>
-          </div>
-          <img
-            src="{{ asset('images/dainely-belt-product.png') }}"
-            alt="Dainely Belt — Medical-grade lumbar support belt"
-            class="w-full aspect-video object-cover object-center group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
-            width="560" height="315"
-          >
-        </div>
-        <div class="p-6">
-          <div class="flex items-start justify-between gap-4 mb-3">
-            <h3 class="heading-card">{{ __('home.product1_name') }}</h3>
-            <div class="text-right flex-shrink-0">
-              <p class="font-bold text-lg text-navy-900">$89</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-1.5 mb-3">
-            <div class="stars">
-              @for ($i = 0; $i < 5; $i++)<svg class="w-4 h-4 star" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>@endfor
-            </div>
-            <span class="text-xs text-slate-500">(1,247)</span>
-          </div>
-          <p class="text-body text-sm mb-5">{{ __('home.product1_desc') }}</p>
-          <div class="flex items-center gap-3">
-            <a href="#" class="btn-primary flex-1 justify-center text-sm">{{ __('home.add_to_cart') }}</a>
-            <a href="#" class="btn-ghost text-sm">{{ __('home.learn_more') }}</a>
-          </div>
-        </div>
-      </div>
-
-      {{-- Product Card: Daily Relief System --}}
-      <div class="card group overflow-visible">
-        <div class="relative overflow-hidden rounded-t-2xl">
-          <div class="absolute top-4 left-4 z-10">
-            <span class="product-badge bg-sage-500">{{ __('home.product_system') }}</span>
-          </div>
-          <img
-            src="{{ asset('images/daily-relief-system.png') }}"
-            alt="Daily Relief System — Complete wellness protocol flat-lay"
-            class="w-full aspect-video object-cover object-center group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
-            width="560" height="315"
-          >
-        </div>
-        <div class="p-6">
-          <div class="flex items-start justify-between gap-4 mb-3">
-            <h3 class="heading-card">{{ __('home.product2_name') }}</h3>
-            <div class="text-right flex-shrink-0">
-              <p class="font-bold text-lg text-navy-900">$149</p>
-              <p class="text-xs text-slate-400 line-through">$189</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-1.5 mb-3">
-            <div class="stars">
-              @for ($i = 0; $i < 5; $i++)<svg class="w-4 h-4 star" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>@endfor
-            </div>
-            <span class="text-xs text-slate-500">(842)</span>
-          </div>
-          <p class="text-body text-sm mb-5">{{ __('home.product2_desc') }}</p>
-          <div class="flex items-center gap-3">
-            <a href="#" class="btn-primary flex-1 justify-center text-sm">{{ __('home.add_to_cart') }}</a>
-            <a href="#" class="btn-ghost text-sm">{{ __('home.learn_more') }}</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+@include('partials.shopify-products-slider')
 
 {{-- ============================================================
-     TESTIMONIALS
+     TESTIMONIALS (Real Results)
      ============================================================ --}}
 <section class="section bg-white" aria-label="Customer testimonials">
   <div class="container-site">

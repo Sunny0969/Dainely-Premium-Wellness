@@ -1,5 +1,7 @@
 <?php
 namespace App\Services;
+
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -13,9 +15,45 @@ class ShopifyService
     public function __construct()
     {
         $this->domain     = config('shopify.store_domain', 'dmede-usa.myshopify.com');
-        $this->token      = config('shopify.access_token', '');
-        $this->apiVersion = config('shopify.api_version', '2024-10');
+        $this->token      = $this->resolveAccessToken();
+        $this->apiVersion = config('shopify.api_version', '2024-01');
         $this->apiBase    = "https://{$this->domain}/admin/api/{$this->apiVersion}";
+    }
+
+    /**
+     * Admin API token: shpat_ (or shpua_) — never the client secret shpss_.
+     */
+    protected function resolveAccessToken(): string
+    {
+        $fromEnv = trim((string) config('shopify.access_token', ''));
+
+        if ($this->isValidAdminToken($fromEnv)) {
+            return $fromEnv;
+        }
+
+        $path = storage_path('app/shopify_access_token');
+        if (is_readable($path)) {
+            $stored = trim((string) file_get_contents($path));
+            if ($this->isValidAdminToken($stored)) {
+                return $stored;
+            }
+        }
+
+        return '';
+    }
+
+    protected function isValidAdminToken(string $token): bool
+    {
+        if ($token === '') {
+            return false;
+        }
+
+        return ! str_starts_with($token, 'shpss_');
+    }
+
+    public function hasAdminAccessToken(): bool
+    {
+        return $this->token !== '';
     }
 
     protected function headers(): array
@@ -24,6 +62,19 @@ class ShopifyService
             'X-Shopify-Access-Token' => $this->token,
             'Content-Type'           => 'application/json',
         ];
+    }
+
+    protected function httpClient(array $extraHeaders = []): \Illuminate\Http\Client\PendingRequest
+    {
+        $client = Http::timeout(30)
+            ->acceptJson()
+            ->withHeaders(array_merge(['User-Agent' => 'Dainely-Wellness/1.0'], $extraHeaders));
+
+        if (! config('shopify.verify_ssl', true)) {
+            $client = $client->withoutVerifying();
+        }
+
+        return $client;
     }
 
     /**
@@ -37,7 +88,7 @@ class ShopifyService
         }
 
         try {
-            $response = Http::withHeaders($this->headers())
+            $response = $this->httpClient($this->headers())
                 ->post($this->apiBase . '/products.json', ['product' => $data]);
 
             if ($response->successful()) {
@@ -52,18 +103,251 @@ class ShopifyService
     }
 
     /**
-     * List all products.
+     * Fetch products from Shopify Admin API with structured success/error payload.
+     *
+     * @return array{success: bool, products: array, error: ?string, status: int}
+     */
+    /**
+     * Step 1: Exchange Client ID + Secret for shpat_ via client_credentials grant.
+     *
+     * @return array{success: bool, token: ?string, error: ?string}
+     */
+    public function requestAccessTokenViaClientCredentials(): array
+    {
+        $clientId = config('shopify.client_id');
+        $clientSecret = config('shopify.client_secret');
+
+        if (empty($clientId) || empty($clientSecret)) {
+            return [
+                'success' => false,
+                'token'   => null,
+                'error'   => 'SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET are required in .env.',
+            ];
+        }
+
+        $cacheKey = 'shopify_client_credentials_' . md5($this->domain . $clientId);
+        $cached = Cache::get($cacheKey);
+        if (is_string($cached) && $cached !== '') {
+            return ['success' => true, 'token' => $cached, 'error' => null];
+        }
+
+        try {
+            $response = $this->httpClient()
+                ->asForm()
+                ->post("https://{$this->domain}/admin/oauth/access_token", [
+                    'grant_type'    => 'client_credentials',
+                    'client_id'     => $clientId,
+                    'client_secret' => $clientSecret,
+                ]);
+
+            if (! $response->successful()) {
+                Log::error('Shopify client_credentials auth failed', ['body' => $response->body()]);
+
+                return [
+                    'success' => false,
+                    'token'   => null,
+                    'error'   => 'Failed to authenticate with Shopify: ' . $response->body(),
+                ];
+            }
+
+            $token = $response->json('access_token');
+            if (! is_string($token) || $token === '') {
+                return [
+                    'success' => false,
+                    'token'   => null,
+                    'error'   => 'Shopify did not return an access_token.',
+                ];
+            }
+
+            Cache::put($cacheKey, $token, now()->addMinutes(55));
+
+            return ['success' => true, 'token' => $token, 'error' => null];
+        } catch (\Exception $e) {
+            Log::error('Shopify client_credentials exception: ' . $e->getMessage());
+
+            return ['success' => false, 'token' => null, 'error' => $e->getMessage()];
+        }
+    }
+
+    public function fetchProducts(int $limit = 50): array
+    {
+        $limit = max(1, min($limit, 250));
+
+        if ($this->hasAdminAccessToken()) {
+            return $this->fetchProductsFromAdminApi($limit, $this->token);
+        }
+
+        $auth = $this->requestAccessTokenViaClientCredentials();
+        if ($auth['success'] && ! empty($auth['token'])) {
+            $admin = $this->fetchProductsFromAdminApi($limit, $auth['token']);
+            if ($admin['success']) {
+                $admin['source'] = 'client_credentials';
+
+                return $admin;
+            }
+        }
+
+        $authError = $auth['error'] ?? null;
+        $storefrontError = null;
+
+        if (filter_var(config('shopify.use_storefront_catalog', true), FILTER_VALIDATE_BOOLEAN)) {
+            $storefront = $this->fetchProductsFromStorefront($limit);
+            if ($storefront['success']) {
+                return $storefront;
+            }
+            $storefrontError = $storefront['error'] ?? null;
+        }
+
+        return [
+            'success'  => false,
+            'products' => [],
+            'error'    => trim(($authError ? "Auth: {$authError}. " : '') . ($storefrontError ? "Storefront: {$storefrontError}" : ''))
+                ?: 'Could not load products from Shopify.',
+            'status'   => 503,
+            'source'   => null,
+        ];
+    }
+
+    /**
+     * @return array{success: bool, products: array, error: ?string, status: int, source?: string}
+     */
+    public function fetchProductsFromAdminApi(int $limit, ?string $accessToken = null): array
+    {
+        $token = $accessToken ?? $this->token;
+        if ($token === '') {
+            return [
+                'success'  => false,
+                'products' => [],
+                'error'    => 'No access token available.',
+                'status'   => 503,
+                'source'   => 'admin',
+            ];
+        }
+
+        try {
+            $response = $this->httpClient([
+                'X-Shopify-Access-Token' => $token,
+                'Content-Type'           => 'application/json',
+            ])->get($this->apiBase . '/products.json', ['limit' => $limit]);
+
+            if ($response->successful()) {
+                return [
+                    'success'  => true,
+                    'products' => $response->json()['products'] ?? [],
+                    'error'    => null,
+                    'status'   => 200,
+                    'source'   => 'admin',
+                ];
+            }
+
+            $message = $response->json('errors') ?? $response->body();
+            if (is_array($message)) {
+                $message = json_encode($message);
+            }
+
+            Log::error('Shopify Admin API fetchProducts failed', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+
+            return [
+                'success'  => false,
+                'products' => [],
+                'error'    => trim((string) $message) ?: 'Shopify Admin API request failed.',
+                'status'   => $response->status(),
+                'source'   => 'admin',
+            ];
+        } catch (\Exception $e) {
+            Log::error('Shopify Admin API fetchProducts exception: ' . $e->getMessage());
+
+            return [
+                'success'  => false,
+                'products' => [],
+                'error'    => $e->getMessage(),
+                'status'   => 500,
+                'source'   => 'admin',
+            ];
+        }
+    }
+
+    /**
+     * Public storefront catalog (no token). Client ID/Secret not required for read-only display.
+     *
+     * @return array{success: bool, products: array, error: ?string, status: int, source?: string}
+     */
+    protected function fetchProductsFromStorefront(int $limit): array
+    {
+        try {
+            $response = $this->httpClient()
+                ->get("https://{$this->domain}/products.json", ['limit' => $limit]);
+
+            if ($response->successful()) {
+                return [
+                    'success'  => true,
+                    'products' => $response->json()['products'] ?? [],
+                    'error'    => null,
+                    'status'   => 200,
+                    'source'   => 'storefront',
+                ];
+            }
+
+            return [
+                'success'  => false,
+                'products' => [],
+                'error'    => 'Storefront catalog unavailable (HTTP ' . $response->status() . ').',
+                'status'   => $response->status(),
+                'source'   => 'storefront',
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success'  => false,
+                'products' => [],
+                'error'    => $e->getMessage(),
+                'status'   => 500,
+                'source'   => 'storefront',
+            ];
+        }
+    }
+
+    /**
+     * List all products (simple array; empty on failure).
      */
     public function getProducts(int $limit = 50): array
     {
-        if (empty($this->token)) return [];
-        try {
-            $response = Http::withHeaders($this->headers())
-                ->get($this->apiBase . '/products.json', ['limit' => $limit]);
-            return $response->successful() ? ($response->json()['products'] ?? []) : [];
-        } catch (\Exception $e) {
-            return [];
-        }
+        $result = $this->fetchProducts($limit);
+
+        return $result['success'] ? $result['products'] : [];
+    }
+
+    /**
+     * Normalize Shopify API products for frontend cards / slider.
+     *
+     * @param  array<int, array<string, mixed>>  $products
+     * @return array<int, array<string, mixed>>
+     */
+    public function mapProductsForDisplay(array $products): array
+    {
+        $storeUrl = 'https://' . $this->domain;
+
+        return array_values(array_map(function (array $product) use ($storeUrl) {
+            $variant = $product['variants'][0] ?? [];
+            $image = $product['image']['src']
+                ?? ($product['images'][0]['src'] ?? null);
+            $handle = $product['handle'] ?? null;
+
+            return [
+                'id'             => $product['id'] ?? null,
+                'title'          => $product['title'] ?? 'Untitled',
+                'handle'         => $handle,
+                'status'         => $product['status'] ?? 'active',
+                'image'          => $image,
+                'price'          => $variant['price'] ?? null,
+                'compare_at'     => $variant['compare_at_price'] ?? null,
+                'variant_count'  => count($product['variants'] ?? []),
+                'updated_at'     => $product['updated_at'] ?? null,
+                'url'            => $handle ? "{$storeUrl}/products/{$handle}" : $storeUrl,
+            ];
+        }, $products));
     }
 
     /**
@@ -120,7 +404,7 @@ class ShopifyService
         }
 
         try {
-            $response = Http::withHeaders($this->headers())
+            $response = $this->httpClient($this->headers())
                 ->post($this->apiBase . '/orders.json', $payload);
 
             if ($response->successful()) {

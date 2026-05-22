@@ -97,6 +97,23 @@ Alpine.data('currencyDisplay', (basePrice, currency, symbol) => ({
   },
 }));
 
+// Homepage Shopify product slider (3 columns per slide)
+Alpine.data('productSlider', (totalSlides = 1) => ({
+  current: 0,
+  total: Math.max(1, totalSlides),
+  prev() {
+    this.current = (this.current - 1 + this.total) % this.total;
+  },
+  next() {
+    this.current = (this.current + 1) % this.total;
+  },
+  goTo(index) {
+    if (index >= 0 && index < this.total) {
+      this.current = index;
+    }
+  },
+}));
+
 // Scroll-to-top button
 Alpine.data('scrollTop', () => ({
   visible: false,

@@ -6,6 +6,8 @@ use App\Http\Controllers\Frontend\BlogController;
 use App\Http\Controllers\Frontend\CheckoutController;
 use App\Http\Controllers\Frontend\PageController;
 use App\Http\Controllers\Frontend\EducationController;
+use App\Http\Controllers\ShopifyAuthController;
+use App\Http\Controllers\ShopifyProductController;
 use App\Http\Controllers\Webhooks\SquareWebhookController;
 use App\Http\Controllers\Webhooks\ShopifyWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +26,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return redirect()->route('home', ['locale' => 'en']);
 });
+
+// Shopify OAuth + product listing
+Route::get('/shopify/install', [ShopifyAuthController::class, 'install'])->name('shopify.install');
+Route::get('/shopify/callback', [ShopifyAuthController::class, 'callback'])->name('shopify.callback');
+Route::get('/shop', [ShopifyProductController::class, 'index'])->name('shop.index');
 
 // Multilingual route group
 Route::prefix('{locale}')
