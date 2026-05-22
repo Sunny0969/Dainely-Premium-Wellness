@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\Faq;
+// use App\Models\Faq;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -17,14 +17,14 @@ class PageController extends Controller
 
     public function faq(string $locale)
     {
-        // Group FAQs by category
-        $faqs = Faq::with('translations')
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->get()
-            ->groupBy('category');
+        // Database disabled — FAQ view uses inline static data
+        // $faqs = Faq::with('translations')
+        //     ->where('is_active', true)
+        //     ->orderBy('sort_order')
+        //     ->get()
+        //     ->groupBy('category');
 
-        return view('pages.faq', compact('faqs', 'locale'));
+        return view('pages.faq', compact('locale'));
     }
 
     public function contact(string $locale)
@@ -42,7 +42,6 @@ class PageController extends Controller
             'message'      => 'required|string|min:10|max:2000',
         ]);
 
-        // Log the contact (in production, send email via Mail::)
         Log::info('Contact form submission', [
             'name'         => $validated['name'],
             'email'        => $validated['email'],

@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
+use App\Support\StaticCatalog;
+// use App\Models\Product;
 
 class EducationController extends Controller
 {
     protected function featuredProduct()
     {
-        return Product::with('translations')->active()->featured()->first();
+        // Database disabled — static featured product
+        // return Product::with('translations')->active()->featured()->first();
+        return StaticCatalog::featuredProduct();
     }
 
     public function backPain(string $locale)

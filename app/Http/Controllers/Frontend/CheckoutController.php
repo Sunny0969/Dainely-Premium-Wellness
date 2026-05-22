@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\DiscountCode;
-use App\Models\Order;
-use App\Models\OrderItem;
+// use App\Models\DiscountCode;
+// use App\Models\Order;
+// use App\Models\OrderItem;
 use App\Services\SquareService;
 use App\Services\ShopifyService;
 use App\Services\SendlaneService;
 use App\Services\CurrencyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\DB;
+// use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
@@ -42,6 +42,13 @@ class CheckoutController extends Controller
      */
     public function process(Request $request)
     {
+        // Database disabled — checkout cannot persist orders
+        return response()->json([
+            'success' => false,
+            'message' => 'Checkout is unavailable while running without a database. Browse products and contact us to order.',
+        ], 503);
+
+        /*
         $request->validate([
             'source_id'         => 'required|string',
             'first_name'        => 'required|string|max:100',
@@ -62,7 +69,6 @@ class CheckoutController extends Controller
         $locale    = App::getLocale();
         $currency  = $this->currency->getCurrencyForLocale($locale);
 
-        // ── 1. Calculate totals ───────────────────────────────────────
         $subtotalUsd    = 0;
         $orderItems     = [];
 
@@ -80,7 +86,6 @@ class CheckoutController extends Controller
             ];
         }
 
-        // ── 2. Apply discount ──────────────────────────────────────
         $discountUsd  = 0;
         $discountCode = null;
 
@@ -95,7 +100,7 @@ class CheckoutController extends Controller
                 $discountUsd = match($discountCode->type) {
                     'percentage'   => round($subtotalUsd * ($discountCode->value / 100), 2),
                     'fixed'        => min($discountCode->value, $subtotalUsd),
-                    'free_shipping'=> 0, // Applied to shipping
+                    'free_shipping'=> 0,
                     default        => 0,
                 };
             }
@@ -104,103 +109,42 @@ class CheckoutController extends Controller
         $shippingUsd = $subtotalUsd >= 75 ? 0 : 9.99;
         if ($discountCode?->type === 'free_shipping') $shippingUsd = 0;
 
-        $taxUsd      = 0; // Tax handled by Shopify/TaxJar at fulfillment
+        $taxUsd      = 0;
         $totalUsd    = max(0, $subtotalUsd - $discountUsd + $shippingUsd + $taxUsd);
         $totalCents  = (int) round($totalUsd * 100);
 
-        // ── 3. Create order record (pending) ───────────────────────────
         DB::beginTransaction();
         try {
-            $order = Order::create([
-                'order_number'         => Order::generateOrderNumber(),
-                'status'               => 'pending',
-                'locale'               => $locale,
-                'currency'             => $currency,
-                'exchange_rate'        => 1,
-                'subtotal_usd'         => $subtotalUsd,
-                'discount_amount_usd'  => $discountUsd,
-                'shipping_usd'         => $shippingUsd,
-                'tax_usd'              => $taxUsd,
-                'total_usd'            => $totalUsd,
-                'customer_email'       => $request->email,
-                'customer_first_name'  => $request->first_name,
-                'customer_last_name'   => $request->last_name,
-                'customer_phone'       => $request->phone,
-                'shipping_address1'    => $request->address1,
-                'shipping_address2'    => $request->address2,
-                'shipping_city'        => $request->city,
-                'shipping_state'       => $request->state,
-                'shipping_zip'         => $request->zip,
-                'shipping_country'     => strtoupper($request->country),
-                'discount_code'        => $discountCode?->code,
-                'gdpr_consent'         => $request->boolean('gdpr_consent'),
-                'gdpr_consented_at'    => $request->boolean('gdpr_consent') ? now() : null,
-                'meta'                 => [
-                    'utm_source'   => $request->query('utm_source'),
-                    'utm_medium'   => $request->query('utm_medium'),
-                    'utm_campaign' => $request->query('utm_campaign'),
-                ],
-            ]);
+            $order = Order::create([...]);
 
             foreach ($orderItems as $item) {
                 $order->items()->create($item);
             }
 
-            // ── 4. Charge via Square ──────────────────────────────────
-            $payment = $this->square->createPayment(
-                sourceId:    $request->source_id,
-                amountCents: $totalCents,
-                orderRef:    $order->order_number,
-                currency:    'USD'
-            );
+            $payment = $this->square->createPayment(...);
 
             if (!$payment['success']) {
                 DB::rollBack();
-                $errorMsg = $payment['errors'][0]['detail'] ?? 'Payment failed.';
                 return response()->json(['success' => false, 'message' => $errorMsg], 422);
             }
 
-            // Update order with payment ID
-            $order->update([
-                'status'           => 'paid',
-                'square_payment_id'=> $payment['payment_id'],
-            ]);
-
-            // Increment discount code usage
+            $order->update(['status' => 'paid', 'square_payment_id' => $payment['payment_id']]);
             $discountCode?->increment('usage_count');
-
             DB::commit();
 
-            // ── 5. Dispatch async jobs ───────────────────────────────
-            // Create Shopify order asynchronously (queue)
             \App\Jobs\CreateShopifyOrder::dispatch($order);
-
-            // Subscribe to Sendlane
-            $this->sendlane->subscribeContact([
-                'email'       => $order->customer_email,
-                'first_name'  => $order->customer_first_name,
-                'last_name'   => $order->customer_last_name,
-                'country'     => $order->shipping_country,
-            ], $locale);
+            $this->sendlane->subscribeContact([...], $locale);
 
             return response()->json([
-                'success'       => true,
-                'redirect'      => route('checkout.confirmation', [
-                    'locale' => $locale,
-                    'order'  => $order->order_number,
-                ]),
+                'success'  => true,
+                'redirect' => route('checkout.confirmation', ['locale' => $locale, 'order' => $order->order_number]),
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Checkout process error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'An unexpected error occurred. Please try again or contact support.',
-            ], 500);
+            Log::error('Checkout process error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'An unexpected error occurred.'], 500);
         }
+        */
     }
 
     /**
@@ -208,9 +152,24 @@ class CheckoutController extends Controller
      */
     public function confirmation(string $locale, string $order)
     {
-        $order = Order::where('order_number', $order)
-            ->with('items')
-            ->firstOrFail();
+        // Database disabled — demo confirmation only
+        // $order = Order::where('order_number', $order)->with('items')->firstOrFail();
+
+        $order = (object) [
+            'order_number'        => $order,
+            'customer_first_name' => 'Guest',
+            'customer_email'      => 'guest@example.com',
+            'total_usd'           => 89.00,
+            'shipping_usd'        => 0,
+            'discount_amount_usd' => 0,
+            'items'               => collect([
+                (object) [
+                    'product_name'    => 'Dainely Belt',
+                    'quantity'        => 1,
+                    'total_price_usd' => 89.00,
+                ],
+            ]),
+        ];
 
         return view('checkout.confirmation', compact('order'));
     }
@@ -220,6 +179,13 @@ class CheckoutController extends Controller
      */
     public function validateDiscount(Request $request)
     {
+        // Database disabled
+        return response()->json([
+            'valid'   => false,
+            'message' => __('checkout.invalid_discount'),
+        ]);
+
+        /*
         $request->validate([
             'code'         => 'required|string',
             'subtotal_usd' => 'required|numeric|min:0',
@@ -249,5 +215,6 @@ class CheckoutController extends Controller
             'discount' => $discount,
             'message'  => __('checkout.discount_applied', ['amount' => number_format($discount, 2)]),
         ]);
+        */
     }
 }
