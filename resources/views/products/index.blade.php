@@ -20,7 +20,6 @@
     <div class="rounded-xl border border-red-200 bg-red-50 p-6 mb-8 text-red-800 space-y-4">
       <p class="font-semibold mb-2">Could not load products from Shopify</p>
       <p class="text-sm">{{ $error }}</p>
-      <a href="{{ route('shopify.install') }}" class="btn-primary inline-flex text-sm">Connect Shopify Store</a>
     </div>
     @endif
 

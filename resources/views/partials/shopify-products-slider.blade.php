@@ -23,17 +23,9 @@
     </div>
 
     @if(!empty($shopifyProductsError))
-    <div class="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 text-sm mb-6 space-y-3">
+    <div class="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 text-sm mb-6">
       <p>{{ $shopifyProductsError }}</p>
-      <a href="{{ route('shopify.install') }}" class="btn-primary inline-flex text-sm">
-        Connect Shopify (get Admin token)
-      </a>
     </div>
-    @elseif(($shopifyProductsSource ?? '') === 'storefront')
-    <p class="text-xs text-slate-500 mb-4">
-      Showing live catalog from your Shopify store. For order sync, ask client for Admin API token (<code>shpat_</code>) via
-      <a href="{{ route('shopify.install') }}" class="underline hover:text-navy-800">Connect Shopify</a>.
-    </p>
     @endif
 
     @if($slideCount > 0)

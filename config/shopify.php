@@ -17,10 +17,8 @@ return [
     'client_secret'   => env('SHOPIFY_SECRET', env('SHOPIFY_CLIENT_SECRET', '')),
     'webhook_secret'  => env('SHOPIFY_WEBHOOK_SECRET', ''),
     'api_version'     => env('SHOPIFY_API_VERSION', '2024-01'),
-    'scopes'          => env('SHOPIFY_SCOPES', 'read_products,write_products'),
-    'redirect_uri'    => env('SHOPIFY_REDIRECT_URI', rtrim(env('APP_URL', 'http://localhost:8000'), '/') . '/shopify/callback'),
 
-    // When no shpat_ token: read catalog from public /products.json (display only)
+    // When no Admin token: read catalog from public /products.json (fallback)
     'use_storefront_catalog' => filter_var(env('SHOPIFY_USE_STOREFRONT_CATALOG', true), FILTER_VALIDATE_BOOLEAN),
 
     // Local Windows dev: set false if cURL error 60 (SSL). Production should stay true.
