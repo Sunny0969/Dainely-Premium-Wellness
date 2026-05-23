@@ -75,8 +75,9 @@
 
         {{-- CTA Buttons --}}
         <div class="flex flex-wrap gap-4">
-          <a href="#" id="hero-cta-primary" class="btn-gold-lg">
+          <a href="{{ route('checkout.index', ['locale' => app()->getLocale()]) }}" id="hero-cta-primary" class="btn-gold-lg">
             {{ __('home.hero_cta_primary') }}
+
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
           </a>
           <a href="#learn-more" id="hero-cta-secondary" class="btn flex items-center gap-2 text-white hover:text-gold-300 text-base font-semibold transition-colors">
@@ -340,8 +341,9 @@
     <h2 class="heading-section mb-6">{!! __('home.cta_headline') !!}</h2>
     <p class="text-lead mb-8">{{ __('home.cta_desc') }}</p>
     <div class="flex flex-wrap items-center justify-center gap-4">
-      <a href="#" class="btn-primary-lg" id="final-cta">
+      <a href="{{ route('checkout.index', ['locale' => app()->getLocale()]) }}" class="btn-primary-lg" id="final-cta">
         {{ __('home.cta_button') }}
+
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
       </a>
       <p class="text-slate-500 text-sm">{{ __('home.cta_guarantee') }}</p>

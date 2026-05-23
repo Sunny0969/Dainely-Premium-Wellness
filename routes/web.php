@@ -28,6 +28,7 @@ Route::get('/', function () {
 
 // Shopify products (client_credentials → Admin API)
 Route::get('/shop', [ShopifyProductController::class, 'index'])->name('shop.index');
+Route::get('/shop/{id}', [ShopifyProductController::class, 'show'])->name('shop.show');
 
 // Multilingual route group
 Route::prefix('{locale}')

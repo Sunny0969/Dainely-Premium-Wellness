@@ -36,9 +36,9 @@
       <div>
         <h3 class="text-sm font-bold uppercase tracking-widest text-navy-400 mb-4">{{ __('footer.products') }}</h3>
         <ul class="space-y-2.5">
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.dainely_belt') }}</a></li>
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.daily_relief') }}</a></li>
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.all_products') }}</a></li>
+          <li><a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.dainely_belt') }}</a></li>
+          <li><a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'daily-relief-system']) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.daily_relief') }}</a></li>
+          <li><a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.all_products') }}</a></li>
         </ul>
       </div>
 
@@ -46,11 +46,11 @@
       <div>
         <h3 class="text-sm font-bold uppercase tracking-widest text-navy-400 mb-4">{{ __('footer.learn') }}</h3>
         <ul class="space-y-2.5">
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.back_pain') }}</a></li>
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.sciatica') }}</a></li>
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.posture') }}</a></li>
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.mobility') }}</a></li>
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.blog') }}</a></li>
+          <li><a href="{{ route('education.back-pain', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.back_pain') }}</a></li>
+          <li><a href="{{ route('education.sciatica', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.sciatica') }}</a></li>
+          <li><a href="{{ route('education.posture', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.posture') }}</a></li>
+          <li><a href="{{ route('education.mobility', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.mobility') }}</a></li>
+          <li><a href="{{ route('blog.index', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.blog') }}</a></li>
         </ul>
       </div>
 
@@ -58,22 +58,29 @@
       <div>
         <h3 class="text-sm font-bold uppercase tracking-widest text-navy-400 mb-4">{{ __('footer.company') }}</h3>
         <ul class="space-y-2.5">
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.about') }}</a></li>
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.contact') }}</a></li>
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.faq') }}</a></li>
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.shipping_policy') }}</a></li>
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.refund_policy') }}</a></li>
-          <li><a href="#" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.privacy_policy') }}</a></li>
+          <li><a href="{{ route('about', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.about') }}</a></li>
+          <li><a href="{{ route('contact', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.contact') }}</a></li>
+          <li><a href="{{ route('faq', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.faq') }}</a></li>
+          <li><a href="{{ route('shipping', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.shipping_policy') }}</a></li>
+          <li><a href="{{ route('refund', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.refund_policy') }}</a></li>
+          <li><a href="{{ route('privacy', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.privacy_policy') }}</a></li>
+          <li><a href="{{ route('terms', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">Terms &amp; Conditions</a></li>
         </ul>
       </div>
     </div>
   </div>
 
-  {{-- Bottom bar --}}
   <div class="border-t border-navy-800">
     <div class="container-site py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
       <p class="text-navy-400 text-xs">{{ __('footer.copyright', ['year' => date('Y')]) }}</p>
       <div class="flex items-center gap-4">
+        {{-- Legal links --}}
+        <div class="flex items-center gap-3 text-navy-400 text-xs">
+          <a href="{{ route('privacy', ['locale' => app()->getLocale()]) }}" class="hover:text-white transition-colors">{{ __('footer.privacy_policy') }}</a>
+          <span class="text-navy-700">·</span>
+          <a href="{{ route('terms', ['locale' => app()->getLocale()]) }}" class="hover:text-white transition-colors">Terms</a>
+        </div>
+        <span class="text-navy-700">|</span>
         {{-- Payment icons --}}
         <div class="flex items-center gap-2">
           <span class="bg-white/10 rounded px-2 py-0.5 text-[10px] font-bold text-white">VISA</span>

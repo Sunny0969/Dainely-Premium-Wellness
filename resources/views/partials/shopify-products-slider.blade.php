@@ -44,9 +44,9 @@
           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
           @if($slideIndex > 0) style="display: none;" @endif
         >
-          @foreach($slideProducts as $product)
+@foreach($slideProducts as $product)
           <article class="card group overflow-hidden flex flex-col h-full animate-on-scroll">
-            <a href="{{ $product['url'] }}" target="_blank" rel="noopener noreferrer" class="block relative overflow-hidden">
+            <a href="{{ route('shop.show', ['id' => $product['id'] ?? ($product['shopify_id'] ?? '')]) }}" class="block relative overflow-hidden">
               @if($product['image'])
               <img
                 src="{{ $product['image'] }}"
@@ -62,20 +62,20 @@
               @endif
             </a>
             <div class="p-5 flex flex-col flex-1">
-              <h3 class="heading-card text-base mb-2 line-clamp-2">
-                <a href="{{ $product['url'] }}" target="_blank" rel="noopener noreferrer" class="hover:text-navy-700 transition-colors">
+<h3 class="heading-card text-base mb-2 line-clamp-2">
+            <a href="{{ route('shop.show', ['id' => $product['id'] ?? ($product['shopify_id'] ?? '')]) }}" class="hover:text-navy-700 transition-colors">
                   {{ $product['title'] }}
                 </a>
               </h3>
-              <div class="flex items-baseline gap-2 mb-4 mt-auto">
+<div class="flex items-baseline gap-2 mb-4 mt-auto">
                 @if($product['price'])
                 <span class="font-display font-bold text-xl text-navy-900">${{ number_format((float) $product['price'], 2) }}</span>
                 @endif
                 @if(!empty($product['compare_at']) && (float) $product['compare_at'] > (float) ($product['price'] ?? 0))
                 <span class="text-slate-400 line-through text-sm">${{ number_format((float) $product['compare_at'], 2) }}</span>
                 @endif
-              </div>
-              <a href="{{ $product['url'] }}" target="_blank" rel="noopener noreferrer" class="btn-primary w-full justify-center text-sm">
+</div>
+            <a href="{{ route('shop.show', ['id' => $product['id'] ?? ($product['shopify_id'] ?? '')]) }}" class="btn-primary w-full justify-center text-sm">
                 {{ __('home.shop_add_to_cart') }}
               </a>
             </div>

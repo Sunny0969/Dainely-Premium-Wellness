@@ -38,113 +38,59 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Process the checkout: validate → charge Square → create Shopify order.
+     * Process the checkout: tokenize → charge Square → confirmation.
+     * Runs without a database — no order persistence.
      */
     public function process(Request $request)
     {
-        // Database disabled — checkout cannot persist orders
-        return response()->json([
-            'success' => false,
-            'message' => 'Checkout is unavailable while running without a database. Browse products and contact us to order.',
-        ], 503);
-
-        /*
-        $request->validate([
-            'source_id'         => 'required|string',
-            'first_name'        => 'required|string|max:100',
-            'last_name'         => 'required|string|max:100',
-            'email'             => 'required|email|max:255',
-            'phone'             => 'nullable|string|max:20',
-            'address1'          => 'required|string|max:255',
-            'address2'          => 'nullable|string|max:255',
-            'city'              => 'required|string|max:100',
-            'state'             => 'nullable|string|max:100',
-            'zip'               => 'required|string|max:20',
-            'country'           => 'required|string|size:2',
-            'items'             => 'required|array|min:1',
-            'discount_code'     => 'nullable|string|max:50',
-            'gdpr_consent'      => 'nullable|boolean',
+        $validated = $request->validate([
+            'source_id'      => 'required|string',
+            'first_name'     => 'required|string|max:100',
+            'last_name'      => 'required|string|max:100',
+            'email'          => 'required|email|max:255',
+            'phone'          => 'nullable|string|max:20',
+            'address1'       => 'required|string|max:255',
+            'city'           => 'required|string|max:100',
+            'zip'            => 'required|string|max:20',
+            'country'        => 'required|string|max:2',
+            'qty'            => 'required|integer|min:1|max:20',
+            'amount_cents'   => 'required|integer|min:100',
+            'discount_code'  => 'nullable|string|max:50',
         ]);
 
-        $locale    = App::getLocale();
-        $currency  = $this->currency->getCurrencyForLocale($locale);
+        $locale      = App::getLocale();
+        $orderRef    = 'DLY-' . strtoupper(\Illuminate\Support\Str::random(8));
+        $amountCents = (int) $validated['amount_cents'];
+        $currency    = $this->currency->getCurrencyForLocale($locale);
 
-        $subtotalUsd    = 0;
-        $orderItems     = [];
+        // Charge via Square
+        $payment = $this->square->createPayment(
+            $validated['source_id'],
+            $amountCents,
+            $orderRef,
+            $currency['code'] ?? 'USD'
+        );
 
-        foreach ($request->items as $item) {
-            $product = \App\Models\Product::findOrFail($item['product_id']);
-            $lineTotal = $product->price_usd * $item['quantity'];
-            $subtotalUsd += $lineTotal;
-            $orderItems[] = [
-                'product_id'      => $product->id,
-                'product_name'    => $product->name,
-                'sku'             => $product->sku,
-                'quantity'        => $item['quantity'],
-                'unit_price_usd'  => $product->price_usd,
-                'total_price_usd' => $lineTotal,
-            ];
+        if (!$payment['success']) {
+            $errorMsg = $payment['errors'][0]['detail'] ?? 'Payment declined.';
+            Log::warning('Checkout payment failed', ['ref' => $orderRef, 'error' => $errorMsg]);
+            return response()->json(['success' => false, 'message' => $errorMsg], 422);
         }
 
-        $discountUsd  = 0;
-        $discountCode = null;
+        Log::info('Checkout payment success', [
+            'order_ref'  => $orderRef,
+            'payment_id' => $payment['payment_id'],
+            'amount'     => $amountCents,
+            'email'      => $validated['email'],
+        ]);
 
-        if ($request->filled('discount_code')) {
-            $discountCode = DiscountCode::where('code', strtoupper($request->discount_code))
-                ->where('is_active', true)
-                ->where(fn($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
-                ->where(fn($q) => $q->whereNull('usage_limit')->orWhereColumn('usage_count', '<', 'usage_limit'))
-                ->first();
-
-            if ($discountCode) {
-                $discountUsd = match($discountCode->type) {
-                    'percentage'   => round($subtotalUsd * ($discountCode->value / 100), 2),
-                    'fixed'        => min($discountCode->value, $subtotalUsd),
-                    'free_shipping'=> 0,
-                    default        => 0,
-                };
-            }
-        }
-
-        $shippingUsd = $subtotalUsd >= 75 ? 0 : 9.99;
-        if ($discountCode?->type === 'free_shipping') $shippingUsd = 0;
-
-        $taxUsd      = 0;
-        $totalUsd    = max(0, $subtotalUsd - $discountUsd + $shippingUsd + $taxUsd);
-        $totalCents  = (int) round($totalUsd * 100);
-
-        DB::beginTransaction();
-        try {
-            $order = Order::create([...]);
-
-            foreach ($orderItems as $item) {
-                $order->items()->create($item);
-            }
-
-            $payment = $this->square->createPayment(...);
-
-            if (!$payment['success']) {
-                DB::rollBack();
-                return response()->json(['success' => false, 'message' => $errorMsg], 422);
-            }
-
-            $order->update(['status' => 'paid', 'square_payment_id' => $payment['payment_id']]);
-            $discountCode?->increment('usage_count');
-            DB::commit();
-
-            \App\Jobs\CreateShopifyOrder::dispatch($order);
-            $this->sendlane->subscribeContact([...], $locale);
-
-            return response()->json([
-                'success'  => true,
-                'redirect' => route('checkout.confirmation', ['locale' => $locale, 'order' => $order->order_number]),
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Checkout process error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'An unexpected error occurred.'], 500);
-        }
-        */
+        return response()->json([
+            'success'  => true,
+            'redirect' => route('checkout.confirmation', [
+                'locale' => $locale,
+                'order'  => $orderRef,
+            ]),
+        ]);
     }
 
     /**

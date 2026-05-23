@@ -77,4 +77,24 @@ class ShopifyProductController extends Controller
 
         return view('products.index', compact('products', 'meta'))->with('error', null);
     }
+
+    /**
+     * Show a single Shopify product detail page.
+     */
+    public function show(Request $request, int|string $id): View|JsonResponse
+    {
+        // Get access token
+        $auth = $this->shopify->requestAccessTokenViaClientCredentials();
+        $accessToken = ($auth['success'] && !empty($auth['token'])) ? $auth['token'] : null;
+
+        $result = $this->shopify->fetchProductById($id, $accessToken);
+
+        if (!$result['success'] || empty($result['product'])) {
+            abort(404, 'Product not found.');
+        }
+
+        $product = $result['product'];
+
+        return view('products.show', compact('product'));
+    }
 }

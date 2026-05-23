@@ -310,6 +310,50 @@ class ShopifyService
     }
 
     /**
+     * Fetch a single product by Shopify ID from Admin API.
+     *
+     * @return array{success: bool, product: ?array, error: ?string}
+     */
+    public function fetchProductById(int|string $id, ?string $accessToken = null): array
+    {
+        $token = $accessToken ?? $this->token;
+
+        if ($token === '') {
+            // Try client_credentials if no token
+            $auth = $this->requestAccessTokenViaClientCredentials();
+            if ($auth['success'] && !empty($auth['token'])) {
+                $token = $auth['token'];
+            } else {
+                return ['success' => false, 'product' => null, 'error' => 'No access token available.'];
+            }
+        }
+
+        try {
+            $response = $this->httpClient([
+                'X-Shopify-Access-Token' => $token,
+                'Content-Type'           => 'application/json',
+            ])->get($this->apiBase . "/products/{$id}.json");
+
+            if ($response->successful()) {
+                return [
+                    'success' => true,
+                    'product' => $response->json()['product'] ?? null,
+                    'error'   => null,
+                ];
+            }
+
+            return [
+                'success' => false,
+                'product' => null,
+                'error'   => 'Product not found (HTTP ' . $response->status() . ').',
+            ];
+        } catch (\Exception $e) {
+            Log::error('Shopify fetchProductById exception: ' . $e->getMessage());
+            return ['success' => false, 'product' => null, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
      * List all products (simple array; empty on failure).
      */
     public function getProducts(int $limit = 50): array

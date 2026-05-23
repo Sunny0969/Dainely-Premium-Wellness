@@ -8,6 +8,8 @@
 
 {{-- Breadcrumb --}}
 <div class="bg-slate-50 border-b border-slate-100">
+{{-- Mobile: sticky bottom bar se content hide na ho --}}
+<div class="h-16 sm:h-0"></div>
   <div class="container-site py-3">
     <nav class="flex items-center gap-2 text-sm text-slate-500" aria-label="Breadcrumb">
       <a href="#" class="hover:text-navy-700 transition-colors">Home</a>
@@ -167,15 +169,15 @@
             <button class="px-4 py-3 text-slate-600 hover:text-navy-700 hover:bg-slate-50 transition-colors font-bold text-lg"
               x-data x-on:click="$dispatch('increment-qty')">+</button>
           </div>
-          <button id="add-to-cart-btn" class="btn-primary-lg flex-1 justify-center">
+          <a href="{{ route('checkout.index', ['locale' => $locale]) }}" id="add-to-cart-btn" class="btn-primary-lg flex-1 justify-center">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             Add to Cart — $89
-          </button>
+          </a>
         </div>
 
-        {{-- Buy Now --}}
-        <a href="#checkout" class="btn-gold-lg w-full justify-center mb-6">
-          Buy Now — Free Shipping
+        {{-- Order Now --}}
+        <a href="{{ route('checkout.index', ['locale' => $locale]) }}" class="btn-gold-lg w-full justify-center mb-6">
+          Order Now — Free Shipping
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
         </a>
 
@@ -336,15 +338,106 @@
             <span class="text-slate-400 line-through">$189</span>
             <span class="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">Save $40</span>
           </div>
-          <a href="#" class="btn-primary text-sm">View System</a>
+          <a href="{{ route('checkout.index', ['locale' => $locale]) }}" class="btn-primary text-sm">Order Now</a>
         </div>
       </div>
     </div>
   </div>
 </section>
 
+{{-- ============================================================
+     STICKY BOTTOM ORDER BAR
+     ============================================================ --}}
+@php
+  $stickyName  = 'Dainely Belt';
+  $stickyPrice = $product->price_usd ?? 0;
+  $stickyCompare = $product->compare_price_usd ?? 0;
+  $stickySaving  = $product->savings_percent ?? 0;
+@endphp
+<div
+  id="sticky-order-bar"
+  class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t-2 border-navy-100 shadow-[0_-4px_24px_rgba(0,0,0,0.10)] transform translate-y-full transition-transform duration-300 ease-in-out"
+  aria-label="Quick order bar"
+>
+  <div class="container-site py-3">
+    <div class="flex items-center gap-3 md:gap-4">
+
+      {{-- Product thumbnail --}}
+      <img
+        src="{{ asset('images/dainely-belt-product.png') }}"
+        alt="{{ $stickyName }}"
+        class="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-slate-100 hidden sm:block"
+      >
+
+      {{-- Product name + price --}}
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-navy-900 text-sm truncate">{{ $stickyName }}</p>
+        <div class="flex items-center gap-2">
+          <span class="text-navy-700 font-bold">${{ number_format($stickyPrice, 2) }}</span>
+          @if($stickyCompare > $stickyPrice)
+          <span class="text-slate-400 line-through text-xs">${{ number_format($stickyCompare, 2) }}</span>
+          <span class="bg-red-100 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+            -{{ $stickySaving }}%
+          </span>
+          @endif
+        </div>
+      </div>
+
+      {{-- Qty counter --}}
+      <div class="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden flex-shrink-0">
+        <button
+          onclick="stickyQty = Math.max(1, stickyQty - 1); document.getElementById('sticky-qty-display').textContent = stickyQty"
+          class="px-3 py-2 text-slate-600 hover:text-navy-700 hover:bg-slate-50 transition-colors font-bold">−</button>
+        <span id="sticky-qty-display" class="px-4 py-2 font-semibold text-navy-900 border-x-2 border-slate-200 min-w-[2.5rem] text-center">1</span>
+        <button
+          onclick="stickyQty = stickyQty + 1; document.getElementById('sticky-qty-display').textContent = stickyQty"
+          class="px-3 py-2 text-slate-600 hover:text-navy-700 hover:bg-slate-50 transition-colors font-bold">+</button>
+      </div>
+
+      {{-- Order Now --}}
+      <a
+        href="{{ route('checkout.index', ['locale' => $locale]) }}"
+        class="flex-shrink-0 inline-flex items-center gap-2 bg-navy-700 hover:bg-navy-800 text-white font-bold px-5 py-2.5 rounded-xl transition-colors text-sm shadow-md"
+      >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        Order Now
+      </a>
+
+      {{-- Scroll to top --}}
+      <button
+        onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+        class="flex-shrink-0 w-10 h-10 rounded-xl bg-slate-100 hover:bg-navy-100 text-slate-600 hover:text-navy-700 flex items-center justify-center transition-colors"
+        title="Back to top"
+      >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+      </button>
+
+    </div>
+  </div>
+</div>
+
 @push('scripts')
 <script>
+  // Sticky bar qty counter
+  let stickyQty = 1;
+
+  // Show sticky bar when user scrolls past the product hero section
+  const stickyBar = document.getElementById('sticky-order-bar');
+  const heroSection = document.querySelector('section[aria-label="Product detail"]');
+
+  function updateStickyBar() {
+    if (!heroSection || !stickyBar) return;
+    const heroBottom = heroSection.getBoundingClientRect().bottom;
+    if (heroBottom < 0) {
+      stickyBar.classList.remove('translate-y-full');
+    } else {
+      stickyBar.classList.add('translate-y-full');
+    }
+  }
+
+  window.addEventListener('scroll', updateStickyBar, { passive: true });
+  updateStickyBar();
+
   // Size selector highlight
   document.querySelectorAll('.size-btn').forEach(btn => {
     btn.addEventListener('click', function() {
