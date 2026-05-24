@@ -2,7 +2,6 @@
   Dainely Site Header
   Sticky, responsive, with mega nav and language switcher
 --}}
-//a
 <header
   id="site-header"
   class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100 transition-all duration-300"
@@ -57,15 +56,10 @@
             class="absolute top-full left-0 mt-1 w-72 bg-white rounded-2xl shadow-medium border border-slate-100 p-2 z-50"
           >
             @if(!empty($headerShopifyProducts))
-              @foreach($headerShopifyProducts as $product)
-                @php
-                  $titleForSlug = mb_strtolower(trim((string)($product['title'] ?? $product['handle'] ?? '')));
-                  $slugForPage = match($titleForSlug) {
-                    'dainely belt' => 'dainely-belt',
-                    'daily relief system' => 'daily-relief-system',
-                    default => ($product['handle'] ?? 'dainely-belt'),
-                  };
-                @endphp
+            @foreach($headerShopifyProducts as $product)
+              @php
+                $slugForPage = \App\Support\ProductSlugResolver::resolveForShopifyProduct($product);
+              @endphp
                 <a
                   href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $slugForPage]) }}"
                   class="flex items-start gap-3 p-3 rounded-xl hover:bg-navy-50 group transition-colors"
@@ -217,15 +211,10 @@
         <a href="{{ route('home', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors">{{ __('nav.home') }}</a>
         <p class="px-3 pt-2 pb-1 text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('nav.products') }}</p>
         @if(!empty($headerShopifyProducts))
-          @foreach($headerShopifyProducts as $product)
-            @php
-              $titleForSlug = mb_strtolower(trim((string)($product['title'] ?? $product['handle'] ?? '')));
-              $slugForPage = match($titleForSlug) {
-                'dainely belt' => 'dainely-belt',
-                'daily relief system' => 'daily-relief-system',
-                default => ($product['handle'] ?? 'dainely-belt'),
-              };
-            @endphp
+            @foreach($headerShopifyProducts as $product)
+              @php
+                $slugForPage = \App\Support\ProductSlugResolver::resolveForShopifyProduct($product);
+              @endphp
             <a
               href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $slugForPage]) }}"
               class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6"

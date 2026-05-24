@@ -57,18 +57,94 @@ Alpine.data('quantitySelector', (initial = 1, min = 1, max = 10) => ({
   decrement() { if (this.qty > this.min) this.qty--; },
 }));
 
-// Checkout form state
-Alpine.data('checkoutForm', () => ({
-  step: 1,
-  loading: false,
-  paymentError: null,
-  country: '',
-  isEuCountry() {
-    const euCountries = ['AT','BE','BG','CY','CZ','DE','DK','EE','ES','FI','FR','GR','HR','HU','IE','IT','LT','LU','LV','MT','NL','PL','PT','RO','SE','SI','SK'];
-    return euCountries.includes(this.country);
+// Product detail — require option selection before purchase actions
+Alpine.data('productPurchase', (requiresOption = false, cartProduct = {}, cartAddUrl = '') => ({
+  requiresOption: Boolean(requiresOption),
+  cartProduct: cartProduct || {},
+  cartAddUrl: cartAddUrl || '',
+  selectedOption: null,
+  qty: 1,
+  get canPurchase() {
+    return !this.requiresOption || this.selectedOption !== null;
   },
-  nextStep() { if (this.step < 3) this.step++; },
-  prevStep() { if (this.step > 1) this.step--; },
+  get selectedVariant() {
+    if (!this.requiresOption || this.selectedOption === null) {
+      return null;
+    }
+
+    const variants = this.cartProduct.variants || [];
+    return variants.find((variant) => {
+      const key = variant.index ?? variant.title ?? variant.id;
+      return key === this.selectedOption;
+    }) ?? null;
+  },
+  get unitPrice() {
+    const variantPrice = this.selectedVariant?.price;
+    if (variantPrice !== undefined && variantPrice !== null && variantPrice !== '') {
+      return parseFloat(variantPrice);
+    }
+
+    return parseFloat(this.cartProduct.price || 0);
+  },
+  selectOption(value) {
+    this.selectedOption = value;
+  },
+  incrementQty() {
+    this.qty++;
+  },
+  decrementQty() {
+    if (this.qty > 1) {
+      this.qty--;
+    }
+  },
+  optionClasses(value) {
+    return this.selectedOption === value
+      ? 'border-navy-600 bg-navy-50 text-navy-700'
+      : 'border-slate-200 text-slate-600 hover:border-navy-400';
+  },
+  purchaseLinkClasses() {
+    return this.canPurchase ? '' : 'opacity-50 cursor-not-allowed pointer-events-none';
+  },
+  handlePurchaseClick(event) {
+    if (!this.canPurchase) {
+      event.preventDefault();
+    }
+  },
+  goToCheckout(event) {
+    if (!this.canPurchase) {
+      event.preventDefault();
+      return;
+    }
+
+    event.preventDefault();
+
+    const form = this.$refs.checkoutForm;
+    if (!form || !this.cartAddUrl) {
+      return;
+    }
+
+    const variant = this.selectedVariant;
+    const set = (name, value) => {
+      const input = form.querySelector(`[name="${name}"]`);
+      if (input) {
+        input.value = value ?? '';
+      }
+    };
+
+    set('product_id', this.cartProduct.id);
+    set('title', this.cartProduct.title);
+    set('subtitle', this.cartProduct.subtitle || '');
+    set('image', this.cartProduct.image);
+    set('price', this.unitPrice.toFixed(2));
+    set('compare_at_price', variant?.compare_at_price ?? this.cartProduct.compare_at_price ?? '');
+    set('quantity', this.qty);
+    set('option_label', variant?.title ?? '');
+    set('option_value', variant ? (variant.id ?? this.selectedOption) : '');
+    set('variant_id', variant?.id ?? '');
+    set('source', this.cartProduct.source || 'static');
+
+    form.submit();
+  },
 }));
 
 // Toast notifications

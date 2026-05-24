@@ -16,6 +16,7 @@ return [
     'location_id'    => env('SQUARE_LOCATION_ID', ''),
     'environment'    => env('SQUARE_ENVIRONMENT', 'sandbox'), // 'sandbox' or 'production'
     'webhook_signature_key' => env('SQUARE_WEBHOOK_SIGNATURE_KEY', ''),
+    'verify_ssl'     => env('SQUARE_VERIFY_SSL', true),
 
     // Square API base URLs
     'api_url' => env('SQUARE_ENVIRONMENT', 'sandbox') === 'production'

@@ -10,6 +10,7 @@ use App\Services\SquareService;
 use App\Services\ShopifyService;
 use App\Services\SendlaneService;
 use App\Services\CurrencyService;
+use App\Support\CheckoutCart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 // use Illuminate\Support\Facades\DB;
@@ -29,12 +30,27 @@ class CheckoutController extends Controller
      */
     public function index()
     {
-        $squareAppId  = $this->square->getApplicationId();
-        $squareEnv    = $this->square->getEnvironment();
-        $locale       = App::getLocale();
-        $currency     = $this->currency->getCurrencyForLocale($locale);
+        if (request()->getHost() === '127.0.0.1' && app()->environment('local')) {
+            return redirect()->to(str_replace('127.0.0.1', 'localhost', request()->fullUrl()));
+        }
 
-        return view('checkout.index', compact('squareAppId', 'squareEnv', 'locale', 'currency'));
+        $squareAppId      = $this->square->getApplicationId();
+        $squareEnv        = $this->square->getEnvironment();
+        $squareLocationId = $this->square->getLocationId();
+        $squareConfigured = $this->square->isConfigured();
+        $locale           = App::getLocale();
+        $currency         = $this->currency->getCurrencyForLocale($locale);
+        $cart             = CheckoutCart::get();
+
+        return view('checkout.index', compact(
+            'squareAppId',
+            'squareEnv',
+            'squareLocationId',
+            'squareConfigured',
+            'locale',
+            'currency',
+            'cart'
+        ));
     }
 
     /**
@@ -84,6 +100,17 @@ class CheckoutController extends Controller
             'email'      => $validated['email'],
         ]);
 
+        session([
+            'checkout.last_order' => [
+                'order_ref'   => $orderRef,
+                'payment_id'  => $payment['payment_id'] ?? null,
+                'email'       => $validated['email'],
+                'first_name'  => $validated['first_name'],
+                'cart'        => CheckoutCart::get(),
+                'amount_cents'=> $amountCents,
+            ],
+        ]);
+
         return response()->json([
             'success'  => true,
             'redirect' => route('checkout.confirmation', [
@@ -98,21 +125,23 @@ class CheckoutController extends Controller
      */
     public function confirmation(string $locale, string $order)
     {
-        // Database disabled — demo confirmation only
-        // $order = Order::where('order_number', $order)->with('items')->firstOrFail();
+        $lastOrder = session('checkout.last_order');
+        $cart      = is_array($lastOrder['cart'] ?? null) ? $lastOrder['cart'] : CheckoutCart::get();
+        $qty       = (int) ($cart['quantity'] ?? 1);
+        $price     = (float) ($cart['price'] ?? 89);
 
         $order = (object) [
             'order_number'        => $order,
-            'customer_first_name' => 'Guest',
-            'customer_email'      => 'guest@example.com',
-            'total_usd'           => 89.00,
+            'customer_first_name' => $lastOrder['first_name'] ?? 'Guest',
+            'customer_email'      => $lastOrder['email'] ?? 'guest@example.com',
+            'total_usd'           => ($lastOrder['amount_cents'] ?? ($price * $qty * 100)) / 100,
             'shipping_usd'        => 0,
             'discount_amount_usd' => 0,
             'items'               => collect([
                 (object) [
-                    'product_name'    => 'Dainely Belt',
-                    'quantity'        => 1,
-                    'total_price_usd' => 89.00,
+                    'product_name'    => $cart['title'] ?? 'Dainely Belt',
+                    'quantity'        => $qty,
+                    'total_price_usd' => $price * $qty,
                 ],
             ]),
         ];

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\BlogController;
+use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\CheckoutController;
 use App\Http\Controllers\Frontend\PageController;
 use App\Http\Controllers\Frontend\EducationController;
@@ -68,6 +69,9 @@ Route::prefix('{locale}')
     Route::get('/terms',           [PageController::class, 'terms'])->name('terms');
     Route::get('/shipping-policy', [PageController::class, 'shipping'])->name('shipping');
     Route::get('/refund-policy',   [PageController::class, 'refund'])->name('refund');
+
+    // ── Cart ───────────────────────────────────────────────────
+    Route::post('/cart/add', [CartController::class, 'store'])->name('cart.store');
 
     // ── Checkout ───────────────────────────────────────────────
     Route::prefix('checkout')->name('checkout.')->group(function () {

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Services\ShopifyService;
+use App\Support\ProductSlugResolver;
 use App\Support\StaticCatalog;
 // use App\Models\Product;
 // use App\Models\ProductTranslation;
@@ -23,7 +25,7 @@ class ProductController extends Controller
         return view('pages.products.index', compact('products', 'locale'));
     }
 
-    public function show(string $locale, string $slug)
+    public function show(string $locale, string $slug, ShopifyService $shopify)
     {
         // Database disabled — resolve product by slug from static catalog
         // $translation = ProductTranslation::where('slug', $slug)->firstOrFail();
@@ -40,14 +42,21 @@ class ProductController extends Controller
         //     ->limit(3)
         //     ->get();
 
-        $product = StaticCatalog::findBySlug($slug, $locale);
-        if (!$product) {
-            abort(404);
+        $staticSlug = ProductSlugResolver::resolveRouteSlug($slug);
+        $product = StaticCatalog::findBySlug($staticSlug, $locale);
+
+        if ($product) {
+            $related = StaticCatalog::products()
+                ->first(fn ($p) => $p->id !== $product->id);
+
+            return view('pages.products.show', compact('product', 'related', 'locale'));
         }
 
-        $related = StaticCatalog::products()
-            ->first(fn ($p) => $p->id !== $product->id);
+        $shopifyResult = $shopify->fetchProductByHandle($slug);
+        if ($shopifyResult['success'] && ! empty($shopifyResult['product'])) {
+            return view('products.show', ['product' => $shopifyResult['product']]);
+        }
 
-        return view('pages.products.show', compact('product', 'related', 'locale'));
+        abort(404);
     }
 }

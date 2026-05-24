@@ -21,9 +21,34 @@
   </div>
 </div>
 
+@php
+  $checkoutUrl = route('checkout.index', ['locale' => $locale]);
+  $cartAddUrl = route('cart.store', ['locale' => $locale]);
+  $staticSizes = ['S/M', 'L/XL', '2XL', '3XL'];
+  $requiresOption = count($staticSizes) > 0;
+  $translation = $product->translation($locale) ?? $product->translation('en');
+  $cartProduct = [
+    'id' => 'static-' . $product->id,
+    'title' => $translation->name ?? 'Dainely Belt',
+    'subtitle' => $translation->short_description ?? 'Premium Lumbar Support',
+    'image' => asset($product->main_image),
+    'price' => (float) $product->price_usd,
+    'compare_at_price' => (float) $product->compare_price_usd,
+    'variants' => collect($staticSizes)->map(fn ($size) => [
+      'index' => $size,
+      'id' => $size,
+      'title' => $size,
+      'price' => (float) $product->price_usd,
+      'compare_at_price' => (float) $product->compare_price_usd,
+    ])->values()->all(),
+    'source' => 'static',
+  ];
+@endphp
+
 {{-- ============================================================
      PRODUCT HERO
      ============================================================ --}}
+<div x-data="productPurchase({{ $requiresOption ? 'true' : 'false' }}, @js($cartProduct), @js($cartAddUrl))">
 <section class="section bg-white" aria-label="Product detail">
   <div class="container-site">
     <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
@@ -143,43 +168,19 @@
           @endforeach
         </ul>
 
-        {{-- Size selector --}}
-        <div class="mb-6">
-          <div class="flex items-center justify-between mb-3">
-            <label class="form-label">Select Size</label>
-            <a href="#size-guide" class="text-navy-600 text-sm underline underline-offset-2 hover:text-navy-800">Size Guide</a>
-          </div>
-          <div class="grid grid-cols-4 gap-2" id="size-selector">
-            @foreach(['S/M', 'L/XL', '2XL', '3XL'] as $size)
-            <button
-              onclick="document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected')); this.classList.add('selected')"
-              class="size-btn border-2 border-slate-200 hover:border-navy-600 text-slate-700 hover:text-navy-700 font-semibold py-2.5 rounded-xl text-sm transition-all duration-200 focus:outline-none"
-              style=""
-            >{{ $size }}</button>
-            @endforeach
-          </div>
-        </div>
-
-        {{-- Quantity + Add to Cart --}}
-        <div class="flex items-center gap-4 mb-4">
-          <div class="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden">
-            <button class="px-4 py-3 text-slate-600 hover:text-navy-700 hover:bg-slate-50 transition-colors font-bold text-lg"
-              x-data x-on:click="$dispatch('decrement-qty')">−</button>
-            <span class="px-5 py-3 font-semibold text-navy-900 text-lg border-x-2 border-slate-200" x-data="{qty:1}" x-on:increment-qty.window="qty++" x-on:decrement-qty.window="qty = Math.max(1, qty-1)" x-text="qty" id="qty-display">1</span>
-            <button class="px-4 py-3 text-slate-600 hover:text-navy-700 hover:bg-slate-50 transition-colors font-bold text-lg"
-              x-data x-on:click="$dispatch('increment-qty')">+</button>
-          </div>
-          <a href="{{ route('checkout.index', ['locale' => $locale]) }}" id="add-to-cart-btn" class="btn-primary-lg flex-1 justify-center">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-            Add to Cart — $89
-          </a>
-        </div>
-
-        {{-- Order Now --}}
-        <a href="{{ route('checkout.index', ['locale' => $locale]) }}" class="btn-gold-lg w-full justify-center mb-6">
-          Order Now — Free Shipping
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-        </a>
+        {{-- Options + purchase actions --}}
+        @include('partials.product-purchase', [
+          'cartAddUrl' => $cartAddUrl,
+          'checkoutUrl' => $checkoutUrl,
+          'requiresOption' => $requiresOption,
+          'options' => $staticSizes,
+          'optionType' => 'static',
+          'optionLabel' => 'Select Size',
+          'showSizeGuide' => true,
+          'sizeGuideHref' => '#size-guide',
+          'addToCartText' => 'Add to Cart — $89',
+          'orderNowText' => 'Order Now — Free Shipping',
+        ])
 
         {{-- Guarantee strip --}}
         <div class="flex items-center gap-3 p-4 border-2 border-sage-200 bg-sage-50 rounded-2xl">
@@ -395,13 +396,16 @@
       </div>
 
       {{-- Order Now --}}
-      <a
-        href="{{ route('checkout.index', ['locale' => $locale]) }}"
-        class="flex-shrink-0 inline-flex items-center gap-2 bg-navy-700 hover:bg-navy-800 text-white font-bold px-5 py-2.5 rounded-xl transition-colors text-sm shadow-md"
+      <button
+        type="button"
+        @click="goToCheckout($event)"
+        :class="canPurchase ? 'bg-navy-700 hover:bg-navy-800' : 'bg-slate-400 cursor-not-allowed pointer-events-none opacity-70'"
+        :aria-disabled="!canPurchase"
+        class="flex-shrink-0 inline-flex items-center gap-2 text-white font-bold px-5 py-2.5 rounded-xl transition-colors text-sm shadow-md"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         Order Now
-      </a>
+      </button>
 
       {{-- Scroll to top --}}
       <button
@@ -414,6 +418,7 @@
 
     </div>
   </div>
+</div>
 </div>
 
 @push('scripts')
@@ -437,20 +442,6 @@
 
   window.addEventListener('scroll', updateStickyBar, { passive: true });
   updateStickyBar();
-
-  // Size selector highlight
-  document.querySelectorAll('.size-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.size-btn').forEach(b => {
-        b.style.borderColor = '';
-        b.style.backgroundColor = '';
-        b.style.color = '';
-      });
-      this.style.borderColor = '#1e3a8a';
-      this.style.backgroundColor = '#eff6ff';
-      this.style.color = '#1e3a8a';
-    });
-  });
 
   // Alpine productGallery images
   document.addEventListener('alpine:init', () => {

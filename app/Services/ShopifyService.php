@@ -354,6 +354,57 @@ class ShopifyService
     }
 
     /**
+     * Fetch a single product by Shopify handle from Admin API.
+     *
+     * @return array{success: bool, product: ?array, error: ?string}
+     */
+    public function fetchProductByHandle(string $handle, ?string $accessToken = null): array
+    {
+        $handle = trim($handle);
+        if ($handle === '') {
+            return ['success' => false, 'product' => null, 'error' => 'Handle is required.'];
+        }
+
+        $token = $accessToken ?? $this->token;
+
+        if ($token === '') {
+            $auth = $this->requestAccessTokenViaClientCredentials();
+            if ($auth['success'] && ! empty($auth['token'])) {
+                $token = $auth['token'];
+            } else {
+                return ['success' => false, 'product' => null, 'error' => 'No access token available.'];
+            }
+        }
+
+        try {
+            $response = $this->httpClient([
+                'X-Shopify-Access-Token' => $token,
+                'Content-Type'           => 'application/json',
+            ])->get($this->apiBase . '/products.json', ['handle' => $handle]);
+
+            if ($response->successful()) {
+                $product = $response->json()['products'][0] ?? null;
+
+                return [
+                    'success' => $product !== null,
+                    'product' => $product,
+                    'error'   => $product === null ? 'Product not found.' : null,
+                ];
+            }
+
+            return [
+                'success' => false,
+                'product' => null,
+                'error'   => 'Product not found (HTTP ' . $response->status() . ').',
+            ];
+        } catch (\Exception $e) {
+            Log::error('Shopify fetchProductByHandle exception: ' . $e->getMessage());
+
+            return ['success' => false, 'product' => null, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
      * List all products (simple array; empty on failure).
      */
     public function getProducts(int $limit = 50): array

@@ -15,6 +15,27 @@
   $tags      = $product['tags'] ?? '';
   $handle    = $product['handle'] ?? '';
   $shopDomain = config('shopify.store_domain', '');
+  $checkoutUrl = route('checkout.index', ['locale' => app()->getLocale()]);
+  $cartAddUrl = route('cart.store', ['locale' => app()->getLocale()]);
+  $requiresOption = count($variants) > 1;
+  $cartProduct = [
+    'id' => (string) ($product['id'] ?? $handle),
+    'title' => $title,
+    'subtitle' => \Illuminate\Support\Str::limit($plainDesc, 100) ?: 'Premium Wellness Product',
+    'image' => $mainImg ?: asset('images/dainely-belt-product.png'),
+    'price' => (float) ($price ?? 0),
+    'compare_at_price' => $compareAt ? (float) $compareAt : null,
+    'variants' => collect($variants)->values()->map(function ($variant, $index) {
+      return [
+        'index' => $index,
+        'id' => (string) ($variant['id'] ?? $index),
+        'title' => $variant['title'] ?? 'Option',
+        'price' => (float) ($variant['price'] ?? 0),
+        'compare_at_price' => isset($variant['compare_at_price']) ? (float) $variant['compare_at_price'] : null,
+      ];
+    })->all(),
+    'source' => 'shopify',
+  ];
 @endphp
 
 @section('title', $title . ' — ' . config('app.name'))
@@ -37,6 +58,7 @@
 </div>
 
 {{-- PRODUCT HERO --}}
+<div x-data="productPurchase({{ $requiresOption ? 'true' : 'false' }}, @js($cartProduct), @js($cartAddUrl))">
 <section class="section bg-white" aria-label="Product detail">
   <div class="container-site">
     <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
@@ -157,50 +179,17 @@
         </div>
         @endif
 
-        {{-- Variants selector --}}
-        @if(count($variants) > 1)
-        <div class="mb-6" x-data="{ selected: null }">
-          <label class="form-label mb-3 block">Select Option</label>
-          <div class="flex flex-wrap gap-2">
-            @foreach($variants as $variant)
-            <button
-              @click="selected = {{ $loop->index }}"
-              :class="selected === {{ $loop->index }} ? 'border-navy-600 bg-navy-50 text-navy-700' : 'border-slate-200 text-slate-600 hover:border-navy-400'"
-              class="border-2 font-semibold py-2 px-4 rounded-xl text-sm transition-all duration-200 focus:outline-none"
-            >
-              {{ $variant['title'] ?? 'Option' }}
-              @if(!empty($variant['price']))
-              — ${{ number_format((float)$variant['price'], 2) }}
-              @endif
-            </button>
-            @endforeach
-          </div>
-        </div>
-        @endif
-
-        {{-- Quantity + Add to Cart --}}
-        <div class="flex items-center gap-4 mb-4">
-          <div class="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden">
-            <button class="px-4 py-3 text-slate-600 hover:text-navy-700 hover:bg-slate-50 transition-colors font-bold text-lg"
-              x-data x-on:click="$dispatch('decrement-qty')">−</button>
-            <span class="px-5 py-3 font-semibold text-navy-900 text-lg border-x-2 border-slate-200" x-data="{qty:1}" x-on:increment-qty.window="qty++" x-on:decrement-qty.window="qty = Math.max(1, qty-1)" x-text="qty" id="qty-display">1</span>
-            <button class="px-4 py-3 text-slate-600 hover:text-navy-700 hover:bg-slate-50 transition-colors font-bold text-lg"
-              x-data x-on:click="$dispatch('increment-qty')">+</button>
-          </div>
-          <a
-            href="{{ route('checkout.index', ['locale' => app()->getLocale()]) }}"
-            class="btn-primary-lg flex-1 justify-center"
-          >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-            Add to Cart
-          </a>
-        </div>
-
-        {{-- Order Now --}}
-        <a href="{{ route('checkout.index', ['locale' => app()->getLocale()]) }}" class="btn-gold-lg w-full justify-center mb-6">
-          Order Now — Free Shipping
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-        </a>
+        {{-- Options + purchase actions --}}
+        @include('partials.product-purchase', [
+          'cartAddUrl' => $cartAddUrl,
+          'checkoutUrl' => $checkoutUrl,
+          'requiresOption' => $requiresOption,
+          'options' => $variants,
+          'optionType' => 'shopify',
+          'optionLabel' => 'Select Option',
+          'addToCartText' => 'Add to Cart',
+          'orderNowText' => 'Order Now — Free Shipping',
+        ])
 
         {{-- Guarantee strip --}}
         <div class="flex items-center gap-3 p-4 border-2 border-sage-200 bg-sage-50 rounded-2xl">
@@ -326,15 +315,16 @@
       </div>
 
       {{-- Order Now button --}}
-      @if($shopDomain && $handle)
-      <a
-        href="{{ route('checkout.index', ['locale' => app()->getLocale()]) }}"
-        class="flex-shrink-0 inline-flex items-center gap-2 bg-navy-700 hover:bg-navy-800 text-white font-bold px-5 py-2.5 rounded-xl transition-colors text-sm shadow-md"
+      <button
+        type="button"
+        @click="goToCheckout($event)"
+        :class="canPurchase ? 'bg-navy-700 hover:bg-navy-800' : 'bg-slate-400 cursor-not-allowed pointer-events-none opacity-70'"
+        :aria-disabled="!canPurchase"
+        class="flex-shrink-0 inline-flex items-center gap-2 text-white font-bold px-5 py-2.5 rounded-xl transition-colors text-sm shadow-md"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         Order Now
-      </a>
-      @endif
+      </button>
 
       {{-- Scroll to top --}}
       <button
@@ -347,6 +337,7 @@
 
     </div>
   </div>
+</div>
 </div>
 
 @push('scripts')
