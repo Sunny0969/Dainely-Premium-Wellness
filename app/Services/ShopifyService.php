@@ -372,7 +372,7 @@ class ShopifyService
             if ($auth['success'] && ! empty($auth['token'])) {
                 $token = $auth['token'];
             } else {
-                return ['success' => false, 'product' => null, 'error' => 'No access token available.'];
+                return $this->fetchProductByHandleFromStorefront($handle);
             }
         }
 
@@ -384,6 +384,33 @@ class ShopifyService
 
             if ($response->successful()) {
                 $product = $response->json()['products'][0] ?? null;
+
+                if ($product !== null) {
+                    return [
+                        'success' => true,
+                        'product' => $product,
+                        'error'   => null,
+                    ];
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Shopify fetchProductByHandle exception: ' . $e->getMessage());
+        }
+
+        return $this->fetchProductByHandleFromStorefront($handle);
+    }
+
+    /**
+     * @return array{success: bool, product: ?array, error: ?string}
+     */
+    protected function fetchProductByHandleFromStorefront(string $handle): array
+    {
+        try {
+            $response = $this->httpClient()
+                ->get("https://{$this->domain}/products/{$handle}.json");
+
+            if ($response->successful()) {
+                $product = $response->json()['product'] ?? null;
 
                 return [
                     'success' => $product !== null,
@@ -398,9 +425,11 @@ class ShopifyService
                 'error'   => 'Product not found (HTTP ' . $response->status() . ').',
             ];
         } catch (\Exception $e) {
-            Log::error('Shopify fetchProductByHandle exception: ' . $e->getMessage());
-
-            return ['success' => false, 'product' => null, 'error' => $e->getMessage()];
+            return [
+                'success' => false,
+                'product' => null,
+                'error'   => $e->getMessage(),
+            ];
         }
     }
 
@@ -424,6 +453,8 @@ class ShopifyService
     {
         $storeUrl = 'https://' . $this->domain;
 
+        $active = array_filter($products, fn (array $product) => ($product['status'] ?? 'active') === 'active');
+
         return array_values(array_map(function (array $product) use ($storeUrl) {
             $variant = $product['variants'][0] ?? [];
             $image = $product['image']['src']
@@ -442,7 +473,43 @@ class ShopifyService
                 'updated_at'     => $product['updated_at'] ?? null,
                 'url'            => $handle ? "{$storeUrl}/products/{$handle}" : $storeUrl,
             ];
-        }, $products));
+        }, $active));
+    }
+
+    /**
+     * Map a raw Shopify product for sidebar / CTA blocks.
+     */
+    public function mapProductForCta(array $product): object
+    {
+        $variant = $product['variants'][0] ?? [];
+        $image = $product['image']['src'] ?? ($product['images'][0]['src'] ?? null);
+
+        return (object) [
+            'title'             => $product['title'] ?? 'Product',
+            'handle'            => $product['handle'] ?? '',
+            'main_image'        => $image ?? '',
+            'price_usd'         => (float) ($variant['price'] ?? 0),
+            'compare_price_usd' => ! empty($variant['compare_at_price']) ? (float) $variant['compare_at_price'] : null,
+        ];
+    }
+
+    /**
+     * First active Shopify product for featured CTAs.
+     */
+    public function featuredProduct(): ?object
+    {
+        $result = $this->fetchProducts(12);
+        if (! $result['success'] || empty($result['products'])) {
+            return null;
+        }
+
+        foreach ($result['products'] as $product) {
+            if (($product['status'] ?? 'active') === 'active') {
+                return $this->mapProductForCta($product);
+            }
+        }
+
+        return null;
     }
 
     /**

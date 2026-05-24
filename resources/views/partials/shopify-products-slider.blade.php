@@ -17,7 +17,7 @@
         <h2 class="heading-section mb-3">{{ __('home.shop_slider_headline') }}</h2>
         <p class="text-body text-sm md:text-base">{{ __('home.shop_slider_desc') }}</p>
       </div>
-      <a href="{{ route('shop.index') }}" class="btn-outline self-start md:self-auto shrink-0">
+      <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="btn-outline self-start md:self-auto shrink-0">
         {{ __('home.shop_slider_view_all') }}
       </a>
     </div>
@@ -46,7 +46,7 @@
         >
 @foreach($slideProducts as $product)
           <article class="card group overflow-hidden flex flex-col h-full animate-on-scroll">
-            <a href="{{ route('shop.show', ['id' => $product['id'] ?? ($product['shopify_id'] ?? '')]) }}" class="block relative overflow-hidden">
+            <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="block relative overflow-hidden">
               @if($product['image'])
               <img
                 src="{{ $product['image'] }}"
@@ -63,7 +63,7 @@
             </a>
             <div class="p-5 flex flex-col flex-1">
 <h3 class="heading-card text-base mb-2 line-clamp-2">
-            <a href="{{ route('shop.show', ['id' => $product['id'] ?? ($product['shopify_id'] ?? '')]) }}" class="hover:text-navy-700 transition-colors">
+            <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="hover:text-navy-700 transition-colors">
                   {{ $product['title'] }}
                 </a>
               </h3>
@@ -75,7 +75,7 @@
                 <span class="text-slate-400 line-through text-sm">${{ number_format((float) $product['compare_at'], 2) }}</span>
                 @endif
 </div>
-            <a href="{{ route('shop.show', ['id' => $product['id'] ?? ($product['shopify_id'] ?? '')]) }}" class="btn-primary w-full justify-center text-sm">
+            <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="btn-primary w-full justify-center text-sm">
                 {{ __('home.shop_add_to_cart') }}
               </a>
             </div>

@@ -50,7 +50,7 @@
     <nav class="flex items-center gap-2 text-sm text-slate-500" aria-label="Breadcrumb">
       <a href="{{ route('home', ['locale' => app()->getLocale()]) }}" class="hover:text-navy-700 transition-colors">Home</a>
       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-      <a href="{{ route('shop.index') }}" class="hover:text-navy-700 transition-colors">Shop</a>
+      <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="hover:text-navy-700 transition-colors">{{ __('nav.products') }}</a>
       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       <span class="text-navy-800 font-medium">{{ Str::limit($title, 40) }}</span>
     </nav>
@@ -264,7 +264,7 @@
 {{-- Back to shop --}}
 <section class="py-8 bg-white border-t border-slate-100">
   <div class="container-site text-center">
-    <a href="{{ route('shop.index') }}" class="inline-flex items-center gap-2 text-navy-600 hover:text-navy-800 font-semibold transition-colors">
+    <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="inline-flex items-center gap-2 text-navy-600 hover:text-navy-800 font-semibold transition-colors">
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
       Back to All Products
     </a>

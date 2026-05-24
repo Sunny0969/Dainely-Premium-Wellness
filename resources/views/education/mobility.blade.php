@@ -34,18 +34,11 @@
       @endforeach
     </div>
     <div>
-      @if($product)
-      <div class="card p-6 sticky top-24">
-        <img src="{{ asset($product->main_image) }}" alt="Dainely Belt" class="w-full h-48 object-cover rounded-xl mb-5">
-        <h3 class="font-semibold text-navy-900 text-lg mb-2">Accelerate Your Recovery</h3>
-        <p class="text-sm text-slate-600 mb-4">Use the Dainely Belt during mobility sessions to support the spine and allow deeper, safer movement ranges.</p>
-        <div class="flex items-center gap-2 mb-5">
-          <span class="font-bold text-2xl text-navy-900">${{ number_format($product->price_usd, 2) }}</span>
-          @if($product->compare_price_usd)<span class="text-slate-400 line-through">${{ number_format($product->compare_price_usd, 2) }}</span>@endif
-        </div>
-        <a href="{{ route('checkout.index', ['locale' => app()->getLocale()]) }}" class="btn-gold-lg w-full justify-center">Buy Now — Free Shipping</a>
-      </div>
-      @endif
+      @include('partials.shopify-product-sidebar', [
+        'product' => $product,
+        'heading' => 'Accelerate Your Recovery',
+        'description' => 'Use lumbar support during mobility sessions for deeper, safer movement ranges.',
+      ])
     </div>
   </div>
 </section>

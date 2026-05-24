@@ -3,40 +3,25 @@
 namespace App\Support;
 
 /**
- * Maps Shopify product handles/titles to static catalog slugs when possible.
+ * Resolves product URL slugs to Shopify handles (including legacy static slugs).
  */
 class ProductSlugResolver
 {
-    /** @var array<string, string> */
-    protected static array $handleAliases = [
-        'dainely-comfort-belt' => 'dainely-belt',
-        'dainely-daily-comfort-system' => 'daily-relief-system',
+    /** @var array<string, string> Legacy static slugs → Shopify handles */
+    protected static array $legacySlugToHandle = [
+        'dainely-belt' => 'dainely-comfort-belt',
+        'daily-relief-system' => 'dainely-daily-comfort-system',
     ];
 
-    public static function resolveRouteSlug(string $slug): string
+    public static function resolveHandle(string $slug): string
     {
-        return self::$handleAliases[$slug] ?? $slug;
+        return self::$legacySlugToHandle[$slug] ?? $slug;
     }
 
     public static function resolveForShopifyProduct(array $product): string
     {
-        $title = mb_strtolower(trim((string) ($product['title'] ?? '')));
         $handle = (string) ($product['handle'] ?? '');
 
-        $fromTitle = match ($title) {
-            'dainely belt', 'dainely comfort belt' => 'dainely-belt',
-            'daily relief system' => 'daily-relief-system',
-            default => null,
-        };
-
-        if ($fromTitle !== null) {
-            return $fromTitle;
-        }
-
-        if ($handle !== '' && isset(self::$handleAliases[$handle])) {
-            return self::$handleAliases[$handle];
-        }
-
-        return $handle !== '' ? $handle : 'dainely-belt';
+        return $handle !== '' ? $handle : self::resolveHandle('');
     }
 }

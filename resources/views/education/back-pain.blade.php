@@ -126,25 +126,11 @@
 
       {{-- Sidebar --}}
       <aside class="space-y-6 sticky top-24">
-        {{-- Product CTA --}}
-        <div class="card overflow-hidden">
-          <img src="{{ asset('images/dainely-belt-product.png') }}" alt="Dainely Belt" class="w-full h-40 object-cover" loading="lazy">
-          <div class="p-5">
-            <p class="eyebrow text-xs mb-2">Recommended</p>
-            <h4 class="font-display font-bold text-navy-900 text-lg mb-2">Dainely Belt</h4>
-            <p class="text-slate-500 text-xs mb-4">Clinical-grade lumbar decompression. 87% of users report measurable relief within 4 weeks.</p>
-            <div class="flex items-center gap-2 mb-4">
-              <span class="font-bold text-navy-900 text-xl">$89</span>
-              <span class="text-slate-400 line-through text-sm">$119</span>
-              <span class="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full ml-auto">Save 25%</span>
-            </div>
-            <div class="stars flex gap-0.5 mb-4">
-              @for ($i=0;$i<5;$i++)<svg class="w-4 h-4 star" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>@endfor
-              <span class="text-slate-500 text-xs ml-1">(1,247)</span>
-            </div>
-            <a href="#" class="btn-primary w-full justify-center text-sm">Shop Now — Free Shipping</a>
-          </div>
-        </div>
+        @include('partials.shopify-product-sidebar', [
+          'product' => $product,
+          'heading' => 'Recommended for Back Pain Relief',
+          'description' => 'Clinical-grade lumbar decompression from our live Shopify catalog.',
+        ])
 
         {{-- Doctor quote --}}
         <div class="card p-5">

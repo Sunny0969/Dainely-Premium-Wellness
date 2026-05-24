@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Share Shopify products with the site header dropdown.
-        View::composer('partials.header', function ($view) {
+        View::composer(['partials.header', 'partials.footer', 'blog.show'], function ($view) {
             /** @var ShopifyService $shopify */
             $shopify = app(ShopifyService::class);
 
@@ -33,14 +33,25 @@ class AppServiceProvider extends ServiceProvider
             $payload = Cache::remember($cacheKey, $ttlSeconds, function () use ($shopify) {
                 $shopifyResult = $shopify->fetchProducts(12);
                 if (($shopifyResult['success'] ?? false) === true) {
+                    $raw = $shopifyResult['products'] ?? [];
+                    $featured = null;
+                    foreach ($raw as $product) {
+                        if (($product['status'] ?? 'active') === 'active') {
+                            $featured = $shopify->mapProductForCta($product);
+                            break;
+                        }
+                    }
+
                     return [
-                        'products' => $shopify->mapProductsForDisplay($shopifyResult['products'] ?? []),
+                        'products' => $shopify->mapProductsForDisplay($raw),
+                        'featured' => $featured,
                         'error' => null,
                     ];
                 }
 
                 return [
                     'products' => [],
+                    'featured' => null,
                     'error' => $shopifyResult['error'] ?? 'Could not load products from Shopify.',
                 ];
             });
@@ -48,6 +59,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with([
                 'headerShopifyProducts' => $payload['products'] ?? [],
                 'headerShopifyProductsError' => $payload['error'] ?? null,
+                'featuredShopifyProduct' => $payload['featured'] ?? null,
             ]);
         });
     }

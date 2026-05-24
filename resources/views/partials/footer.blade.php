@@ -36,8 +36,15 @@
       <div>
         <h3 class="text-sm font-bold uppercase tracking-widest text-navy-400 mb-4">{{ __('footer.products') }}</h3>
         <ul class="space-y-2.5">
-          <li><a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.dainely_belt') }}</a></li>
-          <li><a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'daily-relief-system']) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.daily_relief') }}</a></li>
+          @if(!empty($headerShopifyProducts))
+            @foreach($headerShopifyProducts as $product)
+            <li>
+              <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="text-navy-300 hover:text-white text-sm transition-colors">
+                {{ $product['title'] }}
+              </a>
+            </li>
+            @endforeach
+          @endif
           <li><a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.all_products') }}</a></li>
         </ul>
       </div>

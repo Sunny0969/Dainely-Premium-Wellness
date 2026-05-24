@@ -2,6 +2,11 @@
   Dainely Site Header
   Sticky, responsive, with mega nav and language switcher
 --}}
+@php
+  $shopNowUrl = !empty($headerShopifyProducts[0]['handle'])
+    ? route('products.show', ['locale' => app()->getLocale(), 'slug' => $headerShopifyProducts[0]['handle']])
+    : route('products.index', ['locale' => app()->getLocale()]);
+@endphp
 <header
   id="site-header"
   class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100 transition-all duration-300"
@@ -85,25 +90,15 @@
                 </a>
               @endforeach
             @else
-              {{-- Fallback to previous static items if Shopify is unavailable --}}
-              <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="flex items-start gap-3 p-3 rounded-xl hover:bg-navy-50 group transition-colors">
-                <div class="w-10 h-10 bg-navy-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-navy-200 transition-colors">
-                  <svg class="w-5 h-5 text-navy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+              <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="flex items-start gap-3 p-3 rounded-xl hover:bg-navy-50 group transition-colors">
+                <div class="w-10 h-10 bg-navy-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 text-navy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-slate-800 text-sm group-hover:text-navy-700">{{ __('nav.dainely_belt') }}</p>
-                  <p class="text-xs text-slate-500 mt-0.5">{{ __('nav.dainely_belt_desc') }}</p>
+                  <p class="font-semibold text-slate-800 text-sm group-hover:text-navy-700">{{ __('footer.all_products') }}</p>
                 </div>
               </a>
-              <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'daily-relief-system']) }}" class="flex items-start gap-3 p-3 rounded-xl hover:bg-navy-50 group transition-colors">
-                <div class="w-10 h-10 bg-gold-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-gold-200 transition-colors">
-                  <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                </div>
-                <div>
-                  <p class="font-semibold text-slate-800 text-sm group-hover:text-navy-700">{{ __('nav.daily_relief') }}</p>
-                  <p class="text-xs text-slate-500 mt-0.5">{{ __('nav.daily_relief_desc') }}</p>
-                </div>
-              </a>
+
             @endif
 
           </div>
@@ -172,12 +167,12 @@
         </div>
 
         {{-- CTA Button --}}
-        <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="hidden sm:inline-flex btn-primary text-xs px-5 py-2.5">
+        <a href="{{ $shopNowUrl }}" class="hidden sm:inline-flex btn-primary text-xs px-5 py-2.5">
           {{ __('nav.shop_now') }}
         </a>
 
         {{-- Mobile CTA (responsive) --}}
-        <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="sm:hidden btn-primary text-xs px-4 py-2.5">
+        <a href="{{ $shopNowUrl }}" class="sm:hidden btn-primary text-xs px-4 py-2.5">
           {{ __('nav.shop_now') }}
         </a>
 
@@ -223,9 +218,7 @@
             </a>
           @endforeach
         @else
-          {{-- Fallback to previous static items if Shopify is unavailable --}}
-          <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('nav.dainely_belt') }}</a>
-          <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'daily-relief-system']) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('nav.daily_relief') }}</a>
+          <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('footer.all_products') }}</a>
         @endif
 
         <p class="px-3 pt-2 pb-1 text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('nav.education') }}</p>
@@ -235,7 +228,7 @@
         <a href="{{ route('blog.index', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors">{{ __('nav.blog') }}</a>
         <a href="{{ route('about', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors">{{ __('nav.about') }}</a>
         <div class="pt-2 px-3">
-          <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="btn-primary w-full justify-center text-sm">{{ __('nav.shop_now') }}</a>
+          <a href="{{ $shopNowUrl }}" class="btn-primary w-full justify-center text-sm">{{ __('nav.shop_now') }}</a>
         </div>
       </div>
     </div>

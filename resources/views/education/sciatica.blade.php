@@ -60,21 +60,11 @@
       </ul>
     </div>
     <div class="space-y-6">
-      @if($product)
-      <div class="card p-6 sticky top-24">
-        <img src="{{ asset($product->main_image) }}" alt="Dainely Belt" class="w-full h-48 object-cover rounded-xl mb-5">
-        <h3 class="font-semibold text-navy-900 text-lg mb-2">Recommended for Sciatica Relief</h3>
-        <p class="text-sm text-slate-600 mb-4">The Dainely Belt targets lumbar L4–S1 compression — the primary source of sciatic nerve pain.</p>
-        <div class="flex items-center gap-2 mb-5">
-          <span class="font-bold text-2xl text-navy-900">${{ number_format($product->price_usd, 2) }}</span>
-          @if($product->compare_price_usd)
-          <span class="text-slate-400 line-through">${{ number_format($product->compare_price_usd, 2) }}</span>
-          @endif
-        </div>
-        <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="btn-primary w-full justify-center mb-3">View Product</a>
-        <a href="{{ route('checkout.index', ['locale' => app()->getLocale()]) }}" class="btn-gold-lg w-full justify-center">Buy Now — Free Shipping</a>
-      </div>
-      @endif
+      @include('partials.shopify-product-sidebar', [
+        'product' => $product,
+        'heading' => 'Recommended for Sciatica Relief',
+        'description' => 'Clinically designed lumbar support to help relieve sciatic nerve compression at L4–S1.',
+      ])
     </div>
   </div>
 </section>

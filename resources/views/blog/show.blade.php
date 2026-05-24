@@ -62,13 +62,11 @@
       </article>
       {{-- Sidebar --}}
       <aside class="space-y-6">
-        <div class="card p-6">
-          <h3 class="font-semibold text-navy-900 mb-4">Clinically Recommended</h3>
-          <img src="{{ asset('images/dainely-belt-product.png') }}" alt="Dainely Belt" class="w-full h-40 object-cover rounded-xl mb-4">
-          <p class="text-sm text-slate-600 mb-4">The Dainely Belt provides the lumbar decompression foundation recommended in this protocol.</p>
-          <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="btn-primary w-full justify-center mb-2">View Product</a>
-          <a href="{{ route('checkout.index', ['locale' => app()->getLocale()]) }}" class="btn-gold-lg w-full justify-center">Buy — $89</a>
-        </div>
+        @include('partials.shopify-product-sidebar', [
+          'product' => $featuredShopifyProduct ?? null,
+          'heading' => 'Clinically Recommended',
+          'description' => 'Shop our recommended wellness product from the live catalog.',
+        ])
         @if(!empty($related))
         <div class="card p-6">
           <h3 class="font-semibold text-navy-900 mb-4">Related Articles</h3>
