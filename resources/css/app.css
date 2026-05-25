@@ -20,12 +20,14 @@
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    overflow-x: hidden;
   }
 
   body {
     @apply font-sans antialiased text-slate-800 bg-white;
     font-size: 16px;
     line-height: 1.6;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -123,7 +125,7 @@
   }
 
   .container-site {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-7xl mx-auto px-6 sm:px-8 lg:px-8;
   }
 
   .container-narrow {

@@ -7,11 +7,8 @@
 
       {{-- Brand column --}}
       <div class="lg:col-span-2">
-        <a href="{{ route('home', ['locale' => app()->getLocale()]) }}" class="flex items-center gap-3 mb-5">
-          <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-          </div>
-          <span class="font-display font-bold text-xl tracking-tight">Dainely</span>
+        <a href="{{ route('home', ['locale' => app()->getLocale()]) }}" class="flex items-center mb-5">
+          <img src="{{ asset('images/Dainelycut.png') }}" alt="Dainely" class="h-10 w-auto brightness-0 invert">
         </a>
         <p class="text-navy-300 text-sm leading-relaxed max-w-xs">{{ __('footer.tagline') }}</p>
 

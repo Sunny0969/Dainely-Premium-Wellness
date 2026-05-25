@@ -42,6 +42,10 @@ class CheckoutController extends Controller
         $currency         = $this->currency->getCurrencyForLocale($locale);
         $cart             = CheckoutCart::get();
 
+        if (($cart['source'] ?? 'static') === 'static') {
+            $cart = $this->populateCartFromShopify($cart);
+        }
+
         return view('checkout.index', compact(
             'squareAppId',
             'squareEnv',
@@ -51,6 +55,38 @@ class CheckoutController extends Controller
             'currency',
             'cart'
         ));
+    }
+
+    /**
+     * Replace default static cart data with first available Shopify product.
+     */
+    private function populateCartFromShopify(array $cart): array
+    {
+        try {
+            $result = $this->shopify->fetchProducts(1);
+            if (!$result['success'] || empty($result['products'])) {
+                return $cart;
+            }
+
+            $product  = $result['products'][0];
+            $firstVar = $product['variants'][0] ?? [];
+            $image    = $product['images'][0]['src']
+                        ?? ($product['image']['src'] ?? null);
+
+            $cart['product_id']       = (string) ($product['id'] ?? $cart['product_id']);
+            $cart['title']            = $product['title'] ?? $cart['title'];
+            $cart['subtitle']         = \Illuminate\Support\Str::limit(strip_tags($product['body_html'] ?? ''), 80) ?: $cart['subtitle'];
+            $cart['image']            = $image ?: $cart['image'];
+            $cart['price']            = (float) ($firstVar['price'] ?? $cart['price']);
+            $cart['compare_at_price'] = isset($firstVar['compare_at_price']) ? (float) $firstVar['compare_at_price'] : $cart['compare_at_price'];
+            $cart['source']           = 'shopify';
+
+            CheckoutCart::put($cart);
+        } catch (\Throwable $e) {
+            Log::warning('Could not populate cart from Shopify', ['error' => $e->getMessage()]);
+        }
+
+        return $cart;
     }
 
     /**

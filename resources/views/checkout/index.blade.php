@@ -95,9 +95,9 @@ document.addEventListener('alpine:init', () => {
         this.payments = window.Square.payments(appId, locationId);
         this.squareCard = await this.payments.card({
           style: {
-            '.input-container': { borderColor: '#e2e8f0', borderRadius: '0.75rem' },
+            '.input-container': { borderColor: '#e2e8f0' },
             '.input-container.is-focus': { borderColor: '#1e3a8a' },
-            input: { color: '#1e293b', fontFamily: 'Inter, sans-serif', fontSize: '14px' },
+            input: { color: '#1e293b', fontSize: '14px' },
             'input::placeholder': { color: '#94a3b8' },
           }
         });
@@ -225,8 +225,7 @@ document.addEventListener('alpine:init', () => {
   <div class="bg-white border-b border-slate-100 py-4">
     <div class="container-site flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <img src="{{ asset('images/logo-icon.png') }}" alt="Dainely" class="h-8 w-8 object-contain">
-        <span class="font-display font-bold text-navy-900 text-xl">Dainely</span>
+        <img src="{{ asset('images/Dainelycut.png') }}" alt="Dainely" class="h-10 w-auto">
         <span class="text-slate-300 hidden sm:inline">|</span>
         <span class="text-slate-500 text-sm hidden sm:inline">Secure Checkout</span>
       </div>

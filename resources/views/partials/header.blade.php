@@ -32,11 +32,8 @@
     <div class="flex items-center justify-between h-16 md:h-20">
 
       {{-- Logo --}}
-      <a href="{{ route('home', ['locale' => app()->getLocale()]) }}" class="flex items-center gap-3 group" aria-label="Dainely Home">
-        <div class="w-8 h-8 bg-navy-600 rounded-lg flex items-center justify-center group-hover:bg-navy-700 transition-colors">
-          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-        </div>
-        <span class="font-display font-bold text-xl text-navy-900 tracking-tight">Dainely</span>
+      <a href="{{ route('home', ['locale' => app()->getLocale()]) }}" class="flex items-center group" aria-label="Dainely Home">
+        <img src="{{ asset('images/Dainelycut.png') }}" alt="Dainely" class="h-10 md:h-12 w-auto">
       </a>
 
       {{-- Desktop Nav Links --}}
@@ -133,18 +130,18 @@
       </div>
 
       {{-- Right side actions --}}
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1.5 sm:gap-3">
 
         {{-- Language Switcher --}}
         <div class="relative" x-data="langSwitcher()" @click.away="close()">
           <button
             @click="toggle()"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-navy-600 hover:bg-slate-50 transition-all"
+            class="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-slate-600 hover:text-navy-600 hover:bg-slate-50 transition-all"
             aria-label="Switch language"
           >
-            <span class="text-base">{{ match(app()->getLocale()) { 'fr' => '🇫🇷', 'de' => '🇩🇪', default => '🇺🇸' } }}</span>
-            <span class="uppercase text-xs font-bold">{{ strtoupper(app()->getLocale()) }}</span>
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <span class="text-sm sm:text-base">{{ match(app()->getLocale()) { 'fr' => '🇫🇷', 'de' => '🇩🇪', default => '🇺🇸' } }}</span>
+            <span class="uppercase text-[10px] sm:text-xs font-bold">{{ strtoupper(app()->getLocale()) }}</span>
+            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
           <div
             x-show="open"
@@ -172,7 +169,7 @@
         </a>
 
         {{-- Mobile CTA (responsive) --}}
-        <a href="{{ $shopNowUrl }}" class="sm:hidden btn-primary text-xs px-4 py-2.5">
+        <a href="{{ $shopNowUrl }}" class="sm:hidden btn-primary text-[10px] px-2.5 py-2 whitespace-nowrap">
           {{ __('nav.shop_now') }}
         </a>
 
@@ -180,7 +177,7 @@
         {{-- Mobile menu toggle --}}
         <button
           @click="toggle()"
-          class="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 transition-colors"
+          class="lg:hidden w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 transition-colors"
           :aria-expanded="open"
           aria-label="Toggle menu"
         >

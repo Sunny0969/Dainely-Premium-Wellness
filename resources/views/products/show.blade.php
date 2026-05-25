@@ -64,7 +64,7 @@
     <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
 
       {{-- LEFT: Image Gallery --}}
-      <div x-data="shopifyGallery()" class="sticky top-24">
+      <div x-data="shopifyGallery()" class="lg:sticky lg:top-24">
         {{-- Main image --}}
         <div class="relative rounded-3xl overflow-hidden bg-slate-50 shadow-medium mb-4 group">
           <template x-if="images.length > 0">
@@ -95,12 +95,12 @@
 
         {{-- Thumbnails --}}
         @if(count($images) > 1)
-        <div class="grid grid-cols-5 gap-2">
+        <div class="flex gap-2 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:overflow-visible lg:pb-0">
           <template x-for="(img, i) in images" :key="i">
             <button
               @click="setActive(i)"
               :class="active === i ? 'ring-2 ring-navy-600 ring-offset-2' : 'ring-1 ring-slate-200 hover:ring-navy-300'"
-              class="rounded-xl overflow-hidden aspect-square focus:outline-none transition-all duration-200"
+              class="rounded-xl overflow-hidden aspect-square focus:outline-none transition-all duration-200 w-14 h-14 flex-shrink-0 lg:w-auto lg:h-auto"
             >
               <img :src="img" :alt="'View ' + (i+1)" class="w-full h-full object-cover">
             </button>
@@ -223,7 +223,32 @@
       <p class="eyebrow mb-3">Available Options</p>
       <h2 class="heading-section mb-4">All Variants</h2>
     </div>
-    <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+    {{-- Mobile: card layout --}}
+    <div class="sm:hidden space-y-3">
+      @foreach($variants as $variant)
+      <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <div class="flex items-center justify-between mb-2">
+          <p class="font-medium text-navy-900 text-sm">{{ $variant['title'] ?? '—' }}</p>
+          @if(($variant['inventory_quantity'] ?? 1) > 0)
+          <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium bg-emerald-100 text-emerald-800">In Stock</span>
+          @else
+          <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium bg-red-100 text-red-700">Out of Stock</span>
+          @endif
+        </div>
+        <div class="flex items-center gap-3">
+          @if(!empty($variant['price']))
+          <span class="font-semibold text-navy-800">${{ number_format((float)$variant['price'], 2) }}</span>
+          @endif
+          @if(!empty($variant['compare_at_price']))
+          <span class="text-slate-400 line-through text-sm">${{ number_format((float)$variant['compare_at_price'], 2) }}</span>
+          @endif
+        </div>
+      </div>
+      @endforeach
+    </div>
+
+    {{-- Desktop: table layout --}}
+    <div class="hidden sm:block overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
       <table class="w-full text-left text-sm">
         <thead class="border-b border-slate-200 bg-slate-50 text-slate-600">
           <tr>
@@ -279,39 +304,25 @@
   class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t-2 border-navy-100 shadow-[0_-4px_24px_rgba(0,0,0,0.10)] transform translate-y-full transition-transform duration-300 ease-in-out"
   aria-label="Quick order bar"
 >
-  <div class="container-site py-3">
-    <div class="flex items-center gap-4">
+  <div class="container-site py-2 sm:py-3">
+    <div class="flex items-center gap-2 sm:gap-4">
 
       {{-- Product thumbnail --}}
       @if($mainImg)
-      <img src="{{ $mainImg }}" alt="{{ $title }}" class="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-slate-100 hidden sm:block">
+      <img src="{{ $mainImg }}" alt="{{ $title }}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl object-cover flex-shrink-0 ring-2 ring-slate-100 hidden sm:block">
       @endif
 
       {{-- Product name + price --}}
       <div class="flex-1 min-w-0">
-        <p class="font-bold text-navy-900 text-sm truncate">{{ $title }}</p>
+        <p class="font-bold text-navy-900 text-xs sm:text-sm truncate">{{ $title }}</p>
         @if($price)
-        <div class="flex items-center gap-2">
-          <span class="text-navy-700 font-bold">${{ number_format((float)$price, 2) }}</span>
+        <div class="flex items-center gap-1 sm:gap-2">
+          <span class="text-navy-700 font-bold text-sm sm:text-base">${{ number_format((float)$price, 2) }}</span>
           @if($compareAt && (float)$compareAt > (float)$price)
-          <span class="text-slate-400 line-through text-xs">${{ number_format((float)$compareAt, 2) }}</span>
-          <span class="bg-red-100 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-            -{{ round((((float)$compareAt - (float)$price) / (float)$compareAt) * 100) }}%
-          </span>
+          <span class="text-slate-400 line-through text-[10px] sm:text-xs">${{ number_format((float)$compareAt, 2) }}</span>
           @endif
         </div>
         @endif
-      </div>
-
-      {{-- Qty counter --}}
-      <div class="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden flex-shrink-0">
-        <button
-          onclick="stickyQty = Math.max(1, stickyQty - 1); document.getElementById('sticky-qty-display').textContent = stickyQty"
-          class="px-3 py-2 text-slate-600 hover:text-navy-700 hover:bg-slate-50 transition-colors font-bold">−</button>
-        <span id="sticky-qty-display" class="px-4 py-2 font-semibold text-navy-900 border-x-2 border-slate-200 min-w-[2.5rem] text-center">1</span>
-        <button
-          onclick="stickyQty = stickyQty + 1; document.getElementById('sticky-qty-display').textContent = stickyQty"
-          class="px-3 py-2 text-slate-600 hover:text-navy-700 hover:bg-slate-50 transition-colors font-bold">+</button>
       </div>
 
       {{-- Order Now button --}}
@@ -320,19 +331,19 @@
         @click="goToCheckout($event)"
         :class="canPurchase ? 'bg-navy-700 hover:bg-navy-800' : 'bg-slate-400 cursor-not-allowed pointer-events-none opacity-70'"
         :aria-disabled="!canPurchase"
-        class="flex-shrink-0 inline-flex items-center gap-2 text-white font-bold px-5 py-2.5 rounded-xl transition-colors text-sm shadow-md"
+        class="flex-shrink-0 inline-flex items-center gap-1.5 text-white font-bold px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-colors text-xs sm:text-sm shadow-md"
       >
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         Order Now
       </button>
 
       {{-- Scroll to top --}}
       <button
         onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
-        class="flex-shrink-0 w-10 h-10 rounded-xl bg-slate-100 hover:bg-navy-100 text-slate-600 hover:text-navy-700 flex items-center justify-center transition-colors"
+        class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-navy-100 text-slate-600 hover:text-navy-700 flex items-center justify-center transition-colors"
         title="Back to top"
       >
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
       </button>
 
     </div>
