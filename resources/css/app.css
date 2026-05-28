@@ -301,6 +301,57 @@
     @apply w-5 h-5 border-2 border-current border-t-transparent
            rounded-full animate-spin;
   }
+
+  /* ── Premium Homepage ───────────────────────────── */
+  .home-display {
+    @apply font-display font-semibold text-stone-900;
+    font-size: clamp(2rem, 4.5vw, 3.25rem);
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+  }
+
+  .shadow-soft {
+    box-shadow: 0 4px 24px -4px rgba(28, 25, 23, 0.08), 0 2px 8px -2px rgba(28, 25, 23, 0.04);
+  }
+
+  .home-trust-item {
+    @apply flex items-start gap-3;
+  }
+
+  .home-trust-icon {
+    @apply w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center flex-shrink-0
+           transition-colors duration-300 group-hover:bg-stone-200/80;
+  }
+
+  .home-lifestyle-card {
+    @apply block;
+  }
+
+  .home-benefit-card {
+    @apply bg-white rounded-2xl p-6 md:p-7 border border-stone-200/80
+           transition-all duration-300 hover:border-stone-300 hover:shadow-soft;
+  }
+
+  .home-featured-review {
+    @apply rounded-2xl border border-stone-200/80 bg-stone-50/50 p-6 md:p-8;
+  }
+
+  .home-review-tag {
+    @apply inline-block text-xs font-medium text-stone-600 bg-stone-100
+           rounded-full px-3 py-1 border border-stone-200/60;
+  }
+
+  .home-drs-panel {
+    @apply bg-stone-50 ring-1 ring-stone-200/80;
+  }
+
+  .home-final-cta {
+    @apply bg-gradient-to-b from-stone-50 to-white;
+  }
+
+  .home-sticky-bar {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
 }
 
 /* ─── Utilities Layer ─────────────────────────────────── */
