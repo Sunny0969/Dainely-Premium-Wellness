@@ -4,7 +4,7 @@
 @endphp
 
 <section
-  class="section bg-gradient-to-b from-slate-50 to-white border-y border-slate-100"
+  class="section bg-white border-y border-stone-100"
   aria-label="{{ __('home.shop_slider_headline') }}"
   @if($slideCount > 0)
     x-data="productSlider({{ $slideCount }})"
@@ -45,7 +45,7 @@
           @if($slideIndex > 0) style="display: none;" @endif
         >
 @foreach($slideProducts as $product)
-          <article class="card group overflow-hidden flex flex-col h-full animate-on-scroll">
+          <article class="card group overflow-hidden flex flex-col h-full animate-on-scroll border-stone-200/80 shadow-none hover:shadow-soft hover:-translate-y-0">
             <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="block relative overflow-hidden">
               @if($product['image'])
               <img
@@ -56,9 +56,6 @@
               >
               @else
               <div class="w-full aspect-[4/3] bg-slate-100 flex items-center justify-center text-slate-400 text-sm">No image</div>
-              @endif
-              @if(($product['status'] ?? '') === 'active')
-              <span class="absolute top-3 left-3 product-badge">{{ ucfirst($product['status']) }}</span>
               @endif
             </a>
             <div class="p-5 flex flex-col flex-1">
@@ -75,7 +72,7 @@
                 <span class="text-slate-400 line-through text-sm">${{ number_format((float) $product['compare_at'], 2) }}</span>
                 @endif
 </div>
-            <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="btn-primary w-full justify-center text-sm">
+            <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="btn-outline w-full justify-center text-sm border-stone-300 text-stone-800 hover:bg-stone-900 hover:text-white hover:border-stone-900">
                 {{ __('home.shop_add_to_cart') }}
               </a>
             </div>
