@@ -75,8 +75,8 @@ return [
     'shop_add_to_cart'      => 'Shop Now',
 
     // ─── Testimonials ───────────────────────────────────────────────────────
-    'testimonials_eyebrow'  => 'Real Results',
-    'testimonials_headline' => 'Lives Changed by Dainely',
+    'testimonials_eyebrow'  => 'Real experiences from real customers',
+    'testimonials_headline' => 'What Our Customers Say',
     'testimonials_count'    => '3,200+ verified reviews',
 
     // ─── Education Teaser ───────────────────────────────────────────────────
@@ -86,8 +86,8 @@ return [
 
     // ─── Final CTA ──────────────────────────────────────────────────────────
     'cta_eyebrow'           => 'Start Your Recovery',
-    'cta_headline'          => 'Ready to Live Without Back Pain?',
-    'cta_desc'              => 'Join over 50,000 people who have reclaimed their active lives with Dainely\'s evidence-based wellness systems.',
+    'cta_headline'          => 'Support Your Day With More Comfort & Confidence',
+    'cta_desc'              => 'Explore support and recovery products designed for everyday life.',
     'cta_button'            => 'Shop Now — Free Shipping',
     'cta_guarantee'         => '30-day money-back guarantee · No risk',
 
