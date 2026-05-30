@@ -2,11 +2,13 @@
   Dainely Site Header
   Sticky, responsive, with mega nav and language switcher
 --}}
+
 @php
   $shopNowUrl = !empty($headerShopifyProducts[0]['handle'])
     ? route('products.show', ['locale' => app()->getLocale(), 'slug' => $headerShopifyProducts[0]['handle']])
     : route('products.index', ['locale' => app()->getLocale()]);
 @endphp
+
 <header
   id="site-header"
   class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100 transition-all duration-300"
@@ -42,10 +44,14 @@
 
         {{-- Products dropdown --}}
         <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
-          <button class="nav-link px-3 py-2 rounded-lg hover:bg-slate-50 flex items-center gap-1" :aria-expanded="open">
+          <a
+            href="{{ route('products.index', ['locale' => app()->getLocale()]) }}"
+            class="nav-link px-3 py-2 rounded-lg hover:bg-slate-50 flex items-center gap-1"
+            :aria-expanded="open"
+          >
             {{ __('nav.products') }}
             <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-          </button>
+          </a>
           <div
             x-show="open"
             x-cloak
@@ -57,47 +63,15 @@
             x-transition:leave-end="opacity-0"
             class="absolute top-full left-0 mt-1 w-72 bg-white rounded-2xl shadow-medium border border-slate-100 p-2 z-50"
           >
-            @if(!empty($headerShopifyProducts))
-            @foreach($headerShopifyProducts as $product)
-              @php
-                $slugForPage = \App\Support\ProductSlugResolver::resolveForShopifyProduct($product);
-              @endphp
-                <a
-                  href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $slugForPage]) }}"
-                  class="flex items-start gap-3 p-3 rounded-xl hover:bg-navy-50 group transition-colors"
-                >
-                  <div class="w-10 h-10 bg-navy-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-navy-200 transition-colors overflow-hidden">
-                    @if(!empty($product['image']))
-                      <img
-                        src="{{ $product['image'] }}"
-                        alt="{{ $product['title'] }}"
-                        class="w-full h-full object-cover"
-                        loading="lazy"
-                      >
-                    @else
-                      <svg class="w-5 h-5 text-navy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/></svg>
-                    @endif
-                  </div>
-                  <div>
-                    <p class="font-semibold text-slate-800 text-sm group-hover:text-navy-700">{{ $product['title'] }}</p>
-                    @if(!empty($product['status']))
-                      <p class="text-xs text-slate-500 mt-0.5">{{ ucfirst($product['status']) }}</p>
-                    @endif
-                  </div>
-                </a>
-              @endforeach
-            @else
-              <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="flex items-start gap-3 p-3 rounded-xl hover:bg-navy-50 group transition-colors">
-                <div class="w-10 h-10 bg-navy-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg class="w-5 h-5 text-navy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                </div>
-                <div>
-                  <p class="font-semibold text-slate-800 text-sm group-hover:text-navy-700">{{ __('footer.all_products') }}</p>
-                </div>
-              </a>
-
-            @endif
-
+            <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="flex items-start gap-3 p-3 rounded-xl hover:bg-navy-50 group transition-colors">
+              <div class="w-10 h-10 bg-navy-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-navy-200 transition-colors">
+                <svg class="w-5 h-5 text-navy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+              </div>
+              <div>
+                <p class="font-semibold text-slate-800 text-sm group-hover:text-navy-700">{{ __('nav.dainely_belt') }}</p>
+                <p class="text-xs text-slate-500 mt-0.5">{{ __('nav.dainely_belt_desc') }}</p>
+              </div>
+            </a>
           </div>
         </div>
 
@@ -130,18 +104,17 @@
       </div>
 
       {{-- Right side actions --}}
-      <div class="flex items-center gap-1.5 sm:gap-3">
+      <div class="flex items-center gap-3">
 
         {{-- Language Switcher --}}
         <div class="relative" x-data="langSwitcher()" @click.away="close()">
           <button
             @click="toggle()"
-            class="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-slate-600 hover:text-navy-600 hover:bg-slate-50 transition-all"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-navy-600 hover:bg-slate-50 transition-all"
             aria-label="Switch language"
           >
-            <span class="text-sm sm:text-base">{{ match(app()->getLocale()) { 'fr' => '🇫🇷', 'de' => '🇩🇪', default => '🇺🇸' } }}</span>
-            <span class="uppercase text-[10px] sm:text-xs font-bold">{{ strtoupper(app()->getLocale()) }}</span>
-            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <span class="text-base">{{ app()->getLocale() === 'fr' ? 'FR - Français' : (app()->getLocale() === 'de' ? 'DE - Deutsch' : 'US - English') }}</span>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
           <div
             x-show="open"
@@ -151,25 +124,25 @@
             x-transition:enter-end="opacity-100 scale-100"
             class="absolute top-full right-0 mt-1 w-40 bg-white rounded-2xl shadow-medium border border-slate-100 p-1.5 z-50"
           >
-            <a href="/en{{ request()->getPathInfo() }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-slate-50 transition-colors {{ app()->getLocale() === 'en' ? 'font-semibold text-navy-700 bg-navy-50' : 'text-slate-700' }}">
-              <span>🇺🇸</span> English
+            <a href="{{ '/en'.preg_replace('#^/(en|fr|de)(/|$)#', '/', request()->getPathInfo()) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-slate-50 transition-colors {{ app()->getLocale() === 'en' ? 'font-semibold text-navy-700 bg-navy-50' : 'text-slate-700' }}">
+              <span>🇺🇸</span> US - English
             </a>
-            <a href="/fr{{ request()->getPathInfo() }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-slate-50 transition-colors {{ app()->getLocale() === 'fr' ? 'font-semibold text-navy-700 bg-navy-50' : 'text-slate-700' }}">
-              <span>🇫🇷</span> Français
+            <a href="{{ '/fr'.preg_replace('#^/(en|fr|de)(/|$)#', '/', request()->getPathInfo()) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-slate-50 transition-colors {{ app()->getLocale() === 'fr' ? 'font-semibold text-navy-700 bg-navy-50' : 'text-slate-700' }}">
+              <span>🇫🇷</span> FR - Français
             </a>
-            <a href="/de{{ request()->getPathInfo() }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-slate-50 transition-colors {{ app()->getLocale() === 'de' ? 'font-semibold text-navy-700 bg-navy-50' : 'text-slate-700' }}">
-              <span>🇩🇪</span> Deutsch
+            <a href="{{ '/de'.preg_replace('#^/(en|fr|de)(/|$)#', '/', request()->getPathInfo()) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-slate-50 transition-colors {{ app()->getLocale() === 'de' ? 'font-semibold text-navy-700 bg-navy-50' : 'text-slate-700' }}">
+              <span>🇩🇪</span> DE - Deutsch
             </a>
           </div>
         </div>
 
         {{-- CTA Button --}}
-        <a href="{{ $shopNowUrl }}" class="hidden sm:inline-flex btn-primary text-xs px-5 py-2.5">
+        <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="hidden sm:inline-flex btn-primary text-xs px-5 py-2.5">
           {{ __('nav.shop_now') }}
         </a>
 
         {{-- Mobile CTA (responsive) --}}
-        <a href="{{ $shopNowUrl }}" class="sm:hidden btn-primary text-[10px] px-2.5 py-2 whitespace-nowrap">
+        <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="sm:hidden btn-primary text-xs px-4 py-2.5">
           {{ __('nav.shop_now') }}
         </a>
 
@@ -177,7 +150,7 @@
         {{-- Mobile menu toggle --}}
         <button
           @click="toggle()"
-          class="lg:hidden w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 transition-colors"
+          class="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 transition-colors"
           :aria-expanded="open"
           aria-label="Toggle menu"
         >
@@ -186,6 +159,7 @@
         </button>
       </div>
     </div>
+  
 
     {{-- Mobile menu --}}
     <div
@@ -201,22 +175,8 @@
     >
       <div class="flex flex-col gap-1">
         <a href="{{ route('home', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors">{{ __('nav.home') }}</a>
-        <p class="px-3 pt-2 pb-1 text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('nav.products') }}</p>
-        @if(!empty($headerShopifyProducts))
-            @foreach($headerShopifyProducts as $product)
-              @php
-                $slugForPage = \App\Support\ProductSlugResolver::resolveForShopifyProduct($product);
-              @endphp
-            <a
-              href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $slugForPage]) }}"
-              class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6"
-            >
-              {{ $product['title'] }}
-            </a>
-          @endforeach
-        @else
-          <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('footer.all_products') }}</a>
-        @endif
+        <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="px-3 pt-2 pb-1 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-navy-700 transition-colors block">{{ __('nav.products') }}</a>
+        <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('nav.dainely_belt') }}</a>
 
         <p class="px-3 pt-2 pb-1 text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('nav.education') }}</p>
         <a href="{{ route('education.back-pain', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('nav.back_pain') }}</a>
@@ -225,7 +185,7 @@
         <a href="{{ route('blog.index', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors">{{ __('nav.blog') }}</a>
         <a href="{{ route('about', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors">{{ __('nav.about') }}</a>
         <div class="pt-2 px-3">
-          <a href="{{ $shopNowUrl }}" class="btn-primary w-full justify-center text-sm">{{ __('nav.shop_now') }}</a>
+          <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="btn-primary w-full justify-center text-sm">{{ __('nav.shop_now') }}</a>
         </div>
       </div>
     </div>

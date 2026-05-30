@@ -5,11 +5,90 @@
 @section('content')
 <section class="section bg-section-alt">
   <div class="container-site">
-    <div class="text-center mb-14">
+    <div class="text-center mb-10 md:mb-14">
       <p class="eyebrow mb-3">Our Products</p>
       <h1 class="heading-section mb-4">Medical-Grade Wellness Products</h1>
       <p class="text-lead max-w-xl mx-auto">Browse our full catalog — live from Shopify with real-time pricing and availability.</p>
     </div>
+
+    @php
+      $filters = $filters ?? ['q' => '', 'min_price' => null, 'max_price' => null, 'sort' => ''];
+      $q = $filters['q'] ?? '';
+      $minPrice = $filters['min_price'] ?? null;
+      $maxPrice = $filters['max_price'] ?? null;
+      $sort = $filters['sort'] ?? '';
+    @endphp
+
+    <form method="GET" action="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="mb-8">
+      <div class="max-w-5xl mx-auto bg-white rounded-2xl border border-stone-200/80 shadow-none p-4 md:p-6">
+        <div class="grid md:grid-cols-12 gap-3">
+          <div class="md:col-span-4">
+            <label class="text-sm font-semibold text-slate-700">Search</label>
+            <input
+              type="text"
+              name="q"
+              value="{{ old('q', $q) }}"
+              placeholder="Search by product name"
+              class="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-navy-200"
+            >
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="text-sm font-semibold text-slate-700">Min Price</label>
+            <input
+              type="number"
+              step="0.01"
+              name="min_price"
+              value="{{ $minPrice }}"
+              placeholder="0"
+              class="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-navy-200"
+            >
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="text-sm font-semibold text-slate-700">Max Price</label>
+            <input
+              type="number"
+              step="0.01"
+              name="max_price"
+              value="{{ $maxPrice }}"
+              placeholder="9999"
+              class="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-navy-200"
+            >
+          </div>
+
+          <div class="md:col-span-3">
+            <label class="text-sm font-semibold text-slate-700">Sort By</label>
+            <select
+              name="sort"
+              class="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-navy-200 cursor-pointer"
+            >
+              <option value="" {{ $sort === '' ? 'selected' : '' }}>Featured</option>
+              <option value="price_asc" {{ $sort === 'price_asc' ? 'selected' : '' }}>Price: Low to High</option>
+              <option value="price_desc" {{ $sort === 'price_desc' ? 'selected' : '' }}>Price: High to Low</option>
+              <option value="title_asc" {{ $sort === 'title_asc' ? 'selected' : '' }}>Alphabetical: A to Z</option>
+              <option value="title_desc" {{ $sort === 'title_desc' ? 'selected' : '' }}>Alphabetical: Z to A</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-1 flex items-end">
+            <button type="submit" class="btn-primary w-full justify-center text-sm px-4">
+              Apply
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <p class="text-xs text-slate-500">
+            Results: <span class="font-semibold text-slate-700">{{ count($products) }}</span>
+          </p>
+          <a
+            href="{{ route('products.index', ['locale' => app()->getLocale()]) }}"
+            class="text-xs font-semibold text-navy-700 hover:text-navy-900 hover:underline underline-offset-4"
+          >Clear</a>
+        </div>
+      </div>
+    </form>
 
     @if(!empty($error))
     <div class="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 text-sm mb-8 max-w-2xl mx-auto">
@@ -78,3 +157,4 @@
   </div>
 </section>
 @endsection
+

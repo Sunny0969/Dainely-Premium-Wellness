@@ -194,9 +194,9 @@
     </div>
     <div class="grid md:grid-cols-3 gap-4 md:gap-6">
       @foreach([
-        ['hero-lifestyle.png', 'home.lifestyle_1'],
-        ['about-team.jpg', 'home.lifestyle_2'],
-        ['blog-hero-back-pain.jpg', 'home.lifestyle_3'],
+        ['lifestyle-desk-professional.png', 'home.lifestyle_1'],
+        ['lifestyle-everyday-movement.png', 'home.lifestyle_2'],
+        ['lifestyle-travel-commute.png', 'home.lifestyle_3'],
       ] as [$img, $captionKey])
       <figure class="home-lifestyle-card group">
         <div class="overflow-hidden rounded-2xl aspect-[4/5] bg-stone-100">
@@ -369,7 +369,7 @@
         [__('nav.posture'), route('education.posture', ['locale' => $locale]), 'posture-edu.png'],
         [__('nav.neck_pain'), route('education.neck-pain', ['locale' => $locale]), 'neck-pain-edu.png'],
         [__('nav.mobility'), route('education.mobility', ['locale' => $locale]), 'mobility-edu.png'],
-        [__('nav.recovery'), route('education.recovery', ['locale' => $locale]), 'about-team.jpg'],
+        [__('nav.recovery'), route('education.recovery', ['locale' => $locale]), 'recovery-edu.png'],
       ] as [$label, $href, $img])
       <a href="{{ $href }}" class="group block rounded-xl overflow-hidden ring-1 ring-stone-200/80 bg-white hover:ring-stone-300 transition-all">
         <div class="aspect-[4/3] overflow-hidden bg-stone-100">
