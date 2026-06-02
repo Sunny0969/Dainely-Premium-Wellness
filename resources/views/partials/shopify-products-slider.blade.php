@@ -45,7 +45,19 @@
           @if($slideIndex > 0) style="display: none;" @endif
         >
 @foreach($slideProducts as $product)
-          <article class="card group overflow-hidden flex flex-col h-full animate-on-scroll border-stone-200/80 shadow-none hover:shadow-soft hover:-translate-y-0">
+          <article
+            class="card group overflow-hidden flex flex-col h-full animate-on-scroll border-stone-200/80 shadow-none hover:shadow-soft hover:-translate-y-0"
+            x-data="productPurchase(false, @js([
+              'id' => (string) ($product['id'] ?? $product['handle'] ?? ''),
+              'title' => (string) ($product['title'] ?? 'Product'),
+              'subtitle' => 'Premium Wellness Product',
+              'image' => (string) ($product['image'] ?? ($product['images'][0]['src'] ?? asset('images/dainely-belt-product.png'))),
+              'price' => (float) ($product['price'] ?? ($product['variants'][0]['price'] ?? 0)),
+              'compare_at_price' => (!empty($product['compare_at']) ? (float) $product['compare_at'] : null),
+              'variants' => (array) ($product['variants'] ?? []),
+              'source' => 'shopify',
+            ]), @js(route('cart.store', ['locale' => app()->getLocale()])))"
+          >
             <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="block relative overflow-hidden">
               @if($product['image'])
               <img
@@ -72,10 +84,30 @@
                 <span class="text-slate-400 line-through text-sm">${{ number_format((float) $product['compare_at'], 2) }}</span>
                 @endif
 </div>
-            <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="btn-outline w-full justify-center text-sm border-stone-300 text-stone-800 hover:bg-stone-900 hover:text-white hover:border-stone-900">
+            <button
+                type="button"
+                @click="goToCheckout($event)"
+                class="btn-outline w-full justify-center text-sm border-stone-300 text-stone-800 hover:bg-stone-900 hover:text-white hover:border-stone-900"
+            >
                 {{ __('home.shop_add_to_cart') }}
-              </a>
+              </button>
             </div>
+
+            {{-- Hidden checkout form (required by Alpine productPurchase) --}}
+            <form x-ref="checkoutForm" method="POST" action="{{ route('cart.store', ['locale' => app()->getLocale()]) }}" class="hidden">
+              @csrf
+              <input type="hidden" name="product_id">
+              <input type="hidden" name="title">
+              <input type="hidden" name="subtitle">
+              <input type="hidden" name="image">
+              <input type="hidden" name="price">
+              <input type="hidden" name="compare_at_price">
+              <input type="hidden" name="quantity">
+              <input type="hidden" name="option_label">
+              <input type="hidden" name="option_value">
+              <input type="hidden" name="variant_id">
+              <input type="hidden" name="source">
+            </form>
           </article>
           @endforeach
 

@@ -1,160 +1,317 @@
 @extends('layouts.app')
+
+@php
+  $locale = app()->getLocale();
+  $cartAddUrl = route('cart.store', ['locale' => $locale]);
+  $filters = $filters ?? ['q' => '', 'min_price' => null, 'max_price' => null, 'sort' => ''];
+@endphp
+
 @section('title', 'All Products — Dainely Wellness')
-@section('meta_description', 'Shop all Dainely wellness products synced from our Shopify store.')
+@section('meta_description', 'Shop all Dainely wellness products — premium lower back stabilization and daily wellness routines. Free shipping over $75.')
 
 @section('content')
-<section class="section bg-section-alt">
-  <div class="container-site">
-    <div class="text-center mb-10 md:mb-14">
-      <p class="eyebrow mb-3">Our Products</p>
-      <h1 class="heading-section mb-4">Medical-Grade Wellness Products</h1>
-      <p class="text-lead max-w-xl mx-auto">Browse our full catalog — live from Shopify with real-time pricing and availability.</p>
-    </div>
 
-    @php
-      $filters = $filters ?? ['q' => '', 'min_price' => null, 'max_price' => null, 'sort' => ''];
-      $q = $filters['q'] ?? '';
-      $minPrice = $filters['min_price'] ?? null;
-      $maxPrice = $filters['max_price'] ?? null;
-      $sort = $filters['sort'] ?? '';
-    @endphp
+{{-- ─── HERO ─────────────────────────────────────────────────────────────── --}}
+<section class="bg-gradient-to-b from-navy-950 to-navy-900 text-white py-14 lg:py-20">
+  <div class="container-site text-center">
+    <p class="text-gold-400 text-xs font-bold uppercase tracking-widest mb-3">Shop All Products</p>
+    <h1 class="font-display font-bold text-4xl lg:text-5xl mb-4 leading-tight">Premium Wellness Products</h1>
+    <p class="text-navy-300 text-base max-w-xl mx-auto leading-relaxed">
+      Every Dainely product is designed for real routines — modern movement, long workdays, and everyday life.
+    </p>
+  </div>
+</section>
 
-    <form method="GET" action="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="mb-8">
-      <div class="max-w-5xl mx-auto bg-white rounded-2xl border border-stone-200/80 shadow-none p-4 md:p-6">
-        <div class="grid md:grid-cols-12 gap-3">
-          <div class="md:col-span-4">
-            <label class="text-sm font-semibold text-slate-700">Search</label>
-            <input
-              type="text"
-              name="q"
-              value="{{ old('q', $q) }}"
-              placeholder="Search by product name"
-              class="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-navy-200"
-            >
-          </div>
+{{-- ─── STICKY FILTER / SORT BAR ──────────────────────────────────────────── --}}
+<div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+  <div class="container-site py-3">
+    <div class="flex flex-wrap gap-3 items-center">
 
-          <div class="md:col-span-2">
-            <label class="text-sm font-semibold text-slate-700">Min Price</label>
-            <input
-              type="number"
-              step="0.01"
-              name="min_price"
-              value="{{ $minPrice }}"
-              placeholder="0"
-              class="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-navy-200"
-            >
-          </div>
-
-          <div class="md:col-span-2">
-            <label class="text-sm font-semibold text-slate-700">Max Price</label>
-            <input
-              type="number"
-              step="0.01"
-              name="max_price"
-              value="{{ $maxPrice }}"
-              placeholder="9999"
-              class="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-navy-200"
-            >
-          </div>
-
-          <div class="md:col-span-3">
-            <label class="text-sm font-semibold text-slate-700">Sort By</label>
-            <select
-              name="sort"
-              class="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-navy-200 cursor-pointer"
-            >
-              <option value="" {{ $sort === '' ? 'selected' : '' }}>Featured</option>
-              <option value="price_asc" {{ $sort === 'price_asc' ? 'selected' : '' }}>Price: Low to High</option>
-              <option value="price_desc" {{ $sort === 'price_desc' ? 'selected' : '' }}>Price: High to Low</option>
-              <option value="title_asc" {{ $sort === 'title_asc' ? 'selected' : '' }}>Alphabetical: A to Z</option>
-              <option value="title_desc" {{ $sort === 'title_desc' ? 'selected' : '' }}>Alphabetical: Z to A</option>
-            </select>
-          </div>
-
-          <div class="md:col-span-1 flex items-end">
-            <button type="submit" class="btn-primary w-full justify-center text-sm px-4">
-              Apply
-            </button>
-          </div>
-        </div>
-
-        <div class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <p class="text-xs text-slate-500">
-            Results: <span class="font-semibold text-slate-700">{{ count($products) }}</span>
-          </p>
-          <a
-            href="{{ route('products.index', ['locale' => app()->getLocale()]) }}"
-            class="text-xs font-semibold text-navy-700 hover:text-navy-900 hover:underline underline-offset-4"
-          >Clear</a>
-        </div>
+      {{-- Live Search (client-side) --}}
+      <div class="flex-1 min-w-[180px] relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input
+          id="product-search"
+          type="search"
+          placeholder="Search products…"
+          value="{{ $filters['q'] ?? '' }}"
+          class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-navy-400 focus:border-transparent"
+        >
       </div>
-    </form>
 
-    @if(!empty($error))
-    <div class="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 text-sm mb-8 max-w-2xl mx-auto">
+      {{-- Sort buttons --}}
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <span class="text-slate-500 text-xs font-medium hidden sm:inline mr-1">Sort:</span>
+        @php $activeSort = $filters['sort'] ?? ''; @endphp
+        @foreach([
+          ['default',    'Default'],
+          ['price-asc',  'Price ↑'],
+          ['price-desc', 'Price ↓'],
+          ['az',         'A → Z'],
+          ['za',         'Z → A'],
+        ] as [$val, $label])
+        <button
+          type="button"
+          data-sort="{{ $val }}"
+          class="sort-btn border text-xs font-semibold px-3 py-2 rounded-lg transition-colors
+            {{ ($activeSort === $val || ($val === 'default' && !$activeSort)) ? 'bg-navy-700 text-white border-navy-700' : 'bg-white text-slate-600 border-slate-200 hover:border-navy-400 hover:text-navy-700' }}"
+        >{{ $label }}</button>
+        @endforeach
+      </div>
+
+      {{-- Count --}}
+      <p id="product-count" class="text-slate-500 text-xs ml-auto hidden sm:block">{{ count($products) }} products</p>
+    </div>
+  </div>
+</div>
+
+{{-- ─── PRODUCT GRID ─────────────────────────────────────────────────────── --}}
+<section class="section bg-slate-50" aria-label="Product catalog">
+  <div class="container-site">
+
+    @if($error)
+    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 mb-8 text-amber-800 text-sm">
+      <p class="font-semibold mb-1">⚠ Could not load products from Shopify</p>
       <p>{{ $error }}</p>
     </div>
     @endif
 
     @if(count($products) > 0)
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+    <div id="products-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+
       @foreach($products as $product)
       @php
-        $slug = $product['handle'] ?? '';
-        $price = (float) ($product['price'] ?? 0);
-        $compareAt = !empty($product['compare_at']) ? (float) $product['compare_at'] : null;
-        $savings = ($compareAt && $compareAt > $price) ? round((($compareAt - $price) / $compareAt) * 100) : null;
+        $pImg        = $product['image']['src'] ?? ($product['images'][0]['src'] ?? null);
+        $pHandle     = $product['handle'] ?? $product['id'];
+        $pStatus     = $product['status'] ?? 'active';
+        $pVars       = count($product['variants'] ?? []);
+        $pPrice      = (float) ($product['variants'][0]['price'] ?? 0);
+        $pCompare    = (float) ($product['variants'][0]['compare_at_price'] ?? 0);
+        $pUrl        = route('products.show', ['locale' => $locale, 'slug' => $pHandle]);
+        $isDainBelt  = in_array($pHandle, ['dainely-belt','dainely-comfort-belt']);
+        $displayPrice   = $isDainBelt ? 64.00 : $pPrice;
+        $displayCompare = $isDainBelt ? 119.00 : $pCompare;
+        $savePct        = ($displayCompare > $displayPrice && $displayPrice > 0)
+                            ? round((($displayCompare - $displayPrice) / $displayCompare) * 100)
+                            : 0;
+        $cartData = [
+          'id'              => (string) ($product['id'] ?? $pHandle),
+          'title'           => $product['title'] ?? 'Product',
+          'subtitle'        => 'Premium Wellness Product',
+          'image'           => $pImg ?: asset('images/dainely-belt-product.png'),
+          'price'           => $displayPrice,
+          'compare_at_price'=> $displayCompare ?: null,
+          'variants'        => [],
+          'source'          => 'shopify',
+        ];
       @endphp
-      <div class="card overflow-hidden group animate-on-scroll">
-        <div class="relative overflow-hidden">
-          @if($product['image'])
+
+      {{-- Card: each has its own Alpine productPurchase scope so buttons work independently --}}
+      <div
+        class="product-card group bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-lg hover:border-navy-100 transition-all flex flex-col"
+        data-title="{{ strtolower($product['title'] ?? '') }}"
+        data-price="{{ $displayPrice }}"
+        x-data="productPurchase(false, @js($cartData), @js($cartAddUrl))"
+      >
+
+        {{-- Image --}}
+        <a href="{{ $pUrl }}" class="block relative overflow-hidden aspect-square bg-slate-50" tabindex="-1">
+          @if($pImg)
           <img
-            src="{{ $product['image'] }}"
-            alt="{{ $product['title'] }}"
-            class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
+            src="{{ $pImg }}"
+            alt="{{ $product['title'] ?? 'Product' }}"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
+            width="400" height="400"
           >
           @else
-          <div class="w-full h-64 bg-slate-100 flex items-center justify-center text-slate-400 text-sm">No image</div>
+          <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-50">
+            <svg class="w-16 h-16 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </div>
           @endif
-        </div>
-        <div class="p-8">
-          <h2 class="heading-card mb-2">{{ $product['title'] }}</h2>
-          <div class="flex items-center gap-3 mb-6">
-            @if($price > 0)
-            <span class="font-display font-bold text-3xl text-navy-900">${{ number_format($price, 2) }}</span>
+
+          {{-- Badges --}}
+          <div class="absolute top-3 left-3 flex flex-col gap-1.5">
+            @if($isDainBelt)
+            <span class="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">Best Seller</span>
             @endif
-            @if($compareAt && $compareAt > $price)
-            <span class="text-slate-400 line-through text-lg">${{ number_format($compareAt, 2) }}</span>
-            @if($savings)
-            <span class="bg-red-100 text-red-600 text-sm font-bold px-2.5 py-1 rounded-full">Save {{ $savings }}%</span>
-            @endif
+            @if($savePct > 0)
+            <span class="bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">-{{ $savePct }}%</span>
             @endif
           </div>
-          <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $slug]) }}" class="btn-primary w-full justify-center">
-            View Product
+        </a>
+
+        {{-- Body --}}
+        <div class="p-4 flex flex-col flex-1">
+
+          <a href="{{ $pUrl }}" class="block mb-2">
+            <h2 class="font-display font-bold text-navy-900 text-sm leading-snug line-clamp-2 group-hover:text-navy-600 transition-colors">
+              {{ $product['title'] ?? 'Product' }}
+            </h2>
           </a>
+
+          {{-- Stars --}}
+          <div class="flex items-center gap-1 mb-2">
+            @for($s=0;$s<5;$s++)
+            <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            @endfor
+            <span class="text-slate-500 text-[10px] ml-0.5">4.8 (1,247)</span>
+          </div>
+
+          {{-- Price --}}
+          <div class="flex items-center gap-2 mb-2">
+            @if($displayPrice > 0)
+            <span class="font-bold text-navy-900 text-base">${{ number_format($displayPrice, 2) }}</span>
+            @if($displayCompare > $displayPrice)
+            <span class="text-slate-400 line-through text-xs">${{ number_format($displayCompare, 2) }}</span>
+            @endif
+            @else
+            <span class="text-slate-400 text-sm italic">Price on request</span>
+            @endif
+          </div>
+
+          {{-- Size/variant note --}}
+          @if($isDainBelt)
+          <p class="text-slate-400 text-[10px] mb-3">Sizes: S/M · L/XL · 2XL · 3XL</p>
+          @elseif($pVars > 1)
+          <p class="text-slate-400 text-[10px] mb-3">{{ $pVars }} options available</p>
+          @endif
+
+          {{-- CTA buttons --}}
+          <div class="flex gap-2 mt-auto pt-3 border-t border-slate-100">
+
+            {{-- ADD TO CART ─ submits hidden form → CartController → CheckoutController --}}
+            <button
+              type="button"
+              id="add-to-cart-{{ $product['id'] ?? $loop->index }}"
+              @click="goToCheckout($event)"
+              class="flex-1 inline-flex items-center justify-center gap-1.5 bg-navy-700 hover:bg-navy-800 active:scale-95 text-white text-xs font-bold px-3 py-2.5 rounded-xl transition-all shadow-sm"
+            >
+              <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              Add to Cart
+            </button>
+
+            {{-- VIEW PRODUCT --}}
+            <a
+              href="{{ $pUrl }}"
+              id="view-product-{{ $product['id'] ?? $loop->index }}"
+              class="inline-flex items-center justify-center gap-1 border border-slate-200 hover:border-navy-400 hover:text-navy-700 text-slate-600 text-xs font-semibold px-3 py-2.5 rounded-xl transition-colors"
+            >
+              View
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+
+          {{-- Hidden form — REQUIRED by productPurchase Alpine component ($refs.checkoutForm) --}}
+          <form x-ref="checkoutForm" method="POST" action="{{ $cartAddUrl }}" class="hidden">
+            @csrf
+            <input type="hidden" name="product_id">
+            <input type="hidden" name="title">
+            <input type="hidden" name="subtitle">
+            <input type="hidden" name="image">
+            <input type="hidden" name="price">
+            <input type="hidden" name="compare_at_price">
+            <input type="hidden" name="quantity">
+            <input type="hidden" name="option_label">
+            <input type="hidden" name="option_value">
+            <input type="hidden" name="variant_id">
+            <input type="hidden" name="source">
+          </form>
+
         </div>
       </div>
       @endforeach
+
     </div>
-    @elseif(empty($error))
-    <p class="text-center text-slate-500 py-12">No products available at the moment.</p>
+
+    {{-- Empty search state --}}
+    <div id="empty-search-msg" class="hidden text-center py-20">
+      <svg class="w-16 h-16 text-slate-200 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <p class="text-slate-600 font-semibold">No products match your search</p>
+      <p class="text-slate-400 text-sm mt-1">Try a different keyword or clear the filter</p>
+    </div>
+
+    @elseif(!$error)
+    <div class="text-center py-20">
+      <svg class="w-16 h-16 text-slate-200 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      <p class="text-slate-600 font-semibold">No products found</p>
+      <p class="text-slate-400 text-sm mt-1">Check your Shopify connection or add products to your store.</p>
+    </div>
     @endif
+
   </div>
 </section>
 
-<section class="section bg-white">
-  <div class="container-site">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-      @foreach([['50,000+','Customers Helped'],['4.8★','Average Rating'],['30 Day','Money-Back Guarantee'],['Free Ship','Orders Over $75']] as [$val,$label])
-      <div class="p-6 bg-navy-50 rounded-2xl">
-        <p class="font-display font-bold text-2xl text-navy-900 mb-1">{{ $val }}</p>
-        <p class="text-slate-500 text-sm">{{ $label }}</p>
-      </div>
-      @endforeach
-    </div>
-  </div>
-</section>
+@push('scripts')
+<script>
+(function () {
+  'use strict';
+
+  const searchInput = document.getElementById('product-search');
+  const grid        = document.getElementById('products-grid');
+  const emptyMsg    = document.getElementById('empty-search-msg');
+  const countEl     = document.getElementById('product-count');
+  const sortBtns    = document.querySelectorAll('.sort-btn');
+
+  if (!grid) return;
+
+  const allCards = Array.from(grid.querySelectorAll('.product-card'));
+
+  function getActiveSort() {
+    for (const btn of sortBtns) {
+      if (btn.classList.contains('bg-navy-700')) return btn.dataset.sort;
+    }
+    return 'default';
+  }
+
+  function applyFilters() {
+    const q    = (searchInput ? searchInput.value : '').toLowerCase().trim();
+    const sort = getActiveSort();
+
+    // Filter
+    let visible = allCards.filter(card => !q || card.dataset.title.includes(q));
+
+    // Sort
+    if (sort === 'price-asc')  visible.sort((a,b) => parseFloat(a.dataset.price||0) - parseFloat(b.dataset.price||0));
+    if (sort === 'price-desc') visible.sort((a,b) => parseFloat(b.dataset.price||0) - parseFloat(a.dataset.price||0));
+    if (sort === 'az')  visible.sort((a,b) => (a.dataset.title||'').localeCompare(b.dataset.title||''));
+    if (sort === 'za')  visible.sort((a,b) => (b.dataset.title||'').localeCompare(a.dataset.title||''));
+
+    // Apply visibility
+    allCards.forEach(c => { c.style.display = 'none'; });
+
+    if (visible.length === 0) {
+      if (emptyMsg) emptyMsg.classList.remove('hidden');
+    } else {
+      if (emptyMsg) emptyMsg.classList.add('hidden');
+      visible.forEach(c => { c.style.display = ''; grid.appendChild(c); });
+    }
+
+    if (countEl) countEl.textContent = visible.length + ' product' + (visible.length === 1 ? '' : 's');
+  }
+
+  // Wire search
+  if (searchInput) {
+    searchInput.addEventListener('input', applyFilters);
+  }
+
+  // Wire sort buttons
+  sortBtns.forEach(btn => {
+    btn.addEventListener('click', function () {
+      sortBtns.forEach(b => {
+        b.classList.remove('bg-navy-700', 'text-white', 'border-navy-700');
+        b.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
+      });
+      this.classList.add('bg-navy-700', 'text-white', 'border-navy-700');
+      this.classList.remove('bg-white', 'text-slate-600', 'border-slate-200');
+      applyFilters();
+    });
+  });
+})();
+</script>
+@endpush
+
 @endsection
-

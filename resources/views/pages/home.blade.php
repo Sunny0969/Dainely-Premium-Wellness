@@ -56,19 +56,37 @@
 
 @section('content')
 @php
-  $beltUrl = !empty($featuredBelt['handle'])
+  $cartAddUrl  = route('cart.store', ['locale' => $locale]);
+  $beltUrl     = !empty($featuredBelt['handle'])
     ? route('products.show', ['locale' => $locale, 'slug' => $featuredBelt['handle']])
     : route('products.index', ['locale' => $locale]);
-  $drsUrl = !empty($dailyRelief['handle'])
+  $drsUrl      = !empty($dailyRelief['handle'])
     ? route('products.show', ['locale' => $locale, 'slug' => $dailyRelief['handle']])
     : route('products.index', ['locale' => $locale]);
-  $beltImage = $featuredBelt['image'] ?? asset('images/dainely-belt-product.png');
-  $beltTitle = $featuredBelt['title'] ?? 'Dainely Belt';
-  $beltPrice = isset($featuredBelt['price']) ? (float) $featuredBelt['price'] : null;
+  $beltImage   = $featuredBelt['image'] ?? asset('images/dainely-belt-product.png');
+  $beltTitle   = $featuredBelt['title'] ?? 'Dainely Belt';
+  $beltPrice   = $featuredBelt['price'] ? (float) $featuredBelt['price'] : 64.00;
+  $beltCompare = $featuredBelt['compare_at'] ? (float) $featuredBelt['compare_at'] : 119.00;
+
+  // Cart product data for the Dainely Belt quick-add
+  $beltCartData = [
+    'id'              => (string) ($featuredBelt['id'] ?? 'dainely-belt'),
+    'title'           => $beltTitle,
+    'subtitle'        => 'Premium everyday lower back stabilization',
+    'image'           => $beltImage,
+    'price'           => $beltPrice,
+    'compare_at_price'=> $beltCompare,
+    'variants'        => [],
+    'source'          => 'shopify',
+  ];
 @endphp
 
+{{-- Global cart URL for JS fallback --}}
+<script>window._cartAddUrl = @js($cartAddUrl);</script>
+
 {{-- 1. HERO — split layout, mobile image first --}}
-<section class="home-hero bg-stone-50 border-b border-stone-200/80" aria-label="Hero">
+<section class="home-hero bg-stone-50 border-b border-stone-200/80" aria-label="Hero"
+  x-data="productPurchase(false, @js($beltCartData), @js($cartAddUrl))">
   <div class="container-site">
     <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center py-10 md:py-16 lg:py-20">
 
@@ -97,12 +115,18 @@
         </p>
 
         <div class="flex flex-col sm:flex-row gap-3 mb-6">
-          <a href="{{ $beltUrl }}" id="hero-cta-primary" class="btn-primary-lg w-full sm:w-auto justify-center">
+          {{-- SHOP NOW → Add to Cart → Checkout --}}
+          <button
+            type="button"
+            id="hero-cta-primary"
+            @click="goToCheckout($event)"
+            class="btn-primary-lg w-full sm:w-auto justify-center"
+          >
             {{ __('home.hero_cta_primary') }}
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-          </a>
-          <a href="#home-video" class="btn-outline w-full sm:w-auto justify-center border-stone-300 text-stone-800 hover:border-navy-600">
-            {{ __('home.hero_cta_secondary') }}
+          </button>
+          <a href="{{ $beltUrl }}" class="btn-outline w-full sm:w-auto justify-center border-stone-300 text-stone-800 hover:border-navy-600">
+            View Product Details
           </a>
         </div>
 
@@ -119,6 +143,22 @@
       </div>
     </div>
   </div>
+
+  {{-- Hidden form for hero cart submission --}}
+  <form x-ref="checkoutForm" method="POST" action="{{ $cartAddUrl }}" class="hidden">
+    @csrf
+    <input type="hidden" name="product_id">
+    <input type="hidden" name="title">
+    <input type="hidden" name="subtitle">
+    <input type="hidden" name="image">
+    <input type="hidden" name="price">
+    <input type="hidden" name="compare_at_price">
+    <input type="hidden" name="quantity">
+    <input type="hidden" name="option_label">
+    <input type="hidden" name="option_value">
+    <input type="hidden" name="variant_id">
+    <input type="hidden" name="source">
+  </form>
 </section>
 
 {{-- 2. TRUST STRIP --}}
@@ -154,20 +194,36 @@
 </section>
 
 {{-- 3. FEATURED PRODUCT — Dainely Belt --}}
-<section class="section bg-stone-50/80" aria-label="Featured product">
+<section class="section bg-stone-50/80" aria-label="Featured product"
+  x-data="productPurchase(false, @js($beltCartData), @js($cartAddUrl))">
   <div class="container-site">
     <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
       <div class="order-2 lg:order-1">
         <p class="eyebrow text-stone-500 mb-3">{{ __('home.featured_eyebrow') }}</p>
         <h2 class="heading-section text-stone-900 mb-5">{{ __('home.featured_title') }}</h2>
-        <p class="text-body text-stone-600 mb-8">{{ __('home.featured_copy') }}</p>
-        <a href="{{ $beltUrl }}" class="btn-primary-lg inline-flex">
-          {{ __('home.featured_cta') }}
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-        </a>
-        @if($beltPrice)
-        <p class="mt-4 text-stone-500 text-sm">From <span class="font-semibold text-stone-800">${{ number_format($beltPrice, 2) }}</span></p>
-        @endif
+        <p class="text-body text-stone-600 mb-5">{{ __('home.featured_copy') }}</p>
+
+        <div class="flex items-center gap-3 mb-6">
+          <span class="font-display font-bold text-3xl text-navy-900">${{ number_format($beltPrice, 2) }}</span>
+          <span class="text-slate-400 line-through text-base">${{ number_format($beltCompare, 2) }}</span>
+          <span class="bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full">Save {{ round((($beltCompare - $beltPrice)/$beltCompare)*100) }}%</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          {{-- ADD TO CART directly --}}
+          <button
+            type="button"
+            id="featured-add-to-cart"
+            @click="goToCheckout($event)"
+            class="btn-primary-lg inline-flex justify-center"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            {{ __('home.featured_cta') }}
+          </button>
+          <a href="{{ $beltUrl }}" class="btn-outline inline-flex justify-center border-stone-300 text-stone-800">
+            View Details →
+          </a>
+        </div>
       </div>
       <div class="order-1 lg:order-2">
         <a href="{{ $beltUrl }}" class="block rounded-3xl overflow-hidden bg-white shadow-soft ring-1 ring-stone-200/80 group">
@@ -183,6 +239,21 @@
       </div>
     </div>
   </div>
+
+  <form x-ref="checkoutForm" method="POST" action="{{ $cartAddUrl }}" class="hidden">
+    @csrf
+    <input type="hidden" name="product_id">
+    <input type="hidden" name="title">
+    <input type="hidden" name="subtitle">
+    <input type="hidden" name="image">
+    <input type="hidden" name="price">
+    <input type="hidden" name="compare_at_price">
+    <input type="hidden" name="quantity">
+    <input type="hidden" name="option_label">
+    <input type="hidden" name="option_value">
+    <input type="hidden" name="variant_id">
+    <input type="hidden" name="source">
+  </form>
 </section>
 
 {{-- 4. LIFESTYLE POSITIONING --}}
@@ -406,22 +477,45 @@
 </section>
 
 {{-- 13. FINAL CTA --}}
-<section class="section home-final-cta" aria-label="Call to action">
+<section class="section home-final-cta" aria-label="Call to action"
+  x-data="productPurchase(false, @js($beltCartData), @js($cartAddUrl))">
   <div class="container-narrow text-center">
     <h2 class="heading-section text-stone-900 mb-4">{{ __('home.cta_headline') }}</h2>
-    <p class="text-lead text-stone-600 mb-8">{{ __('home.cta_desc') }}</p>
-    <a href="{{ $beltUrl }}" class="btn-primary-lg" id="final-cta">
-      {{ __('home.cta_button') }}
-      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-    </a>
-    <p class="text-stone-500 text-sm mt-5">{{ __('home.cta_guarantee') }}</p>
+    <p class="text-lead text-stone-600 mb-6">{{ __('home.cta_desc') }}</p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center mb-5">
+      <button
+        type="button"
+        id="final-cta"
+        @click="goToCheckout($event)"
+        class="btn-primary-lg justify-center"
+      >
+        {{ __('home.cta_button') }}
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      </button>
+      <a href="{{ $beltUrl }}" class="btn-outline justify-center border-stone-300 text-stone-800">View Product Page</a>
+    </div>
+    <p class="text-stone-500 text-sm">{{ __('home.cta_guarantee') }}</p>
   </div>
+  <form x-ref="checkoutForm" method="POST" action="{{ $cartAddUrl }}" class="hidden">
+    @csrf
+    <input type="hidden" name="product_id">
+    <input type="hidden" name="title">
+    <input type="hidden" name="subtitle">
+    <input type="hidden" name="image">
+    <input type="hidden" name="price">
+    <input type="hidden" name="compare_at_price">
+    <input type="hidden" name="quantity">
+    <input type="hidden" name="option_label">
+    <input type="hidden" name="option_value">
+    <input type="hidden" name="variant_id">
+    <input type="hidden" name="source">
+  </form>
 </section>
 
 {{-- Mobile sticky purchase bar --}}
 <div
   class="home-sticky-bar lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-stone-200 px-4 py-3 safe-area-pb"
-  x-data="{ show: false }"
+  x-data="Object.assign({ show: false }, productPurchase(false, @js($beltCartData), @js($cartAddUrl)))"
   x-init="
     const onScroll = () => { show = window.scrollY > 480 };
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -440,14 +534,32 @@
   <div class="flex items-center gap-3 max-w-lg mx-auto">
     <div class="flex-1 min-w-0">
       <p class="font-semibold text-stone-900 text-sm truncate">{{ $beltTitle }}</p>
-      @if($beltPrice)
-      <p class="text-stone-500 text-xs">From ${{ number_format($beltPrice, 2) }}</p>
-      @endif
+      <p class="text-stone-500 text-xs">${{ number_format($beltPrice, 2) }} — Free shipping over $75</p>
     </div>
-    <a href="{{ $beltUrl }}" class="btn-primary shrink-0 px-5 py-2.5 text-sm">
+    {{-- SHOP NOW → cart → checkout --}}
+    <button
+      type="button"
+      id="sticky-shop-now"
+      @click="goToCheckout($event)"
+      class="btn-primary shrink-0 px-5 py-2.5 text-sm"
+    >
       {{ __('home.sticky_cta') }}
-    </a>
+    </button>
   </div>
+  <form x-ref="checkoutForm" method="POST" action="{{ $cartAddUrl }}" class="hidden">
+    @csrf
+    <input type="hidden" name="product_id">
+    <input type="hidden" name="title">
+    <input type="hidden" name="subtitle">
+    <input type="hidden" name="image">
+    <input type="hidden" name="price">
+    <input type="hidden" name="compare_at_price">
+    <input type="hidden" name="quantity">
+    <input type="hidden" name="option_label">
+    <input type="hidden" name="option_value">
+    <input type="hidden" name="variant_id">
+    <input type="hidden" name="source">
+  </form>
 </div>
 
 @endsection
