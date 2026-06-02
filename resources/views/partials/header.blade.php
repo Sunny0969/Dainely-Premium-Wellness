@@ -61,17 +61,45 @@
             x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
-            class="absolute top-full left-0 mt-1 w-72 bg-white rounded-2xl shadow-medium border border-slate-100 p-2 z-50"
+            class="absolute top-full left-0 mt-1 w-72 max-h-[min(70vh,420px)] overflow-y-auto bg-white rounded-2xl shadow-medium border border-slate-100 p-2 z-50 flex flex-col"
           >
-            <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="flex items-start gap-3 p-3 rounded-xl hover:bg-navy-50 group transition-colors">
-              <div class="w-10 h-10 bg-navy-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-navy-200 transition-colors">
-                <svg class="w-5 h-5 text-navy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-              </div>
-              <div>
-                <p class="font-semibold text-slate-800 text-sm group-hover:text-navy-700">{{ __('nav.dainely_belt') }}</p>
-                <p class="text-xs text-slate-500 mt-0.5">{{ __('nav.dainely_belt_desc') }}</p>
-              </div>
-            </a>
+            @if(!empty($headerShopifyProducts))
+              @foreach($headerShopifyProducts as $product)
+              <a
+                href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}"
+                class="flex items-center gap-3 p-3 rounded-xl hover:bg-navy-50 group transition-colors w-full"
+              >
+                <div class="w-10 h-10 bg-stone-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden group-hover:bg-stone-200 transition-colors">
+                  @if(!empty($product['image']))
+                  <img src="{{ $product['image'] }}" alt="{{ $product['title'] }}" class="w-full h-full object-cover" loading="lazy" width="40" height="40">
+                  @else
+                  <svg class="w-5 h-5 text-navy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                  @endif
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="font-semibold text-slate-800 text-sm group-hover:text-navy-700 truncate">{{ $product['title'] }}</p>
+                  @if(!empty($product['price']))
+                  <p class="text-xs text-slate-500 mt-0.5">${{ number_format((float) $product['price'], 2) }}</p>
+                  @endif
+                </div>
+              </a>
+              @endforeach
+            @else
+              <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="flex items-start gap-3 p-3 rounded-xl hover:bg-navy-50 group transition-colors">
+                <div class="w-10 h-10 bg-navy-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-navy-200 transition-colors">
+                  <svg class="w-5 h-5 text-navy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-800 text-sm group-hover:text-navy-700">{{ __('nav.dainely_belt') }}</p>
+                  <p class="text-xs text-slate-500 mt-0.5">{{ __('nav.dainely_belt_desc') }}</p>
+                </div>
+              </a>
+            @endif
+            <div class="border-t border-slate-100 mt-1 pt-1">
+              <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="block px-3 py-2.5 rounded-xl text-sm font-semibold text-navy-700 hover:bg-navy-50 transition-colors text-center">
+                {{ __('nav.view_all_products') }}
+              </a>
+            </div>
           </div>
         </div>
 
@@ -176,7 +204,14 @@
       <div class="flex flex-col gap-1">
         <a href="{{ route('home', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors">{{ __('nav.home') }}</a>
         <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="px-3 pt-2 pb-1 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-navy-700 transition-colors block">{{ __('nav.products') }}</a>
-        <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('nav.dainely_belt') }}</a>
+        @if(!empty($headerShopifyProducts))
+          @foreach($headerShopifyProducts as $product)
+          <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6 truncate block">{{ $product['title'] }}</a>
+          @endforeach
+        @else
+          <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('nav.dainely_belt') }}</a>
+        @endif
+        <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="px-3 py-2 rounded-xl text-sm font-semibold text-navy-700 hover:bg-navy-50 transition-colors pl-6">{{ __('nav.view_all_products') }}</a>
 
         <p class="px-3 pt-2 pb-1 text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('nav.education') }}</p>
         <a href="{{ route('education.back-pain', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('nav.back_pain') }}</a>

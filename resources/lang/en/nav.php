@@ -18,4 +18,5 @@ return [
     'about'             => 'About',
     'contact'           => 'Contact',
     'shop_now'          => 'Shop Now',
+    'view_all_products' => 'View All Products',
 ];

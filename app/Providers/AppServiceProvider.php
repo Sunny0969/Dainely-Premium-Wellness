@@ -27,11 +27,11 @@ class AppServiceProvider extends ServiceProvider
             /** @var ShopifyService $shopify */
             $shopify = app(ShopifyService::class);
 
-            $cacheKey = 'header_shopify_products_v1';
+            $cacheKey = 'header_shopify_products_v2';
             $ttlSeconds = 15 * 60; // keep fast and avoid hammering Shopify
 
             $payload = Cache::remember($cacheKey, $ttlSeconds, function () use ($shopify) {
-                $shopifyResult = $shopify->fetchProducts(12);
+                $shopifyResult = $shopify->fetchProducts(50);
                 if (($shopifyResult['success'] ?? false) === true) {
                     $raw = $shopifyResult['products'] ?? [];
                     $featured = null;

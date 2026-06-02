@@ -41,6 +41,18 @@ class CheckoutCart
     }
 
     /**
+     * Whether the shopper has an item saved in session (from Add to Cart).
+     */
+    public static function exists(): bool
+    {
+        $cart = session(self::SESSION_KEY);
+
+        return is_array($cart)
+            && ! empty($cart['title'])
+            && ! empty($cart['product_id']);
+    }
+
+    /**
      * @param  array<string, mixed>  $item
      */
     public static function put(array $item): void

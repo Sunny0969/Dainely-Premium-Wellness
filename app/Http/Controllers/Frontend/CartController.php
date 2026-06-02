@@ -16,7 +16,7 @@ class CartController extends Controller
             'product_id'       => 'required|string|max:100',
             'title'            => 'required|string|max:255',
             'subtitle'         => 'nullable|string|max:500',
-            'image'            => 'required|string|max:500',
+            'image'            => 'required|string|max:2048',
             'price'            => 'required|numeric|min:0',
             'compare_at_price' => 'nullable|numeric|min:0',
             'quantity'         => 'required|integer|min:1|max:20',
@@ -39,7 +39,7 @@ class CartController extends Controller
             'option_label'     => $validated['option_label'] ?? null,
             'option_value'     => $validated['option_value'] ?? null,
             'variant_id'       => $validated['variant_id'] ?? null,
-            'source'           => $validated['source'] ?? 'static',
+            'source'           => $validated['source'] ?? (! empty($validated['variant_id']) ? 'shopify' : 'static'),
         ]);
 
         return redirect()->route('checkout.index', ['locale' => App::getLocale()]);

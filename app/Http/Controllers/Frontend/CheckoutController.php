@@ -11,6 +11,7 @@ use App\Services\ShopifyService;
 use App\Services\SendlaneService;
 use App\Services\CurrencyService;
 use App\Support\CheckoutCart;
+use App\Support\ProductSlugResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 // use Illuminate\Support\Facades\DB;
@@ -42,8 +43,9 @@ class CheckoutController extends Controller
         $currency         = $this->currency->getCurrencyForLocale($locale);
         $cart             = CheckoutCart::get();
 
-        if (($cart['source'] ?? 'static') === 'static') {
-            $cart = $this->populateCartFromShopify($cart);
+        // Only use a fallback when nothing was added to cart — never overwrite session cart.
+        if (! CheckoutCart::exists()) {
+            $cart = $this->populateFeaturedBeltFallback($cart);
         }
 
         return view('checkout.index', compact(
@@ -58,32 +60,36 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Replace default static cart data with first available Shopify product.
+     * Fallback when checkout is opened without Add to Cart — featured belt only.
      */
-    private function populateCartFromShopify(array $cart): array
+    private function populateFeaturedBeltFallback(array $cart): array
     {
         try {
-            $result = $this->shopify->fetchProducts(1);
-            if (!$result['success'] || empty($result['products'])) {
+            $handle = ProductSlugResolver::resolveHandle('dainely-belt');
+            $result = $this->shopify->fetchProductByHandle($handle);
+
+            if (! $result['success'] || empty($result['product'])) {
                 return $cart;
             }
 
-            $product  = $result['products'][0];
+            $product  = $result['product'];
             $firstVar = $product['variants'][0] ?? [];
             $image    = $product['images'][0]['src']
                         ?? ($product['image']['src'] ?? null);
 
-            $cart['product_id']       = (string) ($product['id'] ?? $cart['product_id']);
+            $cart['product_id']       = (string) ($product['id'] ?? $handle);
             $cart['title']            = $product['title'] ?? $cart['title'];
             $cart['subtitle']         = \Illuminate\Support\Str::limit(strip_tags($product['body_html'] ?? ''), 80) ?: $cart['subtitle'];
             $cart['image']            = $image ?: $cart['image'];
             $cart['price']            = (float) ($firstVar['price'] ?? $cart['price']);
             $cart['compare_at_price'] = isset($firstVar['compare_at_price']) ? (float) $firstVar['compare_at_price'] : $cart['compare_at_price'];
+            $cart['option_label']     = $firstVar['title'] ?? null;
+            $cart['variant_id']       = isset($firstVar['id']) ? (string) $firstVar['id'] : null;
             $cart['source']           = 'shopify';
 
             CheckoutCart::put($cart);
         } catch (\Throwable $e) {
-            Log::warning('Could not populate cart from Shopify', ['error' => $e->getMessage()]);
+            Log::warning('Could not populate fallback cart from Shopify', ['error' => $e->getMessage()]);
         }
 
         return $cart;

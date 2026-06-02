@@ -68,15 +68,26 @@ Alpine.data('productPurchase', (requiresOption = false, cartProduct = {}, cartAd
     return !this.requiresOption || this.selectedOption !== null;
   },
   get selectedVariant() {
-    if (!this.requiresOption || this.selectedOption === null) {
-      return null;
+    if (this.selectedOption !== null) {
+      const variants = this.cartProduct.variants || [];
+      const match = variants.find((variant) => {
+        const key = variant.index ?? variant.title ?? variant.id;
+        return key === this.selectedOption;
+      });
+      if (match) {
+        return match;
+      }
     }
 
     const variants = this.cartProduct.variants || [];
-    return variants.find((variant) => {
-      const key = variant.index ?? variant.title ?? variant.id;
-      return key === this.selectedOption;
-    }) ?? null;
+    if (variants.length === 1) {
+      return variants[0];
+    }
+
+    return null;
+  },
+  get activeVariant() {
+    return this.selectedVariant;
   },
   get unitPrice() {
     const variantPrice = this.selectedVariant?.price;
@@ -123,7 +134,7 @@ Alpine.data('productPurchase', (requiresOption = false, cartProduct = {}, cartAd
       return;
     }
 
-    const variant = this.selectedVariant;
+    const variant = this.activeVariant;
     const set = (name, value) => {
       const input = form.querySelector(`[name="${name}"]`);
       if (input) {
@@ -139,9 +150,9 @@ Alpine.data('productPurchase', (requiresOption = false, cartProduct = {}, cartAd
     set('compare_at_price', variant?.compare_at_price ?? this.cartProduct.compare_at_price ?? '');
     set('quantity', this.qty);
     set('option_label', variant?.title ?? '');
-    set('option_value', variant ? (variant.id ?? this.selectedOption) : '');
-    set('variant_id', variant?.id ?? '');
-    set('source', this.cartProduct.source || 'static');
+    set('option_value', variant ? String(variant.id ?? this.selectedOption ?? '') : '');
+    set('variant_id', variant?.id ? String(variant.id) : '');
+    set('source', this.cartProduct.source || 'shopify');
 
     form.submit();
   },

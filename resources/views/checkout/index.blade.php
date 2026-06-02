@@ -215,7 +215,9 @@ document.addEventListener('alpine:init', () => {
   $cartQty = (int) ($cart['quantity'] ?? 1);
   $cartUnitPrice = (float) ($cart['price'] ?? 0);
   $cartLineTotal = $cartUnitPrice * $cartQty;
-  $cartSubtitle = $cart['option_label'] ?? ($cart['subtitle'] ?? '');
+  $cartSubtitle = ! empty($cart['option_label'])
+    ? 'Size: ' . $cart['option_label']
+    : ($cart['subtitle'] ?? '');
   $cartShipping = $cartLineTotal >= 75 ? 0 : 9.99;
   $cartTotal = $cartLineTotal + $cartShipping;
 @endphp
@@ -479,7 +481,7 @@ document.addEventListener('alpine:init', () => {
               </div>
               <div class="flex-1 min-w-0">
                 <p class="font-semibold text-slate-800 text-sm truncate" x-text="cartItem.title">{{ $cart['title'] }}</p>
-                <p class="text-slate-400 text-xs truncate" x-text="cartItem.option_label || cartItem.subtitle">{{ $cartSubtitle }}</p>
+                <p class="text-slate-400 text-xs truncate" x-text="cartItem.option_label ? ('Size: ' + cartItem.option_label) : (cartItem.subtitle || '')">{{ $cartSubtitle }}</p>
                 <div class="flex items-center gap-2 mt-1">
                   <button type="button" @click="qty = Math.max(1, qty - 1)" class="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm flex items-center justify-center">−</button>
                   <span class="font-semibold text-navy-900 text-sm min-w-[1rem] text-center" x-text="qty">{{ $cartQty }}</span>
