@@ -11,6 +11,21 @@ class ProductSlugResolver
     protected static array $legacySlugToHandle = [
         'dainely-belt' => 'dainely-comfort-belt',
         'daily-relief-system' => 'dainely-daily-comfort-system',
+        'dainely-neck-stretcher' => 'stretcher',
+        'dainely™-neck-stretcher' => 'stretcher',
+        'back-stretcher' => 'dainely™-orthopedic-back-stretcher',
+        'dainely-back-stretcher' => 'dainely™-orthopedic-back-stretcher',
+        'dainely-orthopedic-back-stretcher' => 'dainely™-orthopedic-back-stretcher',
+        'relaxaleg-system' => 'leg-massager',
+        'dainely-relaxaleg-system' => 'leg-massager',
+        'relaxaleg' => 'leg-massager',
+        'dainely-tourmaline-belt' => 'dainely™-tourmaline-belt',
+        'tourmaline-belt' => 'dainely™-tourmaline-belt',
+        'dmede-daily-support' => 'dainely-daily-comfort-system',
+        'dmede-daily-support-recovery-system' => 'dainely-daily-comfort-system',
+        'dainely-cushion' => 'cushion',
+        'ergocushion' => 'cushion',
+        'mushroom-coffee' => 'functional-mushroom-coffee',
     ];
 
     public static function resolveHandle(string $slug): string

@@ -1,12 +1,9 @@
-# Dainely-Premium-Wellness — TODO
+# TODO
 
-## Products page (Shopify catalog)
-- [x] Add search (q) + optional price range (min_price/max_price) UI on `/products`
-- [x] Implement filtering/search in `Frontend\ProductController@index`
-- [ ] Test: click product from cards/slider opens `/products/{slug}`
-
-## Header / navbar
-- [ ] Ensure header "Products" dropdown uses correct products list (desktop + mobile)
-- [ ] Test: header dropdown product click opens `/products/{slug}`
-
+## Ball Massager detail page content injection
+- [ ] Edit `resources/views/pages/products/show.blade.php`
+- [ ] Add a dedicated section for `Dainely™ Ball Massager` details
+- [ ] Ensure it renders only on the ball-massager product page
+- [x] Paste provided HTML content into that section
+- [ ] Verify no changes on other pages
 

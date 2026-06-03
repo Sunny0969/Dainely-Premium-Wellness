@@ -60,7 +60,7 @@
           <img
             :src="images[active]"
             :alt="'Dainely Belt view ' + (active + 1)"
-            class="w-full aspect-square object-cover object-center transition-all duration-500"
+            class="w-full h-full aspect-[4/5] sm:aspect-[5/4] lg:aspect-square object-cover object-center transition-all duration-500"
             id="main-product-img"
             width="640" height="640"
           >
