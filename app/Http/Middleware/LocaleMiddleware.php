@@ -11,6 +11,10 @@ class LocaleMiddleware
 
     public function handle(Request $request, Closure $next)
     {
+        if ($request->getHost() === '127.0.0.1' && app()->environment('local') && $request->isMethod('GET')) {
+            return redirect()->to(str_replace('127.0.0.1', 'localhost', $request->fullUrl()));
+        }
+
         // 1. From route parameter
         $locale = $request->route('locale');
 

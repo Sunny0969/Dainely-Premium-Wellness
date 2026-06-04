@@ -28,7 +28,7 @@
       <div class="space-y-3 mb-6">
         @foreach($order->items as $item)
         <div class="flex items-center gap-4">
-          <img src="{{ asset('images/dainely-belt-product.png') }}" alt="{{ $item->product_name }}" class="w-14 h-14 rounded-xl object-cover bg-slate-100">
+          <img src="{{ $item->image_url }}" alt="{{ $item->product_name }}" class="w-14 h-14 rounded-xl object-cover bg-slate-100">
           <div class="flex-1">
             <p class="font-semibold text-slate-800 text-sm">{{ $item->product_name }}</p>
             <p class="text-slate-400 text-xs">Qty: {{ $item->quantity }}</p>
@@ -67,13 +67,13 @@
         Delivery Information
       </h3>
       <p class="text-slate-600 text-sm">Delivering to: <strong>{{ $order->shipping_address1 }}, {{ $order->shipping_city }}, {{ $order->shipping_country }}</strong></p>
-      <p class="text-slate-500 text-sm mt-1">Estimated delivery: <strong>5–8 business days</strong></p>
+      <p class="text-slate-500 text-sm mt-1">Estimated delivery: <strong>{{ $order->shipping_method === 'express' ? '2–3 business days' : '5–8 business days' }}</strong></p>
       <p class="text-slate-400 text-xs mt-3">You will receive a shipping confirmation with tracking details once your order is dispatched — usually within 24 hours.</p>
     </div>
 
     <div class="flex flex-wrap justify-center gap-4">
-      <a href="#" class="btn-primary">Continue Shopping</a>
-      <a href="mailto:support@dainely.com" class="btn-outline">Contact Support</a>
+      <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="btn-primary">Continue Shopping</a>
+      <a href="{{ route('contact', ['locale' => app()->getLocale()]) }}" class="btn-outline">Contact Support</a>
     </div>
   </div>
 </div>

@@ -102,18 +102,19 @@ class CheckoutController extends Controller
     public function process(Request $request)
     {
         $validated = $request->validate([
-            'source_id'      => 'required|string',
-            'first_name'     => 'required|string|max:100',
-            'last_name'      => 'required|string|max:100',
-            'email'          => 'required|email|max:255',
-            'phone'          => 'nullable|string|max:20',
-            'address1'       => 'required|string|max:255',
-            'city'           => 'required|string|max:100',
-            'zip'            => 'required|string|max:20',
-            'country'        => 'required|string|max:2',
-            'qty'            => 'required|integer|min:1|max:20',
-            'amount_cents'   => 'required|integer|min:100',
-            'discount_code'  => 'nullable|string|max:50',
+            'source_id'       => 'required|string',
+            'first_name'      => 'required|string|max:100',
+            'last_name'       => 'required|string|max:100',
+            'email'           => 'required|email|max:255',
+            'phone'           => 'nullable|string|max:20',
+            'address1'        => 'required|string|max:255',
+            'city'            => 'required|string|max:100',
+            'zip'             => 'required|string|max:20',
+            'country'         => 'required|string|max:2',
+            'qty'             => 'required|integer|min:1|max:20',
+            'amount_cents'    => 'required|integer|min:100',
+            'discount_code'   => 'nullable|string|max:50',
+            'shipping_method' => 'nullable|string|max:50',
         ]);
 
         $locale      = App::getLocale();
@@ -144,12 +145,21 @@ class CheckoutController extends Controller
 
         session([
             'checkout.last_order' => [
-                'order_ref'   => $orderRef,
-                'payment_id'  => $payment['payment_id'] ?? null,
-                'email'       => $validated['email'],
-                'first_name'  => $validated['first_name'],
-                'cart'        => CheckoutCart::get(),
-                'amount_cents'=> $amountCents,
+                'order_ref'       => $orderRef,
+                'payment_id'      => $payment['payment_id'] ?? null,
+                'email'           => $validated['email'],
+                'first_name'      => $validated['first_name'],
+                'last_name'       => $validated['last_name'],
+                'phone'           => $validated['phone'] ?? null,
+                'address1'        => $validated['address1'],
+                'city'            => $validated['city'],
+                'zip'             => $validated['zip'],
+                'country'         => $validated['country'],
+                'qty'             => (int) $validated['qty'],
+                'cart'            => CheckoutCart::get(),
+                'amount_cents'    => $amountCents,
+                'discount_code'   => $validated['discount_code'] ?? null,
+                'shipping_method' => $validated['shipping_method'] ?? 'standard',
             ],
         ]);
 
@@ -169,21 +179,36 @@ class CheckoutController extends Controller
     {
         $lastOrder = session('checkout.last_order');
         $cart      = is_array($lastOrder['cart'] ?? null) ? $lastOrder['cart'] : CheckoutCart::get();
-        $qty       = (int) ($cart['quantity'] ?? 1);
+        $qty       = (int) ($cart['quantity'] ?? ($lastOrder['qty'] ?? 1));
         $price     = (float) ($cart['price'] ?? 89);
+        $subtotal  = $price * $qty;
+
+        $totalCents = (int) ($lastOrder['amount_cents'] ?? ($subtotal * 100));
+        $totalUsd   = $totalCents / 100;
+        
+        $shippingMethod = $lastOrder['shipping_method'] ?? 'standard';
+        $shippingUsd    = $shippingMethod === 'express' ? 24.99 : ($subtotal >= 75 ? 0.00 : 9.99);
+        $discountUsd    = max(0.00, round(($subtotal + $shippingUsd) - $totalUsd, 2));
 
         $order = (object) [
             'order_number'        => $order,
             'customer_first_name' => $lastOrder['first_name'] ?? 'Guest',
             'customer_email'      => $lastOrder['email'] ?? 'guest@example.com',
-            'total_usd'           => ($lastOrder['amount_cents'] ?? ($price * $qty * 100)) / 100,
-            'shipping_usd'        => 0,
-            'discount_amount_usd' => 0,
+            'shipping_address1'   => $lastOrder['address1'] ?? '123 Main St',
+            'shipping_city'       => $lastOrder['city'] ?? 'New York',
+            'shipping_country'    => $lastOrder['country'] ?? 'US',
+            'subtotal_usd'        => $subtotal,
+            'shipping_usd'        => $shippingUsd,
+            'discount_amount_usd' => $discountUsd,
+            'discount_code'       => $lastOrder['discount_code'] ?? null,
+            'shipping_method'     => $shippingMethod,
+            'total_usd'           => $totalUsd,
             'items'               => collect([
                 (object) [
                     'product_name'    => $cart['title'] ?? 'Dainely Belt',
                     'quantity'        => $qty,
-                    'total_price_usd' => $price * $qty,
+                    'total_price_usd' => $subtotal,
+                    'image_url'       => $cart['image'] ?? asset('images/dainely-belt-product.png'),
                 ],
             ]),
         ];
