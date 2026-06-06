@@ -1,0 +1,578 @@
+<?php
+
+namespace App\Services;
+
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * Service for fetching and caching product reviews from the Judge.me API.
+ *
+ * Reviews are fetched server-side using the Private API token (never exposed
+ * to the client). Results are cached using Laravel's file cache driver.
+ */
+class ReviewService
+{
+    protected string $apiToken;
+    protected string $shopDomain;
+    protected int    $cacheTtl;
+    protected bool   $verifySsl;
+
+    /**
+     * Maps each site product handle to ALL Judge.me handles whose reviews
+     * should be aggregated together.  Many Shopify stores have duplicate
+     * products (A/B tests, upsell variants, legacy slugs) that all represent
+     * the same physical item.
+     */
+    protected static array $handleGroups = [
+        // ── Dainely Belt (all variants) ──────────────────────────
+        'dainely-comfort-belt' => [
+            'dainely-belt',
+            'back-belt',
+            'dainely-premium-belt-relieve-back-pain-sciatica',
+            'db',
+            'belt',
+            'belt-2',
+            'back-belt-1',
+            'dainely-belt-for-lower-back-hip-pelvic-pain-relief-for-women-men-compression-lumbar-support-brace',
+            'dainely™-belt-funnelish',
+            'dainely™-belt-test',
+            'dainely-comfort-belt',
+        ],
+        // Aliases that resolve to dainely-comfort-belt via ProductSlugResolver
+        'dainely-belt'       => 'dainely-comfort-belt',
+        'dainely-belt-2-b'   => 'dainely-comfort-belt',
+        'dainely-belt-2-c'   => 'dainely-comfort-belt',
+
+        // ── Knee Brace ───────────────────────────────────────────
+        'brace' => [
+            'brace',
+            'brace-upsell',
+            'dainely-knee-brace',
+        ],
+        'dainely-knee-brace' => 'brace',
+
+        // ── Neck Stretcher ───────────────────────────────────────
+        'stretcher' => [
+            'stretcher',
+            'stretcher-upsell',
+            'dainely-neck-stretcher',
+        ],
+        'dainely-neck-stretcher' => 'stretcher',
+
+        // ── Back Stretcher ───────────────────────────────────────
+        'dainely™-orthopedic-back-stretcher' => [
+            'dainely™-orthopedic-back-stretcher',
+            'dainely-orthopedic-back-stretcher',
+            'back-stretcher',
+        ],
+        'dainely-orthopedic-back-stretcher' => 'dainely™-orthopedic-back-stretcher',
+        'back-stretcher'                    => 'dainely™-orthopedic-back-stretcher',
+
+        // ── Neck Cloud ───────────────────────────────────────────
+        'neck-pain' => [
+            'neck-pain',
+        ],
+
+        // ── Back Patches ─────────────────────────────────────────
+        'back-pain-relief-patches-20-pcs' => [
+            'back-pain-relief-patches-20-pcs',
+        ],
+
+        // ── Heated Jacket ────────────────────────────────────────
+        'dainely-unisex-heated-jacket' => [
+            'jacket',
+            'dainely-unisex-heated-jacket',
+        ],
+
+        // ── Foot Massager ────────────────────────────────────────
+        'dainely-foot-massager' => [
+            'dainely-foot-massager',
+            'dainely™-foot-massager',
+        ],
+        'dainely™-foot-massager' => 'dainely-foot-massager',
+
+        // ── Massager ─────────────────────────────────────────────
+        'dainely-massager' => [
+            'dainely-massager',
+            'dainely™-massager',
+        ],
+        'dainely™-massager' => 'dainely-massager',
+
+        // ── Shoulder Brace ───────────────────────────────────────
+        'shoulder-brace' => [
+            'shoulder-brace',
+            'dainely-shoulder-brace',
+        ],
+        'dainely-shoulder-brace' => 'shoulder-brace',
+
+        // ── Ball Massager ────────────────────────────────────────
+        'dainely-ball-massager' => [
+            'dainely-ball-massager',
+            'dainely™-ball-massager',
+            'dainely-ball-massager-1',
+        ],
+        'dainely™-ball-massager'  => 'dainely-ball-massager',
+        'dainely-ball-massager-1' => 'dainely-ball-massager',
+
+        // ── RelaxaLeg System ─────────────────────────────────────
+        'leg-massager' => [
+            'leg-massager',
+            'relaxaleg-system',
+            'dainely-relaxaleg-system',
+            'relaxaleg',
+        ],
+        'relaxaleg-system'          => 'leg-massager',
+        'dainely-relaxaleg-system'  => 'leg-massager',
+        'relaxaleg'                 => 'leg-massager',
+
+        // ── Tourmaline Belt ──────────────────────────────────────
+        'dainely™-tourmaline-belt' => [
+            'dainely™-tourmaline-belt',
+            'dainely-tourmaline-belt',
+            'tourmaline-belt',
+        ],
+        'dainely-tourmaline-belt' => 'dainely™-tourmaline-belt',
+        'tourmaline-belt'         => 'dainely™-tourmaline-belt',
+
+        // ── DMEDE Daily Comfort System ───────────────────────────
+        'dainely-daily-comfort-system' => [
+            'dainely-daily-comfort-system',
+            'dmede-daily-support',
+            'dmede-daily-support-recovery-system',
+        ],
+
+        // ── ErgoCushion ──────────────────────────────────────────
+        'cushion' => [
+            'cushion',
+            'dainely-cushion',
+            'ergocushion',
+        ],
+        'dainely-cushion' => 'cushion',
+        'ergocushion'     => 'cushion',
+
+        // ── Mushroom Coffee ──────────────────────────────────────
+        'functional-mushroom-coffee' => [
+            'functional-mushroom-coffee',
+            'mushroom-coffee',
+            'coffee',
+        ],
+        'mushroom-coffee' => 'functional-mushroom-coffee',
+        'coffee'          => 'functional-mushroom-coffee',
+
+        // ── Mouthpiece ───────────────────────────────────────────
+        'mouthpiece' => [
+            'mouthpiece',
+        ],
+    ];
+
+    /**
+     * Map each Judge.me product handle to its internal product ID.
+     */
+    protected static array $handleToJudgemeId = [
+        '1x-dainely™-knee-brace-funnelish' => 1938085535,
+        '2x-dainely™-knee-brace' => 1938085537,
+        '3x-dainely™-knee-brace-funnelish' => 1938085538,
+        'back-belt' => 1938085524,
+        'back-belt-1' => 1938085529,
+        'back-pain-relief-patches-20-pcs' => 1938085548,
+        'belt' => 1938085526,
+        'belt-2' => 1938085518,
+        'brace' => 1938085519,
+        'brace-upsell' => 1938085549,
+        'cave' => 429083455,
+        'cupper' => 352033720,
+        'cushion' => 379053216,
+        'dainely™-ball-massager' => 391965730,
+        'dainely-belt' => 1938085530,
+        'dainely-belt-2x' => 1938085547,
+        'dainely-belt-for-lower-back-hip-pelvic-pain-relief-for-women-men-compression-lumbar-support-brace' => 1938085522,
+        'dainely™-belt-funnelish' => 1938085533,
+        'dainely™-belt-test' => 1938085546,
+        'dainely™-foot-massager' => 1938085541,
+        'dainely™-massager' => 1938085540,
+        'dainely™-orthopedic-back-stretcher' => 376610616,
+        'dainely-premium-belt-relieve-back-pain-sciatica' => 424230411,
+        'dainely™-tourmaline-belt' => 389679824,
+        'db' => 1938085551,
+        'leg-massager' => 1938085511,
+        'mouthpiece' => 1938085531,
+        'neck-pain' => 368723407,
+        'shoulder-brace' => 404102286,
+        'stretcher' => 1938085528,
+        'stretcher-upsell' => 1938085550,
+    ];
+
+    public function __construct()
+    {
+        $this->apiToken  = config('judgeme.api_token', '');
+        $this->shopDomain = config('judgeme.shop_domain', 'ididit555.myshopify.com');
+        $this->cacheTtl  = (int) config('judgeme.cache_ttl', 3600);
+        $this->verifySsl = (bool) config('judgeme.verify_ssl', false);
+    }
+
+    /**
+     * Resolve a site handle to the canonical handle group key.
+     */
+    protected function resolveCanonicalHandle(string $handle): string
+    {
+        // Follow alias chains: if the value is a string, it points to the canonical
+        if (isset(self::$handleGroups[$handle]) && is_string(self::$handleGroups[$handle])) {
+            return self::$handleGroups[$handle];
+        }
+
+        return $handle;
+    }
+
+    /**
+     * Get all Judge.me handles whose reviews should be aggregated for a product.
+     */
+    protected function getHandleGroup(string $handle): array
+    {
+        $canonical = $this->resolveCanonicalHandle($handle);
+
+        if (isset(self::$handleGroups[$canonical]) && is_array(self::$handleGroups[$canonical])) {
+            return self::$handleGroups[$canonical];
+        }
+
+        // Unknown product — just search by the handle itself
+        return [$handle];
+    }
+
+    /**
+     * Fetch reviews for a product (with caching).
+     *
+     * @return array{reviews: array, total_count: int, average_rating: float, rating_breakdown: array}
+     */
+    public function getProductReviews(string $handle, int $limit = 30): array
+    {
+        if ($this->apiToken === '') {
+            return $this->emptyResult();
+        }
+
+        $canonical = $this->resolveCanonicalHandle($handle);
+        $cacheKey  = "judgeme_reviews_{$canonical}";
+
+        return Cache::remember($cacheKey, $this->cacheTtl, function () use ($canonical, $limit) {
+            return $this->fetchAndMergeReviews($canonical, $limit);
+        });
+    }
+
+    /**
+     * Get aggregate stats (average rating + total count) for a product.
+     *
+     * @return array{average_rating: float, total_reviews: int, rating_breakdown: array}
+     */
+    public function getProductStats(string $handle): array
+    {
+        if ($this->apiToken === '') {
+            return ['average_rating' => 0, 'total_reviews' => 0, 'rating_breakdown' => []];
+        }
+
+        $canonical = $this->resolveCanonicalHandle($handle);
+        $cacheKey  = "judgeme_stats_{$canonical}";
+
+        return Cache::remember($cacheKey, $this->cacheTtl, function () use ($canonical) {
+            // Try to compute from the reviews we've already fetched
+            $reviewData = $this->getProductReviews($canonical, 100);
+
+            return [
+                'average_rating'   => $reviewData['average_rating'],
+                'total_reviews'    => $reviewData['total_count'],
+                'rating_breakdown' => $reviewData['rating_breakdown'],
+            ];
+        });
+    }
+
+    /**
+     * Fetch, merge, and deduplicate reviews from all handles in a group.
+     */
+    protected function fetchAndMergeReviews(string $canonical, int $limit): array
+    {
+        $handles = $this->getHandleGroup($canonical);
+        $allReviews = [];
+
+        foreach ($handles as $judgemeHandle) {
+            $page = 1;
+            $maxPages = 2; // safety limit per handle (2 pages = 200 reviews)
+            $productId = self::$handleToJudgemeId[$judgemeHandle] ?? null;
+
+            while ($page <= $maxPages) {
+                try {
+                    $queryParams = [
+                        'api_token'   => $this->apiToken,
+                        'shop_domain' => $this->shopDomain,
+                        'per_page'    => 100,
+                        'page'        => $page,
+                    ];
+
+                    // If we have a direct Judge.me product ID, pass it to filter reviews on the server side!
+                    if ($productId !== null) {
+                        $queryParams['product_id'] = $productId;
+                    }
+
+                    $response = Http::withOptions(['verify' => $this->verifySsl])
+                        ->timeout(10)
+                        ->get('https://judge.me/api/v1/reviews', $queryParams);
+
+                    if (! $response->successful()) {
+                        Log::warning("Judge.me API returned HTTP {$response->status()} for handle group (page $page)");
+                        break;
+                    }
+
+                    $data = $response->json();
+                    $reviews = $data['reviews'] ?? [];
+
+                    if (empty($reviews)) {
+                        break;
+                    }
+
+                    // Filter reviews belonging to this specific Judge.me handle (as a fallback or confirmation)
+                    foreach ($reviews as $review) {
+                        $matchesHandle = ($review['product_handle'] ?? '') === $judgemeHandle;
+                        
+                        if ($matchesHandle && ($review['published'] ?? false)) {
+                            $allReviews[] = $review;
+                        }
+                    }
+
+                    // If we got fewer than 100, no more pages
+                    if (count($reviews) < 100) {
+                        break;
+                    }
+
+                    $page++;
+                } catch (\Throwable $e) {
+                    Log::error("Judge.me API error for handle '{$judgemeHandle}': " . $e->getMessage());
+                    break;
+                }
+            }
+        }
+
+
+        // Deduplicate by review ID first to prevent same review from showing twice
+        $uniqueById = [];
+        foreach ($allReviews as $review) {
+            $id = $review['id'] ?? null;
+            if ($id !== null) {
+                if (isset($uniqueById[$id])) {
+                    $existing = $uniqueById[$id];
+                    $hasNewMedia = !empty($review['pictures']) || !empty($review['videos']);
+                    $hasOldMedia = !empty($existing['pictures']) || !empty($existing['videos']);
+                    if (($hasNewMedia && !$hasOldMedia) || (strtotime($review['created_at'] ?? '') > strtotime($existing['created_at'] ?? ''))) {
+                        $uniqueById[$id] = $review;
+                    }
+                } else {
+                    $uniqueById[$id] = $review;
+                }
+            } else {
+                $uniqueById[] = $review;
+            }
+        }
+        $allReviews = array_values($uniqueById);
+
+        // Deduplicate by body text (case-insensitive, trimmed) to filter import duplication (e.g. Luis G. vs Luis Gordon)
+        $uniqueByBody = [];
+        foreach ($allReviews as $review) {
+            $bodyKey = strtolower(trim($review['body'] ?? ''));
+            if (empty($bodyKey)) {
+                $bodyKey = 'empty_' . ($review['id'] ?? uniqid());
+            }
+            
+            if (isset($uniqueByBody[$bodyKey])) {
+                $existing = $uniqueByBody[$bodyKey];
+                $hasNewMedia = !empty($review['pictures']) || !empty($review['videos']);
+                $hasOldMedia = !empty($existing['pictures']) || !empty($existing['videos']);
+                
+                // Prefer keeping the review with media, or the newer one
+                if (($hasNewMedia && !$hasOldMedia) || (strtotime($review['created_at'] ?? '') > strtotime($existing['created_at'] ?? ''))) {
+                    $uniqueByBody[$bodyKey] = $review;
+                }
+            } else {
+                $uniqueByBody[$bodyKey] = $review;
+            }
+        }
+
+        $reviews = array_values($uniqueByBody);
+
+        // Sort by: pinned first, then featured, then reviews with pictures/videos first, then newest
+        usort($reviews, function ($a, $b) {
+            if (($a['pinned'] ?? false) !== ($b['pinned'] ?? false)) {
+                return ($b['pinned'] ?? false) <=> ($a['pinned'] ?? false);
+            }
+            if (($a['featured'] ?? false) !== ($b['featured'] ?? false)) {
+                return ($b['featured'] ?? false) <=> ($a['featured'] ?? false);
+            }
+            
+            // Check for media
+            $aHasMedia = !empty($a['pictures']) || !empty($a['videos']) || ($a['has_published_pictures'] ?? false) || ($a['has_published_videos'] ?? false);
+            $bHasMedia = !empty($b['pictures']) || !empty($b['videos']) || ($b['has_published_pictures'] ?? false) || ($b['has_published_videos'] ?? false);
+            if ($aHasMedia !== $bHasMedia) {
+                return $bHasMedia <=> $aHasMedia;
+            }
+            
+            return strtotime($b['created_at']) <=> strtotime($a['created_at']);
+        });
+
+        // Calculate stats from the full review set
+        $totalCount = count($reviews);
+        $ratingBreakdown = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+        $sumRating = 0;
+
+        foreach ($reviews as $review) {
+            $rating = (int) ($review['rating'] ?? 5);
+            $ratingBreakdown[$rating] = ($ratingBreakdown[$rating] ?? 0) + 1;
+            $sumRating += $rating;
+        }
+
+        $averageRating = $totalCount > 0 ? round($sumRating / $totalCount, 1) : 0;
+
+        // Limit to requested number for display
+        $displayReviews = array_slice($reviews, 0, $limit);
+
+        // Map reviews into a clean display format
+        $mapped = array_map([$this, 'mapReviewForDisplay'], $displayReviews);
+
+        return [
+            'reviews'          => $mapped,
+            'total_count'      => $totalCount,
+            'average_rating'   => $averageRating,
+            'rating_breakdown' => $ratingBreakdown,
+        ];
+    }
+
+    /**
+     * Map a raw Judge.me review into a clean display-friendly array.
+     */
+    protected function mapReviewForDisplay(array $review): array
+    {
+        $pictures = [];
+        foreach ($review['pictures'] ?? [] as $pic) {
+            if (! ($pic['hidden'] ?? false) && ! empty($pic['urls'])) {
+                $pictures[] = [
+                    'thumb'    => $pic['urls']['small'] ?? $pic['urls']['compact'] ?? '',
+                    'original' => $pic['urls']['original'] ?? $pic['urls']['huge'] ?? '',
+                ];
+            }
+        }
+
+        $videos = [];
+        foreach ($review['videos'] ?? [] as $vid) {
+            if (! ($vid['hidden'] ?? false) && ! empty($vid['video_url'])) {
+                $videos[] = [
+                    'url' => $vid['video_url'],
+                    'mp4' => $vid['mp4_url'] ?? $vid['video_url'],
+                    'hls' => $vid['hls_url'] ?? '',
+                ];
+            }
+        }
+
+        // Generate fallback dynamic premium title based on rating if title is empty
+        $title = $review['title'] ?? '';
+        if (empty($title)) {
+            $rating = (int) ($review['rating'] ?? 5);
+            $fallbacks = [
+                5 => ['Excellent!', 'Highly recommended!', 'Great product!', 'Perfect!', 'Love it!', 'Very satisfied!'],
+                4 => ['Very good!', 'Good product', 'Satisfied', 'Recommended'],
+                3 => ['Okay', 'Average quality', 'Satisfied'],
+                2 => ['Disappointed', 'Could be better'],
+                1 => ['Not good', 'Disappointed']
+            ];
+            $list = $fallbacks[$rating] ?? $fallbacks[5];
+            $index = ($review['id'] ?? 0) % count($list);
+            $title = $list[$index];
+        }
+
+        $createdAt = $review['created_at'] ?? now()->toIso8601String();
+        $carbon    = \Carbon\Carbon::parse($createdAt);
+
+        return [
+            'id'             => $review['id'],
+            'title'          => $title,
+            'body'           => $review['body'] ?? '',
+            'rating'         => (int) ($review['rating'] ?? 5),
+            'reviewer_name'  => $review['reviewer']['name'] ?? 'Anonymous',
+            'verified'       => ($review['verified'] ?? '') === 'verified-purchase',
+            'featured'       => $review['featured'] ?? false,
+            'pinned'         => $review['pinned'] ?? false,
+            'pictures'       => $pictures,
+            'videos'         => $videos,
+            'created_at'     => $carbon->toDateString(),
+            'time_ago'       => $carbon->diffForHumans(),
+            'product_title'  => $review['product_title'] ?? '',
+            'product_handle' => $review['product_handle'] ?? '',
+        ];
+    }
+
+    /**
+     * Fetch and cache all reviews with media (pictures or videos) from the store.
+     *
+     * @return array
+     */
+    protected function getUniversalMediaReviews(): array
+    {
+        if ($this->apiToken === '') {
+            return [];
+        }
+
+        return Cache::remember('judgeme_universal_media_reviews', $this->cacheTtl, function () {
+            $allMediaReviews = [];
+
+            // Fetch up to 10 pages of reviews to capture all historical media reviews
+            for ($page = 1; $page <= 10; $page++) {
+                try {
+                    $response = Http::withOptions(['verify' => $this->verifySsl])
+                        ->timeout(10)
+                        ->get('https://judge.me/api/v1/reviews', [
+                            'api_token'   => $this->apiToken,
+                            'shop_domain' => $this->shopDomain,
+                            'per_page'    => 100,
+                            'page'        => $page,
+                        ]);
+
+                    if (!$response->successful()) {
+                        Log::warning("Judge.me API returned HTTP {$response->status()} while fetching universal media reviews (page $page)");
+                        break;
+                    }
+
+                    $data = $response->json();
+                    $reviews = $data['reviews'] ?? [];
+
+                    if (empty($reviews)) {
+                        break;
+                    }
+
+                    foreach ($reviews as $review) {
+                        $hasMedia = !empty($review['pictures']) || !empty($review['videos']) || ($review['has_published_pictures'] ?? false) || ($review['has_published_videos'] ?? false);
+                        if ($hasMedia && ($review['published'] ?? false)) {
+                            $allMediaReviews[] = $review;
+                        }
+                    }
+
+                    if (count($reviews) < 100) {
+                        break;
+                    }
+                } catch (\Throwable $e) {
+                    Log::error("Error fetching universal media reviews on page {$page}: " . $e->getMessage());
+                    break;
+                }
+            }
+
+            return $allMediaReviews;
+        });
+    }
+
+    /**
+     * Return an empty result structure.
+     */
+    protected function emptyResult(): array
+    {
+        return [
+            'reviews'          => [],
+            'total_count'      => 0,
+            'average_rating'   => 0,
+            'rating_breakdown' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0],
+        ];
+    }
+}

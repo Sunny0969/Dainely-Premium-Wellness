@@ -661,8 +661,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.8</span>
-          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">1,247 verified reviews</a>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.8' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -857,69 +857,7 @@
 </section>
 
 {{-- ── 6. TESTIMONIALS & REVIEWS ─────────────────────────────── --}}
-<section id="reviews" class="section bg-section-alt" aria-label="Customer reviews">
-  <div class="container-site">
-    <div class="text-center mb-10">
-      <p class="eyebrow mb-3">Real Customer Experiences</p>
-      <h2 class="heading-section mb-4">What Our Customers Say</h2>
-      <div class="flex items-center justify-center gap-3 mb-6">
-        <div class="flex gap-0.5">
-          @for ($i = 0; $i < 5; $i++)
-          <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-          @endfor
-        </div>
-        <span class="text-slate-700 font-bold">4.8 / 5</span>
-        <span class="text-slate-400">·</span>
-        <span class="text-slate-500 text-sm">1,247 verified reviews</span>
-      </div>
-      {{-- Review filter tags --}}
-      <div class="flex flex-wrap gap-2 justify-center">
-        @foreach(['Back Pain','Sciatica','Sitting at Work','Driving','Standing Desk','Everyday Wear'] as $tag)
-        <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-600 cursor-default hover:border-navy-300 hover:text-navy-700 transition-colors">{{ $tag }}</span>
-        @endforeach
-      </div>
-    </div>
-
-    {{-- Featured review --}}
-    <div class="bg-navy-50 border border-navy-100 rounded-3xl p-8 mb-8 max-w-3xl mx-auto">
-      <div class="flex gap-1 mb-4">
-        @for ($i = 0; $i < 5; $i++)<svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>@endfor
-      </div>
-      <blockquote class="text-lg text-navy-800 font-display italic leading-relaxed mb-4">
-        "I struggled with shooting sciatica discomfort during my morning commute for years. I started wearing the Dainely Belt during my drive, and the added stabilization changed how I approached my workday."
-      </blockquote>
-      <p class="text-slate-500 text-xs">— Sarah K., Verified Buyer · Dainely Belt Size L/XL</p>
-    </div>
-
-    <div class="grid md:grid-cols-3 gap-6">
-      @foreach([
-        ['Sarah M.', 'Texas, USA', 'testimonial-sarah.jpg', '"I have had lower back discomfort for 3 years. After wearing the Dainely Belt consistently for 2 weeks, I noticed a real difference in how I felt sitting at my desk. The fit is comfortable and it stays in place all day."', 5, 'Dainely Belt · Size L/XL', 'Sitting at Work'],
-        ['Jean-Pierre D.', 'Paris, France', 'testimonial-jean.jpg', '"Quality construction and thoughtful design. I wear it during my commute and throughout my workday. The adjustment system is simple and effective — this has become part of my daily routine."', 5, 'Dainely Belt · Size M', 'Driving'],
-        ['Klaus H.', 'Munich, Germany', 'testimonial-klaus.jpg', '"I use it for desk work and occasional travel. Simple to put on, discreet under clothing, and the support feels consistent throughout the day. I recommend it to anyone spending long hours seated."', 5, 'Dainely Belt · Size XL', 'Everyday Wear'],
-      ] as [$name, $location, $avatar, $review, $stars, $product, $tag])
-      <div class="testimonial-card">
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex gap-0.5">
-            @for ($i = 0; $i < $stars; $i++)
-            <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            @endfor
-          </div>
-          <span class="trust-badge text-sage-700 bg-sage-50 border-sage-200 text-[10px]">✓ Verified</span>
-        </div>
-        <span class="inline-block px-2 py-0.5 rounded-full bg-navy-50 text-navy-600 text-[10px] font-semibold mb-3">{{ $tag }}</span>
-        <p class="text-slate-700 text-sm leading-relaxed mb-4">{{ $review }}</p>
-        <div class="flex items-center gap-3 pt-3 border-t border-slate-100">
-          <img src="{{ asset('images/' . $avatar) }}" alt="{{ $name }}" class="w-10 h-10 rounded-full object-cover ring-2 ring-slate-100" loading="lazy" width="40" height="40">
-          <div>
-            <p class="font-semibold text-slate-800 text-sm">{{ $name }}</p>
-            <p class="text-slate-400 text-xs">{{ $location }} · {{ $product }}</p>
-          </div>
-        </div>
-      </div>
-      @endforeach
-    </div>
-  </div>
-</section>
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
 
 
 
@@ -1284,8 +1222,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.9</span>
-          <span class="text-slate-500 text-sm">864 verified reviews</span>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.9' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -1486,6 +1424,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -1652,8 +1592,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.8</span>
-          <span class="text-slate-500 text-sm">342 verified reviews</span>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.8' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -1854,6 +1794,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -2020,8 +1962,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.7</span>
-          <span class="text-slate-500 text-sm">194 verified reviews</span>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.7' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -2222,6 +2164,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -2388,8 +2332,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.8</span>
-          <span class="text-slate-500 text-sm">254 verified reviews</span>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.8' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -2603,6 +2547,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -2767,8 +2713,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.8</span>
-          <span class="text-slate-500 text-sm">412 verified reviews</span>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.8' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -2969,6 +2915,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -3137,8 +3085,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.9</span>
-          <span class="text-slate-500 text-sm">624 verified reviews</span>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.9' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -3339,6 +3287,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -3507,8 +3457,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.8</span>
-          <span class="text-slate-500 text-sm">286 verified reviews</span>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.8' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -3708,6 +3658,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -3876,8 +3828,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.8</span>
-          <span class="text-slate-500 text-sm">246 verified reviews</span>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.8' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -4078,6 +4030,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -4246,8 +4200,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.8</span>
-          <span class="text-slate-500 text-sm">384 verified reviews</span>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.8' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -4447,6 +4401,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -4615,8 +4571,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.8</span>
-          <span class="text-slate-500 text-sm">512 verified reviews</span>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.8' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -4816,6 +4772,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -4984,8 +4942,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.9</span>
-          <span class="text-slate-500 text-sm">648 verified reviews</span>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.9' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -5192,6 +5150,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -5362,8 +5322,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.8</span>
-          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">314 verified reviews</a>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.8' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -5558,6 +5518,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -5747,8 +5709,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.9</span>
-          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">246 verified reviews</a>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.9' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -5943,6 +5905,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -6126,8 +6090,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.8</span>
-          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">512 verified reviews</a>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.8' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -6321,6 +6285,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -6505,8 +6471,8 @@
             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm">4.9</span>
-          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">194 verified reviews</a>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.9' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
           <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
@@ -6701,6 +6667,8 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -6869,6 +6837,9 @@
           <div class="flex gap-0.5">
             @for($i=0;$i<5;$i++)<svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>@endfor
           </div>
+          <span class="text-navy-800 font-bold text-sm">{{ $reviewStats['average_rating'] ?? '4.8' }}</span>
+          <a href="#reviews" class="text-slate-500 text-sm hover:text-navy-700 underline underline-offset-2">{{ number_format($reviewStats['total_reviews'] ?? 0) }} verified reviews</a>
+          <span class="text-slate-300">|</span>
           <span class="text-emerald-600 text-sm font-semibold">✓ In Stock</span>
         </div>
         @if($price)
@@ -6955,6 +6926,8 @@
   </div>
 </section>
 @endif
+
+@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
 
 <section class="py-8 bg-white border-t border-slate-100">
   <div class="container-site text-center">

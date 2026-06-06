@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Services\ShopifyService;
+use App\Services\ReviewService;
 use App\Support\ProductSlugResolver;
 
 class ProductController extends Controller
 {
-    public function __construct(protected ShopifyService $shopify) {}
+    public function __construct(
+        protected ShopifyService $shopify,
+        protected ReviewService $reviews,
+    ) {}
 
     public function index(string $locale)
     {
@@ -93,6 +97,15 @@ class ProductController extends Controller
 
         $product = $shopifyResult['product'];
 
-        return view('products.show', ['product' => $product]);
+        // Fetch live reviews from Judge.me API (cached)
+        $productHandle = $product['handle'] ?? $handle;
+        $reviewData    = $this->reviews->getProductReviews($productHandle, 100);
+        $reviewStats   = $this->reviews->getProductStats($productHandle);
+
+        return view('products.show', [
+            'product'     => $product,
+            'reviews'     => $reviewData['reviews'] ?? [],
+            'reviewStats' => $reviewStats,
+        ]);
     }
 }
