@@ -17,6 +17,7 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+/scratch
 vendor.zip
 *.zip
 unzip.php

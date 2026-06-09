@@ -7,13 +7,17 @@
      ══════════════════════════════════════════════════════════════════════ --}}
 
 @php
+  $defaultBreakdown = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
   $avgRating       = $reviewStats['average_rating'] ?? 0;
   $totalReviews    = $reviewStats['total_reviews'] ?? 0;
-  $breakdown       = $reviewStats['rating_breakdown'] ?? [5=>0,4=>0,3=>0,2=>0,1=>0];
+  $breakdown       = $reviewStats['rating_breakdown'] ?? $defaultBreakdown;
+  if (! is_array($breakdown) || $breakdown === []) {
+    $breakdown = $defaultBreakdown;
+  }
   $hasReviews      = $totalReviews > 0 && !empty($reviews);
   $fullStars       = (int) floor($avgRating);
   $hasHalf         = ($avgRating - $fullStars) >= 0.3;
-  $maxBar          = max(1, max($breakdown));
+  $maxBar          = max(1, max(array_values($breakdown)));
 @endphp
 
 <section id="reviews" class="section bg-section-alt" aria-label="Customer reviews"
@@ -22,9 +26,52 @@
            lightboxOpen: false,
            lightboxSrc: '',
            lightboxIsVideo: false,
-           openLightbox(src) { this.lightboxSrc = src; this.lightboxIsVideo = false; this.lightboxOpen = true; },
-           openVideoLightbox(src) { this.lightboxSrc = src; this.lightboxIsVideo = true; this.lightboxOpen = true; },
-           closeLightbox() { this.lightboxOpen = false; this.lightboxSrc = ''; this.lightboxIsVideo = false; },
+           openLightbox(src) {
+             this.lightboxSrc = src;
+             this.lightboxIsVideo = false;
+             this.lightboxOpen = true;
+             document.body.classList.add('overflow-hidden');
+           },
+           openVideoLightbox(src) {
+             this.lightboxSrc = src;
+             this.lightboxIsVideo = true;
+             this.lightboxOpen = true;
+             document.body.classList.add('overflow-hidden');
+             this.$nextTick(() => this.playLightboxVideo());
+           },
+           playLightboxVideo() {
+             const video = this.$refs.lightboxVideo;
+             if (!video) return;
+             video.load();
+             video.play().catch(() => {});
+           },
+           playInlineReviewVideo(event, src) {
+             const frame = event.currentTarget;
+             const video = frame.querySelector('video');
+             const overlay = frame.querySelector('.review-media-play');
+             if (!video) {
+               this.openVideoLightbox(src);
+               return;
+             }
+             overlay?.classList.add('hidden');
+             video.controls = true;
+             video.muted = false;
+             video.playsInline = true;
+             if (video.paused) {
+               video.play().catch(() => this.openVideoLightbox(src));
+             }
+           },
+           closeLightbox() {
+             const video = this.$refs.lightboxVideo;
+             if (video) {
+               video.pause();
+               video.currentTime = 0;
+             }
+             this.lightboxOpen = false;
+             this.lightboxSrc = '';
+             this.lightboxIsVideo = false;
+             document.body.classList.remove('overflow-hidden');
+           },
          }">
   <div class="container-site">
 
@@ -111,15 +158,21 @@
         {{-- Review body --}}
         <p class="text-slate-700 text-sm leading-relaxed mb-4">{{ Str::limit($review['body'] ?? '', 220) }}</p>
 
-        {{-- Media thumbnails (Photos & Videos) --}}
+        {{-- Media (photos & videos) — full card width, taller frame --}}
         @if(!empty($review['pictures']) || !empty($review['videos']))
-        <div class="flex flex-wrap justify-center gap-2 mb-4">
+        <div class="review-media-list">
           {{-- Photos --}}
           @if(!empty($review['pictures']))
             @foreach($review['pictures'] as $pic)
-            <button @click="openLightbox('{{ $pic['original'] }}')"
-                    class="w-24 h-24 rounded-lg overflow-hidden ring-1 ring-slate-200 hover:ring-navy-400 transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-navy-500">
-              <img src="{{ $pic['thumb'] }}" alt="Customer photo" class="w-full h-full object-cover" loading="lazy" width="96" height="96">
+            <button @click="openLightbox(@js($pic['original'] ?: $pic['thumb']))"
+                    type="button"
+                    class="review-media-frame">
+              <img
+                src="{{ $pic['original'] ?: $pic['thumb'] }}"
+                alt="Customer photo"
+                loading="lazy"
+                decoding="async"
+              >
             </button>
             @endforeach
           @endif
@@ -127,13 +180,17 @@
           {{-- Videos --}}
           @if(!empty($review['videos']))
             @foreach($review['videos'] as $vid)
-            <button @click="openVideoLightbox('{{ $vid['url'] }}')"
-                    class="relative w-24 h-24 rounded-lg overflow-hidden ring-1 ring-slate-200 hover:ring-navy-400 transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-navy-500 bg-black flex items-center justify-center">
-              <video src="{{ $vid['url'] }}" class="w-full h-full object-cover opacity-60" muted preload="metadata"></video>
-              <div class="absolute inset-0 flex items-center justify-center bg-black/10">
-                <svg class="w-6 h-6 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 20 20"><path d="M4.25 5.614L12.5 10l-8.25 4.386V5.614z"/></svg>
+            @php $videoSrc = $vid['mp4'] ?: ($vid['url'] ?? ''); @endphp
+            @if($videoSrc)
+            <button @click.stop="playInlineReviewVideo($event, @js($videoSrc))"
+                    type="button"
+                    class="review-media-frame review-media-frame--video bg-black">
+              <video src="{{ $videoSrc }}" muted preload="metadata" playsinline webkit-playsinline></video>
+              <div class="review-media-play" aria-hidden="true">
+                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M4.25 5.614L12.5 10l-8.25 4.386V5.614z"/></svg>
               </div>
             </button>
+            @endif
             @endforeach
           @endif
         </div>
@@ -193,17 +250,30 @@
          @keydown.escape.window="closeLightbox()"
          class="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
          style="display: none;">
-      <button @click="closeLightbox()"
-              class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+      <button type="button"
+              @click="closeLightbox()"
+              class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
-      
-      <template x-if="lightboxIsVideo">
-        <video :src="lightboxSrc" controls autoplay class="max-w-full max-h-[80vh] rounded-2xl shadow-2xl bg-black"></video>
-      </template>
-      <template x-if="!lightboxIsVideo">
-        <img :src="lightboxSrc" alt="Customer review photo" class="max-w-full max-h-[80vh] rounded-2xl shadow-2xl object-contain">
-      </template>
+
+      <video
+        x-show="lightboxIsVideo"
+        x-ref="lightboxVideo"
+        :src="lightboxSrc"
+        :key="lightboxSrc"
+        controls
+        playsinline
+        webkit-playsinline
+        class="max-w-full max-h-[85vh] w-full rounded-2xl shadow-2xl bg-black"
+        @click.stop
+      ></video>
+      <img
+        x-show="!lightboxIsVideo && lightboxSrc"
+        :src="lightboxSrc"
+        alt="Customer review photo"
+        class="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain"
+        @click.stop
+      >
     </div>
 
   </div>

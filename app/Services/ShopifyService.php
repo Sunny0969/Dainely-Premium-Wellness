@@ -1,6 +1,7 @@
 <?php
 namespace App\Services;
 
+use App\Support\ProductSlugResolver;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -56,10 +57,41 @@ class ShopifyService
         return $this->token !== '';
     }
 
+    /**
+     * Token for Admin API writes (orders): env/storage token, else client_credentials grant.
+     */
+    protected function resolveEffectiveAccessToken(): string
+    {
+        if ($this->token !== '') {
+            return $this->token;
+        }
+
+        $auth = $this->requestAccessTokenViaClientCredentials();
+        if ($auth['success'] && ! empty($auth['token'])) {
+            return (string) $auth['token'];
+        }
+
+        return '';
+    }
+
+    public function canSyncOrders(): bool
+    {
+        if (! config('shopify.sync_orders', true)) {
+            return false;
+        }
+
+        return $this->resolveEffectiveAccessToken() !== '';
+    }
+
     protected function headers(): array
     {
+        return $this->headersForToken($this->token);
+    }
+
+    protected function headersForToken(string $token): array
+    {
         return [
-            'X-Shopify-Access-Token' => $this->token,
+            'X-Shopify-Access-Token' => $token,
             'Content-Type'           => 'application/json',
         ];
     }
@@ -82,13 +114,15 @@ class ShopifyService
      */
     public function createProduct(array $data): ?array
     {
-        if (empty($this->token)) {
-            Log::info('Shopify: no token — mock product', ['title' => $data['title']]);
-            return ['id' => rand(1000000000, 9999999999), 'title' => $data['title']];
+        $token = $this->resolveEffectiveAccessToken();
+        if ($token === '') {
+            Log::warning('Shopify createProduct skipped — no Admin API token', ['title' => $data['title'] ?? '']);
+
+            return null;
         }
 
         try {
-            $response = $this->httpClient($this->headers())
+            $response = $this->httpClient($this->headersForToken($token))
                 ->post($this->apiBase . '/products.json', ['product' => $data]);
 
             if ($response->successful()) {
@@ -103,12 +137,7 @@ class ShopifyService
     }
 
     /**
-     * Fetch products from Shopify Admin API with structured success/error payload.
-     *
-     * @return array{success: bool, products: array, error: ?string, status: int}
-     */
-    /**
-     * Step 1: Exchange Client ID + Secret for shpat_ via client_credentials grant.
+     * Exchange Client ID + Secret for shpat_ via client_credentials grant.
      *
      * @return array{success: bool, token: ?string, error: ?string}
      */
@@ -365,6 +394,30 @@ class ShopifyService
             return ['success' => false, 'product' => null, 'error' => 'Handle is required.'];
         }
 
+        $cacheKey = 'shopify_product_handle_'.md5($handle);
+        $ttl      = (int) config('shopify.product_cache_ttl', 900);
+
+        $cached = Cache::get($cacheKey);
+        if (is_array($cached) && ($cached['success'] ?? false) && ! empty($cached['product'])) {
+            return $cached;
+        }
+
+        $result = $this->fetchProductByHandleLive($handle, $accessToken);
+
+        if ($result['success'] ?? false) {
+            Cache::put($cacheKey, $result, $ttl);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Uncached Shopify product fetch by handle.
+     *
+     * @return array{success: bool, product: ?array, error: ?string}
+     */
+    protected function fetchProductByHandleLive(string $handle, ?string $accessToken = null): array
+    {
         $token = $accessToken ?? $this->token;
 
         if ($token === '') {
@@ -513,71 +566,312 @@ class ShopifyService
     }
 
     /**
-     * Create an order in Shopify (called from queue job).
+     * Build a Shopify order from website checkout data (after Square payment).
+     */
+    public function createOrderFromCheckout(array $checkout): ?array
+    {
+        if (! config('shopify.sync_orders', true)) {
+            Log::info('Shopify order sync disabled', ['ref' => $checkout['order_number'] ?? '']);
+
+            return null;
+        }
+
+        $cart     = $checkout['cart'] ?? [];
+        $qty      = (int) ($checkout['qty'] ?? ($cart['quantity'] ?? 1));
+        $unitPrice = (float) ($cart['price'] ?? 0);
+        $subtotal = round($unitPrice * $qty, 2);
+        $shippingMethod = $checkout['shipping_method'] ?? 'standard';
+        $shippingUsd = (float) ($checkout['shipping_usd'] ?? $this->estimateShippingUsd($subtotal, $shippingMethod));
+        $totalUsd = round((float) ($checkout['total_usd'] ?? ($subtotal + $shippingUsd)), 2);
+        $discountUsd = max(0, round($subtotal + $shippingUsd - $totalUsd, 2));
+
+        $productName = (string) ($cart['title'] ?? 'Dainely Product');
+        if (! empty($cart['option_value'])) {
+            $productName .= ' — ' . $cart['option_value'];
+        }
+
+        $noteAttributes = [
+            ['name' => 'dainely_order_number', 'value' => (string) ($checkout['order_number'] ?? '')],
+            ['name' => 'square_payment_id', 'value' => (string) ($checkout['square_payment_id'] ?? '')],
+            ['name' => 'order_source', 'value' => 'dainely-website'],
+            ['name' => 'shipping_method', 'value' => $shippingMethod],
+        ];
+
+        if (! empty($cart['option_label']) && ! empty($cart['option_value'])) {
+            $noteAttributes[] = ['name' => (string) $cart['option_label'], 'value' => (string) $cart['option_value']];
+        }
+
+        $variantId = $this->resolveCartVariantId($cart);
+
+        return $this->createOrder([
+            'order_number'         => $checkout['order_number'] ?? '',
+            'customer_email'       => $checkout['email'] ?? '',
+            'customer_first_name'  => $checkout['first_name'] ?? '',
+            'customer_last_name'   => $checkout['last_name'] ?? '',
+            'customer_phone'       => $checkout['phone'] ?? '',
+            'shipping_address1'    => $checkout['address1'] ?? '',
+            'shipping_address2'    => $checkout['address2'] ?? '',
+            'shipping_city'        => $checkout['city'] ?? '',
+            'shipping_state'       => $checkout['state'] ?? '',
+            'shipping_zip'         => $checkout['zip'] ?? '',
+            'shipping_country'     => $checkout['country'] ?? 'US',
+            'subtotal_usd'         => $subtotal,
+            'shipping_usd'         => $shippingUsd,
+            'shipping_method'      => $shippingMethod,
+            'total_usd'            => $totalUsd,
+            'discount_amount'      => $discountUsd,
+            'discount_code'        => $checkout['discount_code'] ?? null,
+            'square_payment_id'    => $checkout['square_payment_id'] ?? '',
+            'locale'               => $checkout['locale'] ?? 'en',
+            'note_attributes'      => $noteAttributes,
+            'items'                => [[
+                'product_name'   => $productName,
+                'quantity'       => $qty,
+                'unit_price_usd' => $unitPrice,
+                'sku'            => $cart['sku'] ?? '',
+                'variant_id'     => $variantId,
+            ]],
+        ]);
+    }
+
+    /**
+     * Accept only positive numeric Shopify variant IDs (reject "0", handles, etc.).
+     */
+    public function normalizeVariantId(mixed $variantId): ?int
+    {
+        if ($variantId === null || $variantId === '') {
+            return null;
+        }
+
+        if (! is_numeric($variantId)) {
+            return null;
+        }
+
+        $id = (int) $variantId;
+
+        return $id > 0 ? $id : null;
+    }
+
+    /**
+     * Resolve a Shopify variant ID from cart session data (direct ID or product lookup).
+     *
+     * @param  array<string, mixed>  $cart
+     */
+    public function resolveCartVariantId(array $cart): ?int
+    {
+        $existing = $this->normalizeVariantId($cart['variant_id'] ?? null);
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        $fromOption = $this->normalizeVariantId($cart['option_value'] ?? null);
+        if ($fromOption !== null) {
+            return $fromOption;
+        }
+
+        $productId = trim((string) ($cart['product_id'] ?? ''));
+        if ($productId === '' || $productId === 'dainely-belt') {
+            $handle = ProductSlugResolver::resolveHandle('dainely-belt');
+        } elseif (ctype_digit($productId)) {
+            return null;
+        } else {
+            $handle = ProductSlugResolver::resolveHandle($productId);
+        }
+
+        $result = $this->fetchProductByHandle($handle);
+        if (! $result['success'] || empty($result['product']['variants'])) {
+            return null;
+        }
+
+        $variants = $result['product']['variants'];
+
+        if (! empty($cart['option_label'])) {
+            foreach ($variants as $variant) {
+                if (strcasecmp((string) ($variant['title'] ?? ''), (string) $cart['option_label']) === 0) {
+                    return $this->normalizeVariantId($variant['id'] ?? null);
+                }
+            }
+        }
+
+        return $this->normalizeVariantId($variants[0]['id'] ?? null);
+    }
+
+    public function estimateShippingUsd(float $subtotal, string $method = 'standard'): float
+    {
+        if ($subtotal >= 75) {
+            return 0.0;
+        }
+
+        return $method === 'express' ? 24.99 : 9.99;
+    }
+
+    /**
+     * Create an order in Shopify Admin (Orders page).
      */
     public function createOrder(array $data): ?array
     {
-        if (empty($this->token)) {
-            Log::info('Shopify: no token — mock order', ['ref' => $data['order_number'] ?? '']);
-            return ['id' => rand(1000000, 9999999), 'order_number' => 'MOCK-' . rand(1000,9999)];
+        $token = $this->resolveEffectiveAccessToken();
+        if ($token === '') {
+            Log::warning('Shopify createOrder skipped — no Admin API token', [
+                'ref' => $data['order_number'] ?? '',
+            ]);
+
+            return null;
         }
 
-        $lineItems = array_map(fn($item) => [
-            'title'      => $item['product_name'],
-            'quantity'   => $item['quantity'],
-            'price'      => number_format($item['unit_price_usd'], 2, '.', ''),
-            'sku'        => $item['sku'] ?? '',
-            'requires_shipping' => true,
-        ], $data['items']);
+        $phone = $this->sanitizePhoneForShopify($data['customer_phone'] ?? null);
+
+        $address = [
+            'first_name' => $data['customer_first_name'],
+            'last_name'  => $data['customer_last_name'],
+            'address1'   => $data['shipping_address1'],
+            'address2'   => $data['shipping_address2'] ?? '',
+            'city'       => $data['shipping_city'],
+            'province'   => $data['shipping_state'] ?? '',
+            'zip'        => $data['shipping_zip'],
+            'country'    => $data['shipping_country'],
+        ];
+
+        if ($phone !== null) {
+            $address['phone'] = $phone;
+        }
+
+        $noteAttributes = $data['note_attributes'] ?? [
+            ['name' => 'dainely_order_number', 'value' => $data['order_number'] ?? ''],
+            ['name' => 'square_payment_id', 'value' => $data['square_payment_id'] ?? ''],
+        ];
 
         $payload = [
             'order' => [
-                'line_items'       => $lineItems,
-                'email'            => $data['customer_email'],
-                'financial_status' => 'paid',
-                'tags'             => 'dainely-platform,' . ($data['locale'] ?? 'en'),
-                'note'             => 'Dainely Order: ' . ($data['order_number'] ?? ''),
-                'note_attributes'  => [
-                    ['name' => 'dainely_order_number', 'value' => $data['order_number'] ?? ''],
-                    ['name' => 'square_payment_id',    'value' => $data['square_payment_id'] ?? ''],
-                ],
-                'shipping_address' => [
-                    'first_name' => $data['customer_first_name'],
-                    'last_name'  => $data['customer_last_name'],
-                    'address1'   => $data['shipping_address1'],
-                    'address2'   => $data['shipping_address2'] ?? '',
-                    'city'       => $data['shipping_city'],
-                    'province'   => $data['shipping_state'] ?? '',
-                    'zip'        => $data['shipping_zip'],
-                    'country'    => $data['shipping_country'],
-                    'phone'      => $data['customer_phone'] ?? '',
-                ],
+                'line_items'               => $this->buildOrderLineItems($data['items'] ?? []),
+                'email'                    => $data['customer_email'],
+                'financial_status'         => 'paid',
+                'fulfillment_status'       => null,
+                'inventory_behaviour'      => 'decrement_obeying_policy',
+                'tags'                     => 'dainely-website,dainely-platform,' . ($data['locale'] ?? 'en'),
+                'note'                     => 'Website order ' . ($data['order_number'] ?? '') . ' · Paid via Square',
+                'note_attributes'          => $noteAttributes,
+                'shipping_address'         => $address,
+                'billing_address'          => $address,
                 'send_receipt'             => true,
                 'send_fulfillment_receipt' => true,
             ],
         ];
 
-        if (!empty($data['discount_code'])) {
+        if ($phone !== null) {
+            $payload['order']['phone'] = $phone;
+        }
+
+        $shippingUsd = (float) ($data['shipping_usd'] ?? 0);
+        if ($shippingUsd > 0) {
+            $method = $data['shipping_method'] ?? 'standard';
+            $payload['order']['shipping_lines'] = [[
+                'title' => $method === 'express' ? 'Express Shipping' : 'Standard Shipping',
+                'price' => number_format($shippingUsd, 2, '.', ''),
+                'code'  => $method,
+            ]];
+        }
+
+        $totalUsd = (float) ($data['total_usd'] ?? 0);
+        if ($totalUsd > 0) {
+            $payload['order']['transactions'] = [[
+                'kind'          => 'sale',
+                'status'        => 'success',
+                'amount'        => number_format($totalUsd, 2, '.', ''),
+                'gateway'       => 'Square',
+                'authorization' => $data['square_payment_id'] ?? '',
+            ]];
+        }
+
+        if (! empty($data['discount_code']) && (float) ($data['discount_amount'] ?? 0) > 0) {
             $payload['order']['discount_codes'] = [[
                 'code'   => $data['discount_code'],
-                'amount' => number_format($data['discount_amount'] ?? 0, 2),
+                'amount' => number_format((float) $data['discount_amount'], 2, '.', ''),
                 'type'   => 'fixed_amount',
             ]];
         }
 
         try {
-            $response = $this->httpClient($this->headers())
+            $response = $this->httpClient($this->headersForToken($token))
                 ->post($this->apiBase . '/orders.json', $payload);
 
             if ($response->successful()) {
-                return $response->json()['order'] ?? null;
+                $order = $response->json()['order'] ?? null;
+                if ($order) {
+                    Log::info('Shopify createOrder success', [
+                        'ref'    => $data['order_number'] ?? '',
+                        'name'   => $order['name'] ?? null,
+                        'email'  => $data['customer_email'] ?? '',
+                    ]);
+                }
+
+                return $order;
             }
-            Log::error('Shopify createOrder failed', ['status' => $response->status(), 'body' => $response->body()]);
+
+            Log::error('Shopify createOrder failed', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+                'ref'    => $data['order_number'] ?? '',
+            ]);
+
             return null;
         } catch (\Exception $e) {
-            Log::error('Shopify createOrder exception: ' . $e->getMessage());
+            Log::error('Shopify createOrder exception: ' . $e->getMessage(), [
+                'ref' => $data['order_number'] ?? '',
+            ]);
+
             return null;
         }
+    }
+
+    /**
+     * Shopify rejects malformed phone numbers — omit rather than fail the order.
+     */
+    protected function sanitizePhoneForShopify(?string $phone): ?string
+    {
+        if ($phone === null) {
+            return null;
+        }
+
+        $phone = trim($phone);
+        if ($phone === '') {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', $phone) ?? '';
+        if (strlen($digits) < 10 || strlen($digits) > 15) {
+            return null;
+        }
+
+        return $phone;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $items
+     * @return list<array<string, mixed>>
+     */
+    protected function buildOrderLineItems(array $items): array
+    {
+        return array_values(array_map(function (array $item) {
+            $variantId = $this->normalizeVariantId($item['variant_id'] ?? null);
+
+            if ($variantId !== null) {
+                return [
+                    'variant_id' => $variantId,
+                    'quantity'   => (int) ($item['quantity'] ?? 1),
+                ];
+            }
+
+            $price = (float) ($item['unit_price_usd'] ?? 0);
+
+            return [
+                'title'             => (string) ($item['product_name'] ?? 'Product'),
+                'quantity'          => (int) ($item['quantity'] ?? 1),
+                'price'             => number_format($price, 2, '.', ''),
+                'sku'               => (string) ($item['sku'] ?? ''),
+                'requires_shipping' => true,
+            ];
+        }, $items));
     }
 
     /**

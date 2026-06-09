@@ -13,7 +13,7 @@
             <img src="{{ asset('images/Dainelycut.png') }}" alt="Dainely" class="h-10 w-auto brightness-0 invert">
           </a>
         </div>
-        <p class="text-navy-300 text-sm leading-relaxed mb-6">16192 Coastal Highway, County of Sussex, DE 19958, USA</p>
+        <p class="text-navy-300 text-sm leading-relaxed mb-6">{{ config('company.address') }}</p>
       </div>
 
       {{-- Learn --}}
@@ -52,17 +52,17 @@
         <div class="space-y-4 text-sm">
           <div>
             <p class="text-navy-400 font-bold text-[11px] uppercase tracking-wider mb-1">Hours Of Operation</p>
-            <p class="text-navy-300">9 AM - 5 PM (Monday - Friday)</p>
+            <p class="text-navy-300">{{ config('company.hours') }}</p>
           </div>
 
           <div>
             <p class="text-navy-400 font-bold text-[11px] uppercase tracking-wider mb-1">Email</p>
-            <a href="mailto:contact@dainelylab.com" class="text-navy-300 hover:text-white transition-colors">contact@dainelylab.com</a>
+            <a href="mailto:{{ config('company.email') }}" class="text-navy-300 hover:text-white transition-colors">{{ config('company.email') }}</a>
           </div>
 
           <div>
             <p class="text-navy-400 font-bold text-[11px] uppercase tracking-wider mb-1">Phone</p>
-            <a href="tel:+18007211224" class="text-navy-300 hover:text-white transition-colors">+1 800-721-1224</a>
+            <a href="tel:{{ config('company.phone_tel') }}" class="text-navy-300 hover:text-white transition-colors">{{ config('company.phone_display') }}</a>
           </div>
         </div>
       </div>

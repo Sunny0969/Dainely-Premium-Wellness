@@ -273,6 +273,70 @@ Alpine.data('scrollTop', () => ({
   },
 }));
 
+// Lazy-load product reviews when section scrolls into view
+Alpine.data('lazyReviews', (url) => ({
+  loading: false,
+  loaded: false,
+  error: false,
+  html: '',
+  observer: null,
+  init() {
+    if (!url || typeof IntersectionObserver === 'undefined') {
+      this.load();
+      return;
+    }
+
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          this.load();
+          this.observer?.disconnect();
+        }
+      },
+      { rootMargin: '300px' },
+    );
+
+    this.observer.observe(this.$el);
+  },
+  async load() {
+    if (this.loaded || this.loading || !url) {
+      return;
+    }
+
+    this.loading = true;
+    this.error = false;
+
+    try {
+      const response = await fetch(url, {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      this.html = data.html ?? '';
+      this.loaded = true;
+
+      this.$nextTick(() => {
+        if (this.$refs.content) {
+          Alpine.initTree(this.$refs.content);
+        }
+
+        if (data.stats) {
+          window.dispatchEvent(new CustomEvent('dainely-reviews-stats', { detail: data.stats }));
+        }
+      });
+    } catch (e) {
+      this.error = true;
+      console.error('Failed to load reviews', e);
+    } finally {
+      this.loading = false;
+    }
+  },
+}));
+
 // Start Alpine
 Alpine.start();
 

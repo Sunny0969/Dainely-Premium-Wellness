@@ -14,8 +14,8 @@ return [
     'api_token'   => env('JUDGEME_API_TOKEN', ''),
     'shop_domain' => env('JUDGEME_SHOP_DOMAIN', 'ididit555.myshopify.com'),
 
-    // Cache TTL in seconds (default 1 hour)
-    'cache_ttl'   => (int) env('JUDGEME_CACHE_TTL', 3600),
+    // Cache TTL in seconds (default 24 hours — warm via `php artisan reviews:warm-cache`)
+    'cache_ttl'   => (int) env('JUDGEME_CACHE_TTL', 86400),
 
     // SSL verification (disable on Windows local dev if cURL error 60)
     'verify_ssl'  => filter_var(

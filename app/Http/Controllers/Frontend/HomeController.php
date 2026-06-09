@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Services\ShopifyService;
 use App\Support\ProductSlugResolver;
-// use App\Models\Product;
-// use App\Models\Testimonial;
 
 class HomeController extends Controller
 {
@@ -29,19 +27,6 @@ class HomeController extends Controller
         $heroVideo    = is_file(public_path('videos/day-in-motion.mp4'))
             ? asset('videos/day-in-motion.mp4')
             : null;
-
-        // Database disabled — home view uses hardcoded products & testimonials
-        // $products = Product::with('translations')
-        //     ->active()
-        //     ->featured()
-        //     ->orderBy('sort_order')
-        //     ->get();
-        //
-        // $testimonials = Testimonial::where('is_active', true)
-        //     ->where('is_featured', true)
-        //     ->orderBy('sort_order')
-        //     ->limit(3)
-        //     ->get();
 
         return view('pages.home', compact(
             'locale',

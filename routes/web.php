@@ -2,12 +2,12 @@
 
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ProductController;
+use App\Http\Controllers\Frontend\ReviewController;
 use App\Http\Controllers\Frontend\BlogController;
 use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\CheckoutController;
 use App\Http\Controllers\Frontend\PageController;
 use App\Http\Controllers\Frontend\EducationController;
-use App\Http\Controllers\ShopifyProductController;
 use App\Http\Controllers\Webhooks\SquareWebhookController;
 use App\Http\Controllers\Webhooks\ShopifyWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -27,10 +27,6 @@ Route::get('/', function () {
     return redirect()->route('home', ['locale' => 'en']);
 });
 
-// Shopify products (client_credentials → Admin API)
-Route::get('/shop', [ShopifyProductController::class, 'index'])->name('shop.index');
-Route::get('/shop/{id}', [ShopifyProductController::class, 'show'])->name('shop.show');
-
 // Multilingual route group
 Route::prefix('{locale}')
     ->where(['locale' => 'en|fr|de'])
@@ -43,6 +39,7 @@ Route::prefix('{locale}')
     // ── Products ───────────────────────────────────────────────
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('/api/products/{handle}/reviews', [ReviewController::class, 'productReviews'])->name('products.reviews');
 
     // ── Blog ───────────────────────────────────────────────────
     Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');

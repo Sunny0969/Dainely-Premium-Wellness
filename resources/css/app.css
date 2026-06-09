@@ -221,6 +221,30 @@
     @apply card p-6 flex flex-col gap-4;
   }
 
+  .review-media-list {
+    @apply w-full flex flex-col gap-3 mb-4;
+  }
+
+  .review-media-frame {
+    @apply relative block w-full h-[220px] p-0 border-0 rounded-xl overflow-hidden ring-1 ring-slate-200
+           hover:ring-navy-400 transition-all hover:scale-[1.01]
+           focus:outline-none focus:ring-2 focus:ring-navy-500;
+  }
+
+  .review-media-frame img,
+  .review-media-frame video {
+    @apply absolute inset-0 block w-full h-full object-cover object-center;
+    image-rendering: auto;
+  }
+
+  .review-media-play {
+    @apply absolute inset-0 z-10 flex items-center justify-center bg-black/25 pointer-events-none;
+  }
+
+  .review-media-play svg {
+    @apply w-12 h-12 text-white drop-shadow-md;
+  }
+
   /* ── FAQ Accordion ──────────────────────────────── */
   .faq-item {
     @apply border-b border-trust-line last:border-0;

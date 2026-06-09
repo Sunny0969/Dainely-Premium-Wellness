@@ -21,6 +21,11 @@
         <div>
           <p class="text-slate-400 text-sm">Order Number</p>
           <p class="font-display font-bold text-navy-900 text-xl">#{{ $order->order_number }}</p>
+          @if(!empty($order->shopify_order_name))
+          <p class="text-slate-500 text-xs mt-1">Shopify: {{ $order->shopify_order_name }}</p>
+          @elseif(!empty($order->shopify_sync_failed))
+          <p class="text-amber-600 text-xs mt-1">Your payment is confirmed. Our team is processing your order — you will receive a separate Shopify confirmation shortly.</p>
+          @endif
         </div>
         <span class="trust-badge bg-sage-50 border-sage-200 text-sage-700">✓ Confirmed</span>
       </div>

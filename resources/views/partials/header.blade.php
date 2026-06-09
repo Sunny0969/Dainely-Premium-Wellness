@@ -19,12 +19,12 @@
     <div class="container-site flex items-center justify-between">
       <p class="text-navy-200">{{ __('header.free_shipping') }}</p>
       <div class="flex items-center gap-6">
-        <a href="tel:+1-800-DAINELY" class="text-navy-200 hover:text-white transition-colors flex items-center gap-1.5">
+        <a href="tel:{{ config('company.phone_tel') }}" class="text-navy-200 hover:text-white transition-colors flex items-center gap-1.5">
           <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/></svg>
-          1-800-DAINELY
+          {{ config('company.phone_display') }}
         </a>
         <span class="text-navy-700">|</span>
-        <a href="mailto:hello@dainely.com" class="text-navy-200 hover:text-white transition-colors">hello@dainely.com</a>
+        <a href="mailto:{{ config('company.email') }}" class="text-navy-200 hover:text-white transition-colors">{{ config('company.email') }}</a>
       </div>
     </div>
   </div>

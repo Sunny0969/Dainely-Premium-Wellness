@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-// use App\Models\Faq;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class PageController extends Controller
 {
@@ -17,13 +15,6 @@ class PageController extends Controller
 
     public function faq(string $locale)
     {
-        // Database disabled — FAQ view uses inline static data
-        // $faqs = Faq::with('translations')
-        //     ->where('is_active', true)
-        //     ->orderBy('sort_order')
-        //     ->get()
-        //     ->groupBy('category');
-
         return view('pages.faq', compact('locale'));
     }
 

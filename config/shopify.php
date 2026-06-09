@@ -30,4 +30,10 @@ return [
     // Shopify Admin API base URL
     'api_url' => 'https://' . env('SHOPIFY_SHOP_DOMAIN', env('SHOPIFY_STORE_DOMAIN', 'dmede-usa.myshopify.com'))
         . '/admin/api/' . env('SHOPIFY_API_VERSION', '2024-01'),
+
+    // Single product page cache (seconds)
+    'product_cache_ttl' => (int) env('SHOPIFY_PRODUCT_CACHE_TTL', 900),
+
+    // Push website checkout orders to Shopify Admin → Orders
+    'sync_orders' => filter_var(env('SHOPIFY_SYNC_ORDERS', true), FILTER_VALIDATE_BOOLEAN),
 ];

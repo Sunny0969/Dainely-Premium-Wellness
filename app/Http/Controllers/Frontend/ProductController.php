@@ -77,7 +77,13 @@ class ProductController extends Controller
             });
         }
 
-        return view('pages.products.index', compact('products', 'locale', 'error'))
+        $reviewHandles = array_values(array_unique(array_filter(array_map(
+            fn (array $p) => ProductSlugResolver::resolveHandle((string) ($p['handle'] ?? '')),
+            $products
+        ))));
+        $reviewStatsByHandle = $this->reviews->getCachedStatsForHandles($reviewHandles);
+
+        return view('pages.products.index', compact('products', 'locale', 'error', 'reviewStatsByHandle'))
             ->with('filters', [
                 'q' => $q,
                 'min_price' => $minPrice,
@@ -97,14 +103,13 @@ class ProductController extends Controller
 
         $product = $shopifyResult['product'];
 
-        // Fetch live reviews from Judge.me API (cached)
+        // Cached stats only (no blocking API calls). Reviews load via AJAX.
         $productHandle = $product['handle'] ?? $handle;
-        $reviewData    = $this->reviews->getProductReviews($productHandle, 100);
-        $reviewStats   = $this->reviews->getProductStats($productHandle);
+        $reviewStats   = $this->reviews->getCachedStats($productHandle);
 
         return view('products.show', [
             'product'     => $product,
-            'reviews'     => $reviewData['reviews'] ?? [],
+            'reviews'     => [],
             'reviewStats' => $reviewStats,
         ]);
     }

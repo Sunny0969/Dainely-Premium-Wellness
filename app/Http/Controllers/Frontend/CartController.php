@@ -38,10 +38,23 @@ class CartController extends Controller
             'quantity'         => (int) $validated['quantity'],
             'option_label'     => $validated['option_label'] ?? null,
             'option_value'     => $validated['option_value'] ?? null,
-            'variant_id'       => $validated['variant_id'] ?? null,
+            'variant_id'       => $this->normalizeStoredVariantId($validated['variant_id'] ?? null),
             'source'           => $validated['source'] ?? (! empty($validated['variant_id']) ? 'shopify' : 'static'),
         ]);
 
         return redirect()->route('checkout.index', ['locale' => App::getLocale()]);
+    }
+
+    private function normalizeStoredVariantId(?string $variantId): ?string
+    {
+        if ($variantId === null || $variantId === '') {
+            return null;
+        }
+
+        if (! is_numeric($variantId) || (int) $variantId <= 0) {
+            return null;
+        }
+
+        return (string) (int) $variantId;
     }
 }

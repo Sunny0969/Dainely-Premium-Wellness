@@ -857,7 +857,7 @@
 </section>
 
 {{-- ── 6. TESTIMONIALS & REVIEWS ─────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 
 
@@ -1001,7 +1001,7 @@
         ['Secure Checkout', '256-bit SSL encrypted payment processing', 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z', 'navy'],
         ['Fast Shipping', 'Orders ship within 1–2 business days. Free shipping over $75', 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', 'sage'],
         ['60-Day Guarantee', 'Not satisfied? Full refund — no questions, no hassle', 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'gold'],
-        ['Responsive Support', 'Mon–Fri 9am–5pm. Email: contact@dainelylab.com', 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'navy'],
+        ['Responsive Support', config('company.hours_short') . '. Email: ' . config('company.email'), 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'navy'],
       ] as [$title, $copy, $path, $color])
       <div class="text-center p-6 rounded-2xl bg-{{ $color }}-50 border border-{{ $color }}-100">
         <div class="w-12 h-12 bg-{{ $color }}-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -1424,7 +1424,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -1794,7 +1794,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -2164,7 +2164,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -2547,7 +2547,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -2915,7 +2915,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -3287,7 +3287,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -3658,7 +3658,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -4030,7 +4030,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -4401,7 +4401,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -4772,7 +4772,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -5150,7 +5150,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -5518,7 +5518,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -5905,7 +5905,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -6285,7 +6285,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -6667,7 +6667,7 @@
 </section>
 
 {{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
   <div class="container-site">
@@ -6927,7 +6927,7 @@
 </section>
 @endif
 
-@include('partials.reviews', ['reviews' => $reviews, 'reviewStats' => $reviewStats])
+@include('partials.reviews-lazy', ['handle' => $handle])
 
 <section class="py-8 bg-white border-t border-slate-100">
   <div class="container-site text-center">

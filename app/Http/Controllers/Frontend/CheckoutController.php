@@ -3,18 +3,13 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-// use App\Models\DiscountCode;
-// use App\Models\Order;
-// use App\Models\OrderItem;
 use App\Services\SquareService;
 use App\Services\ShopifyService;
-use App\Services\SendlaneService;
 use App\Services\CurrencyService;
 use App\Support\CheckoutCart;
 use App\Support\ProductSlugResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
-// use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
@@ -22,7 +17,6 @@ class CheckoutController extends Controller
     public function __construct(
         protected SquareService $square,
         protected ShopifyService $shopify,
-        protected SendlaneService $sendlane,
         protected CurrencyService $currency
     ) {}
 
@@ -96,8 +90,7 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Process the checkout: tokenize → charge Square → confirmation.
-     * Runs without a database — no order persistence.
+     * Process the checkout: tokenize → charge Square → Shopify order → confirmation.
      */
     public function process(Request $request)
     {
@@ -108,7 +101,9 @@ class CheckoutController extends Controller
             'email'           => 'required|email|max:255',
             'phone'           => 'nullable|string|max:20',
             'address1'        => 'required|string|max:255',
+            'address2'        => 'nullable|string|max:255',
             'city'            => 'required|string|max:100',
+            'state'           => 'nullable|string|max:100',
             'zip'             => 'required|string|max:20',
             'country'         => 'required|string|max:2',
             'qty'             => 'required|integer|min:1|max:20',
@@ -117,10 +112,29 @@ class CheckoutController extends Controller
             'shipping_method' => 'nullable|string|max:50',
         ]);
 
-        $locale      = App::getLocale();
-        $orderRef    = 'DLY-' . strtoupper(\Illuminate\Support\Str::random(8));
-        $amountCents = (int) $validated['amount_cents'];
-        $currency    = $this->currency->getCurrencyForLocale($locale);
+        $locale           = App::getLocale();
+        $orderRef         = 'DLY-' . strtoupper(\Illuminate\Support\Str::random(8));
+        $cart             = CheckoutCart::get();
+        $qty              = (int) $validated['qty'];
+        $shippingMethod   = $validated['shipping_method'] ?? 'standard';
+        $totals           = $this->calculateCheckoutTotals($cart, $qty, $shippingMethod);
+        $expectedCents    = (int) round($totals['total'] * 100);
+        $amountCents      = (int) $validated['amount_cents'];
+
+        if (abs($expectedCents - $amountCents) > 1) {
+            Log::warning('Checkout amount mismatch', [
+                'expected' => $expectedCents,
+                'received' => $amountCents,
+                'cart'     => $cart['title'] ?? null,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Order total changed. Please refresh checkout and try again.',
+            ], 422);
+        }
+
+        $currency = $this->currency->getCurrencyForLocale($locale);
 
         // Charge via Square
         $payment = $this->square->createPayment(
@@ -130,10 +144,51 @@ class CheckoutController extends Controller
             $currency['code'] ?? 'USD'
         );
 
-        if (!$payment['success']) {
+        if (! $payment['success']) {
             $errorMsg = $payment['errors'][0]['detail'] ?? 'Payment declined.';
             Log::warning('Checkout payment failed', ['ref' => $orderRef, 'error' => $errorMsg]);
+
             return response()->json(['success' => false, 'message' => $errorMsg], 422);
+        }
+
+        $shopifyOrder = null;
+        try {
+            $shopifyOrder = $this->shopify->createOrderFromCheckout([
+                'order_number'      => $orderRef,
+                'email'             => $validated['email'],
+                'first_name'        => $validated['first_name'],
+                'last_name'         => $validated['last_name'],
+                'phone'             => $validated['phone'] ?? null,
+                'address1'          => $validated['address1'],
+                'address2'          => $validated['address2'] ?? null,
+                'city'              => $validated['city'],
+                'state'             => $validated['state'] ?? null,
+                'zip'               => $validated['zip'],
+                'country'           => $validated['country'],
+                'qty'               => $qty,
+                'cart'              => $cart,
+                'shipping_method'   => $shippingMethod,
+                'shipping_usd'      => $totals['shipping'],
+                'total_usd'         => $totals['total'],
+                'discount_code'     => $validated['discount_code'] ?? null,
+                'square_payment_id' => $payment['payment_id'] ?? null,
+                'locale'            => $locale,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Shopify order sync failed after payment', [
+                'ref'   => $orderRef,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        if ($shopifyOrder) {
+            Log::info('Shopify order synced', [
+                'dainely_ref'    => $orderRef,
+                'shopify_id'     => $shopifyOrder['id'] ?? null,
+                'shopify_number' => $shopifyOrder['order_number'] ?? null,
+            ]);
+        } else {
+            Log::warning('Shopify order not created — payment captured', ['ref' => $orderRef]);
         }
 
         Log::info('Checkout payment success', [
@@ -145,23 +200,31 @@ class CheckoutController extends Controller
 
         session([
             'checkout.last_order' => [
-                'order_ref'       => $orderRef,
-                'payment_id'      => $payment['payment_id'] ?? null,
-                'email'           => $validated['email'],
-                'first_name'      => $validated['first_name'],
-                'last_name'       => $validated['last_name'],
-                'phone'           => $validated['phone'] ?? null,
-                'address1'        => $validated['address1'],
-                'city'            => $validated['city'],
-                'zip'             => $validated['zip'],
-                'country'         => $validated['country'],
-                'qty'             => (int) $validated['qty'],
-                'cart'            => CheckoutCart::get(),
-                'amount_cents'    => $amountCents,
-                'discount_code'   => $validated['discount_code'] ?? null,
-                'shipping_method' => $validated['shipping_method'] ?? 'standard',
+                'order_ref'            => $orderRef,
+                'payment_id'           => $payment['payment_id'] ?? null,
+                'shopify_order_id'     => $shopifyOrder['id'] ?? null,
+                'shopify_order_number' => $shopifyOrder['order_number'] ?? null,
+                'shopify_order_name'   => $shopifyOrder['name'] ?? null,
+                'shopify_sync_failed'  => $shopifyOrder === null && config('shopify.sync_orders', true),
+                'email'                => $validated['email'],
+                'first_name'           => $validated['first_name'],
+                'last_name'            => $validated['last_name'],
+                'phone'                => $validated['phone'] ?? null,
+                'address1'             => $validated['address1'],
+                'address2'             => $validated['address2'] ?? null,
+                'city'                 => $validated['city'],
+                'state'                => $validated['state'] ?? null,
+                'zip'                  => $validated['zip'],
+                'country'              => $validated['country'],
+                'qty'                  => $qty,
+                'cart'                 => $cart,
+                'amount_cents'         => $amountCents,
+                'discount_code'        => $validated['discount_code'] ?? null,
+                'shipping_method'      => $shippingMethod,
             ],
         ]);
+
+        CheckoutCart::clear();
 
         return response()->json([
             'success'  => true,
@@ -170,6 +233,23 @@ class CheckoutController extends Controller
                 'order'  => $orderRef,
             ]),
         ]);
+    }
+
+    /**
+     * @return array{subtotal: float, shipping: float, total: float}
+     */
+    private function calculateCheckoutTotals(array $cart, int $qty, string $shippingMethod): array
+    {
+        $unitPrice = (float) ($cart['price'] ?? 0);
+        $subtotal  = round($unitPrice * $qty, 2);
+        $shipping  = $this->shopify->estimateShippingUsd($subtotal, $shippingMethod);
+        $total     = round($subtotal + $shipping, 2);
+
+        return [
+            'subtotal' => $subtotal,
+            'shipping' => $shipping,
+            'total'    => $total,
+        ];
     }
 
     /**
@@ -192,6 +272,8 @@ class CheckoutController extends Controller
 
         $order = (object) [
             'order_number'        => $order,
+            'shopify_order_name'  => $lastOrder['shopify_order_name'] ?? null,
+            'shopify_sync_failed' => (bool) ($lastOrder['shopify_sync_failed'] ?? false),
             'customer_first_name' => $lastOrder['first_name'] ?? 'Guest',
             'customer_email'      => $lastOrder['email'] ?? 'guest@example.com',
             'shipping_address1'   => $lastOrder['address1'] ?? '123 Main St',
@@ -221,42 +303,9 @@ class CheckoutController extends Controller
      */
     public function validateDiscount(Request $request)
     {
-        // Database disabled
         return response()->json([
             'valid'   => false,
             'message' => __('checkout.invalid_discount'),
         ]);
-
-        /*
-        $request->validate([
-            'code'         => 'required|string',
-            'subtotal_usd' => 'required|numeric|min:0',
-        ]);
-
-        $code = DiscountCode::where('code', strtoupper($request->code))
-            ->where('is_active', true)
-            ->where(fn($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
-            ->where(fn($q) => $q->whereNull('usage_limit')->orWhereColumn('usage_count', '<', 'usage_limit'))
-            ->first();
-
-        if (!$code) {
-            return response()->json(['valid' => false, 'message' => __('checkout.invalid_discount')]);
-        }
-
-        $discount = match($code->type) {
-            'percentage'   => round($request->subtotal_usd * ($code->value / 100), 2),
-            'fixed'        => min($code->value, $request->subtotal_usd),
-            'free_shipping'=> 0,
-            default        => 0,
-        };
-
-        return response()->json([
-            'valid'    => true,
-            'type'     => $code->type,
-            'value'    => $code->value,
-            'discount' => $discount,
-            'message'  => __('checkout.discount_applied', ['amount' => number_format($discount, 2)]),
-        ]);
-        */
     }
 }

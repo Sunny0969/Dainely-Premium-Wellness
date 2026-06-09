@@ -44,7 +44,7 @@
       ],
       'Returns & Guarantee' => [
         ['What is your return policy?', 'We offer a full 30-day money-back guarantee. If you are not completely satisfied, contact our support team within 30 days of delivery for a full refund — no questions asked.'],
-        ['How do I start a return?', 'Email support@dainely.com with your order number and reason (optional). We will send a prepaid return label within 24 hours and process your refund within 3–5 business days of receiving the item.'],
+        ['How do I start a return?', 'Email ' . config('company.email') . ' with your order number and reason (optional). We will send a prepaid return label within 24 hours and process your refund within 3–5 business days of receiving the item.'],
         ['Are there any conditions on the guarantee?', 'The only requirement is that the product is returned in resalable condition (original packaging). We do not require proof of defect or explanation for the refund.'],
       ],
     ];
@@ -83,7 +83,7 @@
       <p class="text-body mb-6">Our wellness specialists are available Monday–Friday, 9am–6pm EST.</p>
       <div class="flex flex-wrap justify-center gap-4">
         <a href="#" class="btn-primary">Chat with Us</a>
-        <a href="mailto:support@dainely.com" class="btn-outline">Email Support</a>
+        <a href="mailto:{{ config('company.email') }}" class="btn-outline">Email Support</a>
       </div>
     </div>
   </div>

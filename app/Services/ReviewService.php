@@ -260,98 +260,234 @@ class ReviewService
     }
 
     /**
-     * Get aggregate stats (average rating + total count) for a product.
+     * Get aggregate stats (derived from the same reviews cache).
      *
      * @return array{average_rating: float, total_reviews: int, rating_breakdown: array}
      */
     public function getProductStats(string $handle): array
     {
         if ($this->apiToken === '') {
-            return ['average_rating' => 0, 'total_reviews' => 0, 'rating_breakdown' => []];
+            return ['average_rating' => 0, 'total_reviews' => 0, 'rating_breakdown' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0]];
         }
 
-        $canonical = $this->resolveCanonicalHandle($handle);
-        $cacheKey  = "judgeme_stats_{$canonical}";
+        $data = $this->getProductReviews($handle, 100);
 
-        return Cache::remember($cacheKey, $this->cacheTtl, function () use ($canonical) {
-            // Try to compute from the reviews we've already fetched
-            $reviewData = $this->getProductReviews($canonical, 100);
-
-            return [
-                'average_rating'   => $reviewData['average_rating'],
-                'total_reviews'    => $reviewData['total_count'],
-                'rating_breakdown' => $reviewData['rating_breakdown'],
-            ];
-        });
+        return [
+            'average_rating'   => $data['average_rating'],
+            'total_reviews'    => $data['total_count'],
+            'rating_breakdown' => $data['rating_breakdown'],
+        ];
     }
 
     /**
-     * Fetch, merge, and deduplicate reviews from all handles in a group.
+     * Read cached review stats only — never triggers an API call.
+     *
+     * @return array{average_rating: float, total_reviews: int, rating_breakdown: array}
+     */
+    public function getCachedStats(string $handle): array
+    {
+        $default = [
+            'average_rating'   => 0,
+            'total_reviews'    => 0,
+            'rating_breakdown' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0],
+        ];
+
+        if ($this->apiToken === '') {
+            return $default;
+        }
+
+        $canonical = $this->resolveCanonicalHandle($handle);
+        $cached    = Cache::get("judgeme_reviews_{$canonical}");
+
+        if (! is_array($cached)) {
+            return $default;
+        }
+
+        return [
+            'average_rating'   => $cached['average_rating'] ?? 0,
+            'total_reviews'    => $cached['total_count'] ?? 0,
+            'rating_breakdown' => $cached['rating_breakdown'] ?? $default['rating_breakdown'],
+        ];
+    }
+
+    /**
+     * Read cached stats for many product handles (cache-only, deduped by canonical group).
+     *
+     * @param  list<string>  $handles
+     * @return array<string, array{average_rating: float, total_reviews: int, rating_breakdown: array}>
+     */
+    public function getCachedStatsForHandles(array $handles): array
+    {
+        $default = [
+            'average_rating'   => 0,
+            'total_reviews'    => 0,
+            'rating_breakdown' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0],
+        ];
+
+        $handles = array_values(array_unique(array_filter($handles, fn ($h) => $h !== '')));
+        if ($handles === []) {
+            return [];
+        }
+
+        if ($this->apiToken === '') {
+            return array_fill_keys($handles, $default);
+        }
+
+        $canonicalByHandle = [];
+        foreach ($handles as $handle) {
+            $canonicalByHandle[$handle] = $this->resolveCanonicalHandle($handle);
+        }
+
+        $statsByCanonical = [];
+        foreach (array_unique(array_values($canonicalByHandle)) as $canonical) {
+            $statsByCanonical[$canonical] = $this->getCachedStats($canonical);
+        }
+
+        $result = [];
+        foreach ($handles as $handle) {
+            $result[$handle] = $statsByCanonical[$canonicalByHandle[$handle]] ?? $default;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Force-refresh reviews cache for one product group (used by cron / artisan).
+     */
+    public function warmCacheForHandle(string $handle): void
+    {
+        if ($this->apiToken === '') {
+            return;
+        }
+
+        $canonical = $this->resolveCanonicalHandle($handle);
+        Cache::forget("judgeme_reviews_{$canonical}");
+        $this->getProductReviews($canonical, 100);
+    }
+
+    /**
+     * Canonical handle keys that own a review group (for cache warmup).
+     *
+     * @return list<string>
+     */
+    public static function canonicalHandlesForWarmup(): array
+    {
+        $keys = [];
+        foreach (self::$handleGroups as $key => $value) {
+            if (is_array($value)) {
+                $keys[] = $key;
+            }
+        }
+
+        return array_values(array_unique($keys));
+    }
+
+    /**
+     * Fetch, merge, and deduplicate reviews from all handles in a group (parallel HTTP).
      */
     protected function fetchAndMergeReviews(string $canonical, int $limit): array
     {
         $handles = $this->getHandleGroup($canonical);
-        $allReviews = [];
+        $allReviews = $this->fetchReviewsInParallel($handles);
 
+        return $this->buildReviewResult($allReviews, $limit);
+    }
+
+    /**
+     * Fetch reviews for multiple handles concurrently via Http::pool().
+     *
+     * @param  list<string>  $handles
+     * @return list<array<string, mixed>>
+     */
+    protected function fetchReviewsInParallel(array $handles): array
+    {
+        if ($handles === []) {
+            return [];
+        }
+
+        // Deduplicate by Judge.me product_id — one request per unique ID
+        $targets = [];
         foreach ($handles as $judgemeHandle) {
-            $page = 1;
-            $maxPages = 2; // safety limit per handle (2 pages = 200 reviews)
             $productId = self::$handleToJudgemeId[$judgemeHandle] ?? null;
+            $poolKey   = $productId !== null ? 'id_'.$productId : 'handle_'.$judgemeHandle;
 
-            while ($page <= $maxPages) {
-                try {
-                    $queryParams = [
+            if (! isset($targets[$poolKey])) {
+                $targets[$poolKey] = [
+                    'product_id'   => $productId,
+                    'match_handle' => $productId === null ? $judgemeHandle : null,
+                ];
+            }
+        }
+
+        try {
+            $responses = \Illuminate\Support\Facades\Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($targets) {
+                $requests = [];
+                foreach ($targets as $key => $target) {
+                    $params = [
                         'api_token'   => $this->apiToken,
                         'shop_domain' => $this->shopDomain,
                         'per_page'    => 100,
-                        'page'        => $page,
+                        'page'        => 1,
                     ];
 
-                    // If we have a direct Judge.me product ID, pass it to filter reviews on the server side!
-                    if ($productId !== null) {
-                        $queryParams['product_id'] = $productId;
+                    if ($target['product_id'] !== null) {
+                        $params['product_id'] = $target['product_id'];
                     }
 
-                    $response = Http::withOptions(['verify' => $this->verifySsl])
-                        ->timeout(10)
-                        ->get('https://judge.me/api/v1/reviews', $queryParams);
+                    $requests[] = $pool->as($key)
+                        ->withOptions(['verify' => $this->verifySsl])
+                        ->timeout(8)
+                        ->connectTimeout(5)
+                        ->get('https://judge.me/api/v1/reviews', $params);
+                }
 
-                    if (! $response->successful()) {
-                        Log::warning("Judge.me API returned HTTP {$response->status()} for handle group (page $page)");
-                        break;
-                    }
+                return $requests;
+            });
+        } catch (\Throwable $e) {
+            Log::error('Judge.me parallel fetch failed: '.$e->getMessage());
 
-                    $data = $response->json();
-                    $reviews = $data['reviews'] ?? [];
+            return [];
+        }
 
-                    if (empty($reviews)) {
-                        break;
-                    }
+        $allReviews = [];
 
-                    // Filter reviews belonging to this specific Judge.me handle (as a fallback or confirmation)
-                    foreach ($reviews as $review) {
-                        $matchesHandle = ($review['product_handle'] ?? '') === $judgemeHandle;
-                        
-                        if ($matchesHandle && ($review['published'] ?? false)) {
-                            $allReviews[] = $review;
-                        }
-                    }
+        foreach ($targets as $key => $target) {
+            $response = $responses[$key] ?? null;
 
-                    // If we got fewer than 100, no more pages
-                    if (count($reviews) < 100) {
-                        break;
-                    }
+            if ($response === null || ! $response->successful()) {
+                if ($response !== null) {
+                    Log::warning("Judge.me API HTTP {$response->status()} for pool key {$key}");
+                }
+                continue;
+            }
 
-                    $page++;
-                } catch (\Throwable $e) {
-                    Log::error("Judge.me API error for handle '{$judgemeHandle}': " . $e->getMessage());
-                    break;
+            foreach ($response->json()['reviews'] ?? [] as $review) {
+                if (! ($review['published'] ?? false)) {
+                    continue;
+                }
+
+                if ($target['product_id'] !== null) {
+                    $allReviews[] = $review;
+                    continue;
+                }
+
+                if (($review['product_handle'] ?? '') === $target['match_handle']) {
+                    $allReviews[] = $review;
                 }
             }
         }
 
+        return $allReviews;
+    }
 
-        // Deduplicate by review ID first to prevent same review from showing twice
+    /**
+     * Deduplicate, sort, and map raw reviews into the cached result shape.
+     *
+     * @param  list<array<string, mixed>>  $allReviews
+     * @return array{reviews: array, total_count: int, average_rating: float, rating_breakdown: array}
+     */
+    protected function buildReviewResult(array $allReviews, int $limit): array
+    {
         $uniqueById = [];
         foreach ($allReviews as $review) {
             $id = $review['id'] ?? null;
@@ -459,12 +595,23 @@ class ReviewService
 
         $videos = [];
         foreach ($review['videos'] ?? [] as $vid) {
-            if (! ($vid['hidden'] ?? false) && ! empty($vid['video_url'])) {
-                $videos[] = [
-                    'url' => $vid['video_url'],
-                    'mp4' => $vid['mp4_url'] ?? $vid['video_url'],
-                    'hls' => $vid['hls_url'] ?? '',
-                ];
+            if (! ($vid['hidden'] ?? false)) {
+                $mp4  = $vid['mp4_url'] ?? '';
+                $hls  = $vid['hls_url'] ?? '';
+                $raw  = $vid['video_url'] ?? '';
+                $play = $mp4 ?: ($raw !== '' && ! str_contains($raw, '.m3u8') ? $raw : '');
+
+                if ($play === '' && $hls !== '') {
+                    $play = $hls;
+                }
+
+                if ($play !== '') {
+                    $videos[] = [
+                        'url' => $play,
+                        'mp4' => $mp4 ?: ($play !== $hls ? $play : ''),
+                        'hls' => $hls,
+                    ];
+                }
             }
         }
 
