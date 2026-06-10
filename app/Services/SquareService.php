@@ -62,9 +62,16 @@ class SquareService
     public function createPayment(string $sourceId, int $amountCents, string $orderRef, string $currency = 'USD'): array
     {
         if (empty($this->accessToken)) {
-            Log::warning('Square: no access token — using mock payment');
+            Log::error('Square createPayment aborted — SQUARE_ACCESS_TOKEN is missing', [
+                'order_ref' => $orderRef,
+            ]);
 
-            return ['success' => true, 'payment_id' => 'MOCK_' . Str::upper(Str::random(12)), 'mock' => true];
+            return [
+                'success' => false,
+                'errors'  => [[
+                    'detail' => 'Payment gateway is not configured. Please contact support.',
+                ]],
+            ];
         }
 
         $locationId = $this->getLocationId();
@@ -88,6 +95,16 @@ class SquareService
             $body = $response->json();
 
             if ($response->successful() && isset($body['payment']['id'])) {
+                Log::info('Square payment captured via API', [
+                    'payment_id'  => $body['payment']['id'],
+                    'status'      => $body['payment']['status'] ?? null,
+                    'order_ref'   => $orderRef,
+                    'amount'      => $amountCents,
+                    'currency'    => $currency,
+                    'environment' => $this->environment,
+                    'location_id' => $locationId,
+                ]);
+
                 return [
                     'success'    => true,
                     'payment_id' => $body['payment']['id'],
@@ -127,7 +144,10 @@ class SquareService
     public function refundPayment(string $paymentId, int $amountCents, string $reason = ''): array
     {
         if (empty($this->accessToken)) {
-            return ['success' => true, 'mock' => true];
+            return [
+                'success' => false,
+                'errors'  => [['detail' => 'Square access token is not configured.']],
+            ];
         }
 
         try {
@@ -185,6 +205,61 @@ class SquareService
         }
 
         return '';
+    }
+
+    /**
+     * List recent payments for the configured location (audit / sandbox verification).
+     *
+     * @return array{success: bool, payments: array<int, array<string, mixed>>, error: ?string}
+     */
+    public function listRecentPayments(int $limit = 10): array
+    {
+        if (empty($this->accessToken)) {
+            return [
+                'success'  => false,
+                'payments' => [],
+                'error'    => 'SQUARE_ACCESS_TOKEN is missing.',
+            ];
+        }
+
+        $locationId = $this->getLocationId();
+        if ($locationId === '') {
+            return [
+                'success'  => false,
+                'payments' => [],
+                'error'    => 'SQUARE_LOCATION_ID is missing.',
+            ];
+        }
+
+        try {
+            $response = $this->httpClient()->get($this->apiBase . '/payments', [
+                'location_id' => $locationId,
+                'sort_order'  => 'DESC',
+                'limit'       => max(1, min($limit, 100)),
+            ]);
+
+            if (! $response->successful()) {
+                $body = $response->json();
+
+                return [
+                    'success'  => false,
+                    'payments' => [],
+                    'error'    => $body['errors'][0]['detail'] ?? ('HTTP ' . $response->status()),
+                ];
+            }
+
+            return [
+                'success'  => true,
+                'payments' => $response->json('payments') ?? [],
+                'error'    => null,
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success'  => false,
+                'payments' => [],
+                'error'    => $e->getMessage(),
+            ];
+        }
     }
 
     protected function httpClient(): PendingRequest

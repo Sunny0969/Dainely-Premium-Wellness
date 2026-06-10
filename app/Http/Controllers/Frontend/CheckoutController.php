@@ -192,10 +192,12 @@ class CheckoutController extends Controller
         }
 
         Log::info('Checkout payment success', [
-            'order_ref'  => $orderRef,
-            'payment_id' => $payment['payment_id'],
-            'amount'     => $amountCents,
-            'email'      => $validated['email'],
+            'order_ref'   => $orderRef,
+            'payment_id'  => $payment['payment_id'],
+            'amount'      => $amountCents,
+            'email'       => $validated['email'],
+            'square_env'  => $this->square->getEnvironment(),
+            'square_mock' => $payment['mock'] ?? false,
         ]);
 
         session([

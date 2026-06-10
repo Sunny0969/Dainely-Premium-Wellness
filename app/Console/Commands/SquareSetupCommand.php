@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Http;
 
 class SquareSetupCommand extends Command
 {
-    protected $signature = 'square:setup';
+    protected $signature = 'square:setup {--payments : List recent sandbox/production payments}';
 
-    protected $description = 'Verify Square credentials and print Location ID for .env';
+    protected $description = 'Verify Square credentials, location ID, and optional recent payments';
 
     public function handle(SquareService $square): int
     {
@@ -74,8 +74,45 @@ class SquareSetupCommand extends Command
         $locationId = $square->getLocationId();
         if ($locationId !== '') {
             $this->newLine();
-            $this->info('Add to .env:');
-            $this->line('SQUARE_LOCATION_ID=' . $locationId);
+            $this->info('Configured location: ' . $locationId);
+            $this->line('Ensure .env has: SQUARE_LOCATION_ID=' . $locationId);
+        }
+
+        $this->newLine();
+        $this->comment('Checkout uses Square Payments API (POST /v2/payments) with Web Payments SDK card tokenization.');
+        $this->comment('Transactions appear under Payments & invoices → Transactions in the Sandbox dashboard,');
+        $this->comment('not always on the Home performance chart.');
+
+        if ($this->option('payments')) {
+            $this->newLine();
+            $this->info('Recent payments (API):');
+
+            $result = $square->listRecentPayments(10);
+            if (! $result['success']) {
+                $this->error($result['error'] ?? 'Could not list payments.');
+
+                return self::FAILURE;
+            }
+
+            if ($result['payments'] === []) {
+                $this->warn('No payments found for this location yet.');
+
+                return self::SUCCESS;
+            }
+
+            foreach ($result['payments'] as $payment) {
+                $amount = ($payment['amount_money']['amount'] ?? 0) / 100;
+                $this->line(sprintf(
+                    '  - %s | $%s | %s | ref: %s | %s',
+                    $payment['id'] ?? '?',
+                    number_format($amount, 2),
+                    $payment['status'] ?? '?',
+                    $payment['reference_id'] ?? '-',
+                    $payment['created_at'] ?? '?'
+                ));
+            }
+        } else {
+            $this->line('Run: php artisan square:setup --payments');
         }
 
         return self::SUCCESS;
