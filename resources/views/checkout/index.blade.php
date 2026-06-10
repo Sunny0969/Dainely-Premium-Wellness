@@ -17,8 +17,9 @@ document.addEventListener('alpine:init', () => {
     cardReady: false,
     paymentError: '',
     paymentSuccess: '',
-    cartItem: @json($cart),
-    qty: @json($cart['quantity'] ?? 1),
+    cartItems: @json($cart),
+    exchangeRate: @json($currency['exchange_rate'] ?? app(App\Services\CurrencyService::class)->convert(1.0, $currency['code'])),
+    currencySymbol: @json($currency['symbol'] ?? '$'),
     discountCode: '',
     discountMessage: '',
     discountValid: false,
@@ -39,18 +40,13 @@ document.addEventListener('alpine:init', () => {
     errors: {},
     squareCard: null,
     payments: null,
-    get unitPrice() {
-      return parseFloat(this.cartItem?.price || 0);
-    },
-    get lineTotal() {
-      return this.unitPrice * this.qty;
-    },
     get subtotal() {
-      return this.lineTotal;
+      return this.cartItems.reduce((sum, item) => sum + parseFloat(item.price || 0) * (parseInt(item.quantity) || 1), 0);
     },
     get shipping() {
       if (this.subtotal >= 75) return 0;
-      return this.form.shipping_method === 'express' ? 24.99 : 9.99;
+      const baseShipping = this.form.shipping_method === 'express' ? 24.99 : 9.99;
+      return parseFloat((baseShipping * this.exchangeRate).toFixed(2));
     },
     get total() {
       return Math.max(0, this.subtotal - this.discount + this.shipping);
@@ -187,7 +183,12 @@ document.addEventListener('alpine:init', () => {
             zip: this.form.zip,
             country: this.form.country,
             shipping_method: this.form.shipping_method,
-            qty: this.qty,
+            qty: this.cartItems.reduce((sum, item) => sum + parseInt(item.quantity), 0),
+            items: this.cartItems.map(item => ({
+              product_id: item.product_id,
+              variant_id: item.variant_id || '',
+              quantity: item.quantity
+            })),
             discount_code: this.discountCode,
             amount_cents: Math.round(this.total * 100),
           }),
@@ -211,16 +212,6 @@ document.addEventListener('alpine:init', () => {
 @endpush
 
 @section('content')
-@php
-  $cartQty = (int) ($cart['quantity'] ?? 1);
-  $cartUnitPrice = (float) ($cart['price'] ?? 0);
-  $cartLineTotal = $cartUnitPrice * $cartQty;
-  $cartSubtitle = ! empty($cart['option_label'])
-    ? 'Size: ' . $cart['option_label']
-    : ($cart['subtitle'] ?? '');
-  $cartShipping = $cartLineTotal >= 75 ? 0 : 9.99;
-  $cartTotal = $cartLineTotal + $cartShipping;
-@endphp
 <div class="min-h-screen bg-slate-50">
 
   {{-- Checkout header --}}
@@ -367,7 +358,7 @@ document.addEventListener('alpine:init', () => {
                     <p class="text-slate-400 text-xs">5–8 business days</p>
                   </div>
                 </div>
-                <span class="font-semibold text-slate-700" x-text="subtotal >= 75 ? 'FREE' : '$9.99'"></span>
+                <span class="font-semibold text-slate-700" x-text="subtotal >= 75 ? 'FREE' : currencySymbol + (9.99 * exchangeRate).toFixed(2)"></span>
               </label>
               <label class="flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-colors"
                 :class="form.shipping_method === 'express' ? 'border-navy-600 bg-navy-50' : 'border-slate-200 hover:border-navy-300'">
@@ -378,7 +369,7 @@ document.addEventListener('alpine:init', () => {
                     <p class="text-slate-400 text-xs">2–3 business days</p>
                   </div>
                 </div>
-                <span class="font-semibold text-slate-700">$24.99</span>
+                <span class="font-semibold text-slate-700" x-text="currencySymbol + (24.99 * exchangeRate).toFixed(2)"></span>
               </label>
             </div>
           </div>
@@ -453,7 +444,7 @@ document.addEventListener('alpine:init', () => {
           >
             <span x-show="!loading" class="flex items-center gap-2">
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-              Place Order — <span x-text="'$' + total.toFixed(2)"></span>
+              Place Order — <span x-text="currencySymbol + total.toFixed(2)"></span>
             </span>
             <span x-show="loading" class="flex items-center gap-2">
               <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
@@ -474,22 +465,24 @@ document.addEventListener('alpine:init', () => {
           <h3 class="font-display font-bold text-navy-900 text-lg mb-5">Order Summary</h3>
 
           <div class="space-y-4 mb-5">
-            <div class="flex items-center gap-4">
-              <div class="relative flex-shrink-0">
-                <img src="{{ $cart['image'] }}" :src="cartItem.image" alt="{{ $cart['title'] }}" :alt="cartItem.title" class="w-16 h-16 rounded-xl object-cover bg-slate-100 ring-1 ring-slate-100">
-                <span class="absolute -top-2 -right-2 min-w-[1.25rem] h-5 px-1 bg-navy-600 text-white text-xs rounded-full flex items-center justify-center font-bold" x-text="qty">{{ $cartQty }}</span>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="font-semibold text-slate-800 text-sm truncate" x-text="cartItem.title">{{ $cart['title'] }}</p>
-                <p class="text-slate-400 text-xs truncate" x-text="cartItem.option_label ? ('Size: ' + cartItem.option_label) : (cartItem.subtitle || '')">{{ $cartSubtitle }}</p>
-                <div class="flex items-center gap-2 mt-1">
-                  <button type="button" @click="qty = Math.max(1, qty - 1)" class="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm flex items-center justify-center">−</button>
-                  <span class="font-semibold text-navy-900 text-sm min-w-[1rem] text-center" x-text="qty">{{ $cartQty }}</span>
-                  <button type="button" @click="qty++" class="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm flex items-center justify-center">+</button>
+            <template x-for="(item, index) in cartItems" :key="item.variant_id || item.product_id">
+              <div class="flex items-center gap-4">
+                <div class="relative flex-shrink-0">
+                  <img :src="item.image" :alt="item.title" class="w-16 h-16 rounded-xl object-cover bg-slate-100 ring-1 ring-slate-100">
+                  <span class="absolute -top-2 -right-2 min-w-[1.25rem] h-5 px-1 bg-navy-600 text-white text-xs rounded-full flex items-center justify-center font-bold" x-text="item.quantity"></span>
                 </div>
+                <div class="flex-1 min-w-0">
+                  <p class="font-semibold text-slate-800 text-sm truncate" x-text="item.title"></p>
+                  <p class="text-slate-400 text-xs truncate" x-text="item.option_label ? ('Size: ' + item.option_label) : (item.subtitle || '')"></p>
+                  <div class="flex items-center gap-2 mt-1">
+                    <button type="button" @click="item.quantity = Math.max(1, item.quantity - 1)" class="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm flex items-center justify-center">−</button>
+                    <span class="font-semibold text-navy-900 text-sm min-w-[1rem] text-center" x-text="item.quantity"></span>
+                    <button type="button" @click="item.quantity++" class="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm flex items-center justify-center">+</button>
+                  </div>
+                </div>
+                <p class="font-semibold text-navy-900 whitespace-nowrap" x-text="currencySymbol + (parseFloat(item.price) * parseInt(item.quantity)).toFixed(2)"></p>
               </div>
-              <p class="font-semibold text-navy-900 whitespace-nowrap" x-text="'$' + lineTotal.toFixed(2)">${{ number_format($cartLineTotal, 2) }}</p>
-            </div>
+            </template>
           </div>
 
           {{-- Discount code --}}
@@ -506,20 +499,20 @@ document.addEventListener('alpine:init', () => {
           <div class="space-y-2 border-t border-slate-100 pt-4">
             <div class="flex justify-between text-sm">
               <span class="text-slate-500">Subtotal</span>
-              <span class="text-slate-700" x-text="'$' + subtotal.toFixed(2)">${{ number_format($cartLineTotal, 2) }}</span>
+              <span class="text-slate-700" x-text="currencySymbol + subtotal.toFixed(2)"></span>
             </div>
             <div class="flex justify-between text-sm" x-show="discount > 0">
               <span class="text-sage-600">Discount</span>
-              <span class="text-sage-600" x-text="'-$' + discount.toFixed(2)"></span>
+              <span class="text-sage-600" x-text="'-' + currencySymbol + discount.toFixed(2)"></span>
             </div>
             <div class="flex justify-between text-sm">
               <span class="text-slate-500">Shipping</span>
-              <span x-text="shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2)"
-                    :class="shipping === 0 ? 'text-sage-600 font-semibold' : 'text-slate-700'">{{ $cartShipping === 0 ? 'FREE' : '$' . number_format($cartShipping, 2) }}</span>
+              <span x-text="shipping === 0 ? 'FREE' : currencySymbol + shipping.toFixed(2)"
+                    :class="shipping === 0 ? 'text-sage-600 font-semibold' : 'text-slate-700'"></span>
             </div>
             <div class="flex justify-between font-bold text-lg border-t border-slate-200 pt-3 mt-2">
               <span class="text-navy-900">Total</span>
-              <span class="text-navy-900" x-text="'$' + total.toFixed(2)">${{ number_format($cartTotal, 2) }}</span>
+              <span class="text-navy-900" x-text="currencySymbol + total.toFixed(2)"></span>
             </div>
           </div>
         </div>

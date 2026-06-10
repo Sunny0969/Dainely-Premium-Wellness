@@ -670,8 +670,8 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($beltPrice, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($beltCompare, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($beltPrice)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($beltCompare)</span>
           </div>
           <div class="ml-auto">
             <span class="bg-red-100 text-red-600 text-sm font-bold px-3 py-1 rounded-full">Save {{ $beltSaving }}%</span>
@@ -1106,8 +1106,8 @@
       <div class="flex-1 min-w-0">
         <p class="font-bold text-navy-900 text-xs sm:text-sm truncate">Dainely Belt</p>
         <div class="flex items-center gap-2">
-          <span class="text-navy-700 font-bold text-sm">${{ number_format($beltPrice, 2) }}</span>
-          <span class="text-slate-400 line-through text-xs">${{ number_format($beltCompare, 2) }}</span>
+          <span class="text-navy-700 font-bold text-sm">@currency($beltPrice)</span>
+          <span class="text-slate-400 line-through text-xs">@currency($beltCompare)</span>
           <span class="bg-red-100 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">-{{ $beltSaving }}%</span>
         </div>
       </div>
@@ -1231,8 +1231,8 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($price ?? 39.95, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($compareAt ?? 59.95, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($price ?? 39.95)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($compareAt ?? 59.95)</span>
           </div>
           <div class="ml-auto">
             @php
@@ -1462,7 +1462,7 @@
     <p class="text-lead text-stone-600 mb-3">Designed for office screen workers, long travel, and physical recovery.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900">${{ number_format($price ?? 39.95, 2) }}</span>
+      <span class="font-display font-bold text-5xl text-navy-900">@currency($price ?? 39.95)</span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -1601,8 +1601,8 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($price ?? 39.95, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($compareAt ?? 59.95, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($price ?? 39.95)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($compareAt ?? 59.95)</span>
           </div>
           <div class="ml-auto">
             @php
@@ -1832,7 +1832,7 @@
     <p class="text-lead text-stone-600 mb-3">Designed for office desk workers, phone posture alignment, and suboccipital release.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900">${{ number_format($price ?? 39.95, 2) }}</span>
+      <span class="font-display font-bold text-5xl text-navy-900">@currency($price ?? 39.95)</span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -1971,8 +1971,8 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($price ?? 19.95, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($compareAt ?? 29.95, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($price ?? 19.95)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($compareAt ?? 29.95)</span>
           </div>
           <div class="ml-auto">
             @php
@@ -2202,7 +2202,7 @@
     <p class="text-lead text-stone-600 mb-3">Designed for daily movement, physical recovery, and desk strain relief.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900">${{ number_format($price ?? 19.95, 2) }}</span>
+      <span class="font-display font-bold text-5xl text-navy-900">@currency($price ?? 19.95)</span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -2341,8 +2341,8 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($price ?? 99.95, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($compareAt ?? 159.95, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($price ?? 99.95)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($compareAt ?? 159.95)</span>
           </div>
           <div class="ml-auto">
             @php
@@ -2585,7 +2585,7 @@
     <p class="text-lead text-stone-600 mb-3">Designed for winter walks, commuting, outdoor hobbies, and muscle relaxation.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900">${{ number_format($price ?? 99.95, 2) }}</span>
+      <span class="font-display font-bold text-5xl text-navy-900">@currency($price ?? 99.95)</span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -2722,8 +2722,8 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($price ?? 49.95, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($compareAt ?? 79.95, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($price ?? 49.95)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($compareAt ?? 79.95)</span>
           </div>
           <div class="ml-auto">
             @php
@@ -2953,7 +2953,7 @@
     <p class="text-lead text-stone-600 mb-3">Designed for office sitting fatigue, standing work recovery, and chronic neuropathy relief.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900">${{ number_format($price ?? 49.95, 2) }}</span>
+      <span class="font-display font-bold text-5xl text-navy-900">@currency($price ?? 49.95)</span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -3094,8 +3094,8 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($price ?? 39.95, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($compareAt ?? 69.95, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($price ?? 39.95)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($compareAt ?? 69.95)</span>
           </div>
           <div class="ml-auto">
             @php
@@ -3325,7 +3325,7 @@
     <p class="text-lead text-stone-600 mb-3">Designed for daily walking, sports workouts, arthritis comfort, and cartilage protection.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900">${{ number_format($price ?? 39.95, 2) }}</span>
+      <span class="font-display font-bold text-5xl text-navy-900">@currency($price ?? 39.95)</span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -3466,8 +3466,8 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($price ?? 59.95, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($compareAt ?? 99.95, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($price ?? 59.95)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($compareAt ?? 99.95)</span>
           </div>
           <div class="ml-auto">
             @php
@@ -3696,7 +3696,7 @@
     <p class="text-lead text-stone-600 mb-3">Designed for physical workouts, office posture relief, and general body recovery.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900">${{ number_format($price ?? 59.95, 2) }}</span>
+      <span class="font-display font-bold text-5xl text-navy-900">@currency($price ?? 59.95)</span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -3837,8 +3837,8 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($price ?? 34.95, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($compareAt ?? 59.95, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($price ?? 34.95)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($compareAt ?? 59.95)</span>
           </div>
           <div class="ml-auto">
             @php
@@ -4068,7 +4068,7 @@
     <p class="text-lead text-stone-600 mb-3">Designed for athletic protection, rotator cuff recovery, AC joint stability, and daily wear comfort.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900">${{ number_format($price ?? 34.95, 2) }}</span>
+      <span class="font-display font-bold text-5xl text-navy-900">@currency($price ?? 34.95)</span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -4209,8 +4209,8 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($price ?? 39.90, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($compareAt ?? 80.00, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($price ?? 39.90)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($compareAt ?? 80.00)</span>
           </div>
           <div class="ml-auto">
             @php
@@ -4439,7 +4439,7 @@
     <p class="text-lead text-stone-600 mb-3">Designed to restore healthy posture, decompress cervical discs, and eliminate tension headaches.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900">${{ number_format($price ?? 39.90, 2) }}</span>
+      <span class="font-display font-bold text-5xl text-navy-900">@currency($price ?? 39.90)</span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -4580,8 +4580,8 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($price ?? 34.95, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($compareAt ?? 69.90, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($price ?? 34.95)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($compareAt ?? 69.90)</span>
           </div>
           <div class="ml-auto">
             @php
@@ -4810,7 +4810,7 @@
     <p class="text-lead text-stone-600 mb-3">Designed to restore natural alignment, release pinched nerves, and dissolve chronic lower back tension.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900">${{ number_format($price ?? 34.95, 2) }}</span>
+      <span class="font-display font-bold text-5xl text-navy-900">@currency($price ?? 34.95)</span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -4951,8 +4951,8 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($price ?? 199.95, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($compareAt ?? 399.00, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($price ?? 199.95)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($compareAt ?? 399.00)</span>
           </div>
           <div class="ml-auto">
             @php
@@ -5188,7 +5188,7 @@
     <p class="text-lead text-stone-600 mb-3">Designed to boost blood circulation, reduce edema, and speed up muscle recovery in just 10 minutes a day.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900">${{ number_format($price ?? 199.95, 2) }}</span>
+      <span class="font-display font-bold text-5xl text-navy-900">@currency($price ?? 199.95)</span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -5331,14 +5331,14 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-orange-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($tourmalinePrice, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($tourmalineCompare, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($tourmalinePrice)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($tourmalineCompare)</span>
           </div>
           <div class="ml-auto">
             <span class="bg-red-100 text-red-600 text-sm font-bold px-3 py-1 rounded-full">Save {{ $tourmalineSaving }}%</span>
           </div>
         </div>
-        <p class="text-slate-500 text-xs mb-5">Or 4 interest-free payments of ${{ number_format($tourmalinePrice/4, 2) }} with Square.</p>
+        <p class="text-slate-500 text-xs mb-5">Or 4 interest-free payments of @currency($tourmalinePrice/4) with Square.</p>
 
         {{-- Short description --}}
         <p class="text-slate-600 text-base leading-relaxed mb-6">
@@ -5556,7 +5556,7 @@
     <p class="text-lead text-stone-600 mb-3">Designed to boost blood circulation, relax stiff lumbar muscles, and support your posture in just 20 minutes a day.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900">${{ number_format($tourmalinePrice, 2) }}</span>
+      <span class="font-display font-bold text-5xl text-navy-900">@currency($tourmalinePrice)</span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -5583,8 +5583,8 @@
       <div class="flex-1 min-w-0">
         <p class="font-bold text-navy-900 text-xs sm:text-sm truncate">Dainely™ Tourmaline Belt</p>
         <div class="flex items-center gap-2">
-          <span class="text-navy-700 font-bold text-sm">${{ number_format($tourmalinePrice, 2) }}</span>
-          <span class="text-slate-400 line-through text-xs">${{ number_format($tourmalineCompare, 2) }}</span>
+          <span class="text-navy-700 font-bold text-sm">@currency($tourmalinePrice)</span>
+          <span class="text-slate-400 line-through text-xs">@currency($tourmalineCompare)</span>
           <span class="bg-red-100 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">-{{ $tourmalineSaving }}%</span>
         </div>
       </div>
@@ -5719,8 +5719,8 @@
         <div class="flex items-center gap-4 mb-6 p-4 bg-emerald-50 rounded-2xl">
           <div>
             {{-- Display dynamic selected variant price if options are selected, otherwise display default --}}
-            <span class="font-display font-bold text-4xl text-navy-900" x-text="selectedVariant ? '$' + Number(selectedVariant.price).toFixed(2) : '${{ number_format($dmedePrice, 2) }}'"></span>
-            <span class="text-slate-400 line-through text-lg ml-2" x-show="selectedVariant && selectedVariant.compare_at_price" x-text="selectedVariant ? '$' + Number(selectedVariant.compare_at_price).toFixed(2) : ''"></span>
+            <span class="font-display font-bold text-4xl text-navy-900" x-text="selectedVariant ? window.Currency.format(selectedVariant.price) : '@currency($dmedePrice)'"></span>
+            <span class="text-slate-400 line-through text-lg ml-2" x-show="selectedVariant && selectedVariant.compare_at_price" x-text="selectedVariant ? window.Currency.format(selectedVariant.compare_at_price) : ''"></span>
           </div>
           <div class="ml-auto" x-show="selectedVariant && selectedVariant.compare_at_price">
             <span class="bg-red-100 text-red-600 text-sm font-bold px-3 py-1 rounded-full" x-text="selectedVariant ? 'Save ' + Math.round(((selectedVariant.compare_at_price - selectedVariant.price) / selectedVariant.compare_at_price) * 100) + '%' : ''"></span>
@@ -5943,7 +5943,7 @@
     <p class="text-lead text-stone-600 mb-3">A complete three-in-one daily support system designed to align posture, unload SI joint pressure, and accelerate core recovery.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900" x-text="selectedVariant ? '$' + Number(selectedVariant.price).toFixed(2) : '${{ number_format($dmedePrice, 2) }}'"></span>
+      <span class="font-display font-bold text-5xl text-navy-900" x-text="selectedVariant ? window.Currency.format(selectedVariant.price) : '@currency($dmedePrice)'"></span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -5970,8 +5970,8 @@
       <div class="flex-1 min-w-0">
         <p class="font-bold text-navy-900 text-xs sm:text-sm truncate">DMEDE™ Daily Support System</p>
         <div class="flex items-center gap-2">
-          <span class="text-navy-700 font-bold text-sm" x-text="selectedVariant ? '$' + Number(selectedVariant.price).toFixed(2) : '${{ number_format($dmedePrice, 2) }}'"></span>
-          <span class="text-slate-400 line-through text-xs" x-show="selectedVariant && selectedVariant.compare_at_price" x-text="selectedVariant ? '$' + Number(selectedVariant.compare_at_price).toFixed(2) : ''"></span>
+          <span class="text-navy-700 font-bold text-sm" x-text="selectedVariant ? window.Currency.format(selectedVariant.price) : '@currency($dmedePrice)'"></span>
+          <span class="text-slate-400 line-through text-xs" x-show="selectedVariant && selectedVariant.compare_at_price" x-text="selectedVariant ? window.Currency.format(selectedVariant.compare_at_price) : ''"></span>
         </div>
       </div>
       <button type="button" @click="goToCheckout($event)" :class="canPurchase ? 'bg-navy-700 hover:bg-navy-800' : 'bg-slate-400 cursor-not-allowed pointer-events-none opacity-70'" :aria-disabled="!canPurchase" class="flex-shrink-0 inline-flex items-center gap-1.5 text-white font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-colors text-xs sm:text-sm shadow-md">
@@ -6099,14 +6099,14 @@
         {{-- Price block --}}
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format($cushionPrice, 2) }}</span>
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format($cushionCompare, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency($cushionPrice)</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency($cushionCompare)</span>
           </div>
           <div class="ml-auto">
             <span class="bg-red-100 text-red-600 text-sm font-bold px-3 py-1 rounded-full">Save {{ $cushionSaving }}%</span>
           </div>
         </div>
-        <p class="text-slate-500 text-xs mb-5">Or 4 interest-free payments of ${{ number_format($cushionPrice/4, 2) }} with Square.</p>
+        <p class="text-slate-500 text-xs mb-5">Or 4 interest-free payments of @currency($cushionPrice/4) with Square.</p>
 
         {{-- Short description --}}
         <p class="text-slate-600 text-base leading-relaxed mb-6">
@@ -6323,7 +6323,7 @@
     <p class="text-lead text-stone-600 mb-3">Designed to suspend the tailbone, distribute body weight evenly, and align your lower spine for pain-free sitting.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900">${{ number_format($cushionPrice, 2) }}</span>
+      <span class="font-display font-bold text-5xl text-navy-900">@currency($cushionPrice)</span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -6350,8 +6350,8 @@
       <div class="flex-1 min-w-0">
         <p class="font-bold text-navy-900 text-xs sm:text-sm truncate">ErgoCushion® - Pressure Seat Cushion</p>
         <div class="flex items-center gap-2">
-          <span class="text-navy-700 font-bold text-sm">${{ number_format($cushionPrice, 2) }}</span>
-          <span class="text-slate-400 line-through text-xs">${{ number_format($cushionCompare, 2) }}</span>
+          <span class="text-navy-700 font-bold text-sm">@currency($cushionPrice)</span>
+          <span class="text-slate-400 line-through text-xs">@currency($cushionCompare)</span>
           <span class="bg-red-100 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">-{{ $cushionSaving }}%</span>
         </div>
       </div>
@@ -6481,8 +6481,8 @@
         <div class="flex items-center gap-4 mb-6 p-4 bg-amber-50 rounded-2xl">
           <div>
             {{-- Display dynamic selected variant price if options are selected, otherwise display default --}}
-            <span class="font-display font-bold text-4xl text-navy-900" x-text="selectedVariant ? '$' + Number(selectedVariant.price).toFixed(2) : '${{ number_format($coffeePrice, 2) }}'"></span>
-            <span class="text-slate-400 line-through text-lg ml-2" x-show="selectedVariant && selectedVariant.compare_at_price" x-text="selectedVariant ? '$' + Number(selectedVariant.compare_at_price).toFixed(2) : ''"></span>
+            <span class="font-display font-bold text-4xl text-navy-900" x-text="selectedVariant ? window.Currency.format(selectedVariant.price) : '@currency($coffeePrice)'"></span>
+            <span class="text-slate-400 line-through text-lg ml-2" x-show="selectedVariant && selectedVariant.compare_at_price" x-text="selectedVariant ? window.Currency.format(selectedVariant.compare_at_price) : ''"></span>
           </div>
           <div class="ml-auto" x-show="selectedVariant && selectedVariant.compare_at_price">
             <span class="bg-red-100 text-red-600 text-sm font-bold px-3 py-1 rounded-full" x-text="selectedVariant ? 'Save ' + Math.round(((selectedVariant.compare_at_price - selectedVariant.price) / selectedVariant.compare_at_price) * 100) + '%' : ''"></span>
@@ -6705,7 +6705,7 @@
     <p class="text-lead text-stone-600 mb-3">Arabica coffee beans blended with 6 adaptogens to support focus and energy all day long.</p>
 
     <div class="mb-6">
-      <span class="font-display font-bold text-5xl text-navy-900" x-text="selectedVariant ? '$' + Number(selectedVariant.price).toFixed(2) : '${{ number_format($coffeePrice, 2) }}'"></span>
+      <span class="font-display font-bold text-5xl text-navy-900" x-text="selectedVariant ? window.Currency.format(selectedVariant.price) : '@currency($coffeePrice)'"></span>
     </div>
 
     <div class="max-w-sm mx-auto space-y-3">
@@ -6732,8 +6732,8 @@
       <div class="flex-1 min-w-0">
         <p class="font-bold text-navy-900 text-xs sm:text-sm truncate">Functional Mushroom Coffee</p>
         <div class="flex items-center gap-2">
-          <span class="text-navy-700 font-bold text-sm" x-text="selectedVariant ? '$' + Number(selectedVariant.price).toFixed(2) : '${{ number_format($coffeePrice, 2) }}'"></span>
-          <span class="text-slate-400 line-through text-xs" x-show="selectedVariant && selectedVariant.compare_at_price" x-text="selectedVariant ? '$' + Number(selectedVariant.compare_at_price).toFixed(2) : ''"></span>
+          <span class="text-navy-700 font-bold text-sm" x-text="selectedVariant ? window.Currency.format(selectedVariant.price) : '@currency($coffeePrice)'"></span>
+          <span class="text-slate-400 line-through text-xs" x-show="selectedVariant && selectedVariant.compare_at_price" x-text="selectedVariant ? window.Currency.format(selectedVariant.compare_at_price) : ''"></span>
         </div>
       </div>
       <button type="button" @click="goToCheckout($event)" :class="canPurchase ? 'bg-navy-700 hover:bg-navy-800' : 'bg-slate-400 cursor-not-allowed pointer-events-none opacity-70'" :aria-disabled="!canPurchase" class="flex-shrink-0 inline-flex items-center gap-1.5 text-white font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-colors text-xs sm:text-sm shadow-md">
@@ -6845,9 +6845,9 @@
         @if($price)
         <div class="flex items-center gap-4 mb-6 p-4 bg-navy-50 rounded-2xl">
           <div>
-            <span class="font-display font-bold text-4xl text-navy-900">${{ number_format((float)$price, 2) }}</span>
+            <span class="font-display font-bold text-4xl text-navy-900">@currency((float)$price)</span>
             @if($compareAt && (float)$compareAt > (float)$price)
-            <span class="text-slate-400 line-through text-lg ml-2">${{ number_format((float)$compareAt, 2) }}</span>
+            <span class="text-slate-400 line-through text-lg ml-2">@currency((float)$compareAt)</span>
             @endif
           </div>
           @if($compareAt && (float)$compareAt > (float)$price)
@@ -6909,8 +6909,8 @@
           <tr class="hover:bg-slate-50/80">
             <td class="px-4 py-3 font-medium text-navy-900">{{ $variant['title'] ?? '—' }}</td>
             <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ $variant['sku'] ?? '—' }}</td>
-            <td class="px-4 py-3 font-semibold text-navy-800">@if(!empty($variant['price'])) ${{ number_format((float)$variant['price'], 2) }} @else — @endif</td>
-            <td class="px-4 py-3 text-slate-400 line-through text-sm">@if(!empty($variant['compare_at_price'])) ${{ number_format((float)$variant['compare_at_price'], 2) }} @else — @endif</td>
+            <td class="px-4 py-3 font-semibold text-navy-800">@if(!empty($variant['price'])) @currency((float)$variant['price']) @else — @endif</td>
+            <td class="px-4 py-3 text-slate-400 line-through text-sm">@if(!empty($variant['compare_at_price'])) @currency((float)$variant['compare_at_price']) @else — @endif</td>
             <td class="px-4 py-3">
               @if(($variant['inventory_quantity'] ?? 1) > 0)
               <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800">In Stock</span>
@@ -6949,9 +6949,9 @@
         <p class="font-bold text-navy-900 text-xs sm:text-sm truncate">{{ $title }}</p>
         @if($price)
           <div class="flex items-center gap-1 sm:gap-2">
-            <span class="text-navy-700 font-bold text-sm">${{ number_format((float)$price, 2) }}</span>
+            <span class="text-navy-700 font-bold text-sm">@currency((float)$price)</span>
             @if($compareAt && (float)$compareAt > (float)$price)
-              <span class="text-slate-400 line-through text-[10px]">${{ number_format((float)$compareAt, 2) }}</span>
+              <span class="text-slate-400 line-through text-[10px]">@currency((float)$compareAt)</span>
             @endif
           </div>
         @endif

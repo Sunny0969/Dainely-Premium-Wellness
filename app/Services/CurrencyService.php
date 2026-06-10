@@ -47,8 +47,12 @@ class CurrencyService
     /**
      * Format a USD amount for display in target currency.
      */
-    public function format(float $amountUsd, string $targetCurrency): string
+    public function format(float $amountUsd, string $localeOrCurrency): string
     {
+        $targetCurrency = strlen($localeOrCurrency) === 2 
+            ? $this->getCurrencyForLocale($localeOrCurrency) 
+            : $localeOrCurrency;
+
         $amount   = $this->convert($amountUsd, $targetCurrency);
         $currency = $this->supported[$targetCurrency] ?? ['symbol' => '$', 'decimals' => 2];
 

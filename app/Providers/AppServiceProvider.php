@@ -22,6 +22,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Support\Facades\Blade::directive('currency', function ($expression) {
+            return "<?php echo app(App\Services\CurrencyService::class)->format((float) ($expression), app()->getLocale()); ?>";
+        });
+
         // Share Shopify products with the site header dropdown.
         View::composer(['partials.header', 'partials.footer', 'blog.show'], function ($view) {
             /** @var ShopifyService $shopify */

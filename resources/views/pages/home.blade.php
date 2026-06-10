@@ -204,8 +204,8 @@
         <p class="text-body text-stone-600 mb-5">{{ __('home.featured_copy') }}</p>
 
         <div class="flex items-center gap-3 mb-6">
-          <span class="font-display font-bold text-3xl text-navy-900">${{ number_format($beltPrice, 2) }}</span>
-          <span class="text-slate-400 line-through text-base">${{ number_format($beltCompare, 2) }}</span>
+          <span class="font-display font-bold text-3xl text-navy-900">@currency($beltPrice)</span>
+          <span class="text-slate-400 line-through text-base">@currency($beltCompare)</span>
           <span class="bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full">Save {{ round((($beltCompare - $beltPrice)/$beltCompare)*100) }}%</span>
         </div>
 
@@ -534,7 +534,7 @@
   <div class="flex items-center gap-3 max-w-lg mx-auto">
     <div class="flex-1 min-w-0">
       <p class="font-semibold text-stone-900 text-sm truncate">{{ $beltTitle }}</p>
-      <p class="text-stone-500 text-xs">${{ number_format($beltPrice, 2) }} — Free shipping over $75</p>
+      <p class="text-stone-500 text-xs">@currency($beltPrice) — Free shipping over $75</p>
     </div>
     {{-- SHOP NOW → cart → checkout --}}
     <button

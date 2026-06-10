@@ -577,19 +577,11 @@ class ShopifyService
         }
 
         $cart     = $checkout['cart'] ?? [];
-        $qty      = (int) ($checkout['qty'] ?? ($cart['quantity'] ?? 1));
-        $unitPrice = (float) ($cart['price'] ?? 0);
-        $subtotal = round($unitPrice * $qty, 2);
         $shippingMethod = $checkout['shipping_method'] ?? 'standard';
-        $shippingUsd = (float) ($checkout['shipping_usd'] ?? $this->estimateShippingUsd($subtotal, $shippingMethod));
-        $totalUsd = round((float) ($checkout['total_usd'] ?? ($subtotal + $shippingUsd)), 2);
-        $discountUsd = max(0, round($subtotal + $shippingUsd - $totalUsd, 2));
-
-        $productName = (string) ($cart['title'] ?? 'Dainely Product');
-        if (! empty($cart['option_value'])) {
-            $productName .= ' — ' . $cart['option_value'];
-        }
-
+        
+        $items = [];
+        $subtotal = 0.0;
+        
         $noteAttributes = [
             ['name' => 'dainely_order_number', 'value' => (string) ($checkout['order_number'] ?? '')],
             ['name' => 'square_payment_id', 'value' => (string) ($checkout['square_payment_id'] ?? '')],
@@ -597,11 +589,62 @@ class ShopifyService
             ['name' => 'shipping_method', 'value' => $shippingMethod],
         ];
 
-        if (! empty($cart['option_label']) && ! empty($cart['option_value'])) {
-            $noteAttributes[] = ['name' => (string) $cart['option_label'], 'value' => (string) $cart['option_value']];
+        // Check if $cart is a sequential array (list of items)
+        if (isset($cart[0]) && is_array($cart[0])) {
+            foreach ($cart as $item) {
+                $itemQty   = (int) ($item['quantity'] ?? 1);
+                $itemPrice = (float) ($item['price'] ?? 0);
+                $subtotal += round($itemPrice * $itemQty, 2);
+
+                $productName = (string) ($item['title'] ?? 'Dainely Product');
+                if (! empty($item['option_value'])) {
+                    $productName .= ' — ' . $item['option_value'];
+                }
+
+                $variantId = $this->resolveCartVariantId($item);
+
+                $items[] = [
+                    'product_name'   => $productName,
+                    'quantity'       => $itemQty,
+                    'unit_price_usd' => $itemPrice,
+                    'sku'            => $item['sku'] ?? '',
+                    'variant_id'     => $variantId,
+                ];
+
+                if (! empty($item['option_label']) && ! empty($item['option_value'])) {
+                    $noteAttributes[] = ['name' => (string) $item['option_label'], 'value' => (string) $item['option_value']];
+                }
+            }
+        } else {
+            // Fallback for single item
+            $qty      = (int) ($checkout['qty'] ?? ($cart['quantity'] ?? 1));
+            $unitPrice = (float) ($cart['price'] ?? 0);
+            $subtotal = round($unitPrice * $qty, 2);
+
+            $productName = (string) ($cart['title'] ?? 'Dainely Product');
+            if (! empty($cart['option_value'])) {
+                $productName .= ' — ' . $cart['option_value'];
+            }
+
+            $variantId = $this->resolveCartVariantId($cart);
+
+            $items[] = [
+                'product_name'   => $productName,
+                'quantity'       => $qty,
+                'unit_price_usd' => $unitPrice,
+                'sku'            => $cart['sku'] ?? '',
+                'variant_id'     => $variantId,
+            ];
+
+            if (! empty($cart['option_label']) && ! empty($cart['option_value'])) {
+                $noteAttributes[] = ['name' => (string) $cart['option_label'], 'value' => (string) $cart['option_value']];
+            }
         }
 
-        $variantId = $this->resolveCartVariantId($cart);
+        $subtotal = round($subtotal, 2);
+        $shippingUsd = (float) ($checkout['shipping_usd'] ?? $this->estimateShippingUsd($subtotal, $shippingMethod));
+        $totalUsd = round((float) ($checkout['total_usd'] ?? ($subtotal + $shippingUsd)), 2);
+        $discountUsd = max(0, round($subtotal + $shippingUsd - $totalUsd, 2));
 
         return $this->createOrder([
             'order_number'         => $checkout['order_number'] ?? '',
@@ -624,13 +667,7 @@ class ShopifyService
             'square_payment_id'    => $checkout['square_payment_id'] ?? '',
             'locale'               => $checkout['locale'] ?? 'en',
             'note_attributes'      => $noteAttributes,
-            'items'                => [[
-                'product_name'   => $productName,
-                'quantity'       => $qty,
-                'unit_price_usd' => $unitPrice,
-                'sku'            => $cart['sku'] ?? '',
-                'variant_id'     => $variantId,
-            ]],
+            'items'                => $items,
         ]);
     }
 

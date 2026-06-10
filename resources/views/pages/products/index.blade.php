@@ -165,9 +165,9 @@
           {{-- Price --}}
           <div class="flex items-center gap-2 mb-2">
             @if($displayPrice > 0)
-            <span class="font-bold text-navy-900 text-base">${{ number_format($displayPrice, 2) }}</span>
+            <span class="font-bold text-navy-900 text-base">@currency($displayPrice)</span>
             @if($displayCompare > $displayPrice)
-            <span class="text-slate-400 line-through text-xs">${{ number_format($displayCompare, 2) }}</span>
+            <span class="text-slate-400 line-through text-xs">@currency($displayCompare)</span>
             @endif
             @else
             <span class="text-slate-400 text-sm italic">Price on request</span>

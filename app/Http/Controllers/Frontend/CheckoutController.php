@@ -34,13 +34,28 @@ class CheckoutController extends Controller
         $squareLocationId = $this->square->getLocationId();
         $squareConfigured = $this->square->isConfigured();
         $locale           = App::getLocale();
-        $currency         = $this->currency->getCurrencyForLocale($locale);
-        $cart             = CheckoutCart::get();
+        $currencyCode     = $this->currency->getCurrencyForLocale($locale);
+        $currencySymbol   = config("currency.supported.{$currencyCode}.symbol", '$');
+        $currency         = [
+            'code'   => $currencyCode,
+            'symbol' => $currencySymbol,
+        ];
+        
+        $cart = CheckoutCart::get();
 
         // Only use a fallback when nothing was added to cart — never overwrite session cart.
         if (! CheckoutCart::exists()) {
-            $cart = $this->populateFeaturedBeltFallback($cart);
+            $cart = $this->populateFeaturedBeltFallback();
         }
+
+        // Convert cart item prices to active currency for checkout view and Alpine.js
+        foreach ($cart as &$item) {
+            $item['price'] = $this->currency->convert((float) $item['price'], $currencyCode);
+            if (! empty($item['compare_at_price'])) {
+                $item['compare_at_price'] = $this->currency->convert((float) $item['compare_at_price'], $currencyCode);
+            }
+        }
+        unset($item);
 
         return view('checkout.index', compact(
             'squareAppId',
@@ -56,14 +71,14 @@ class CheckoutController extends Controller
     /**
      * Fallback when checkout is opened without Add to Cart — featured belt only.
      */
-    private function populateFeaturedBeltFallback(array $cart): array
+    private function populateFeaturedBeltFallback(): array
     {
         try {
             $handle = ProductSlugResolver::resolveHandle('dainely-belt');
             $result = $this->shopify->fetchProductByHandle($handle);
 
             if (! $result['success'] || empty($result['product'])) {
-                return $cart;
+                return CheckoutCart::get();
             }
 
             $product  = $result['product'];
@@ -71,22 +86,26 @@ class CheckoutController extends Controller
             $image    = $product['images'][0]['src']
                         ?? ($product['image']['src'] ?? null);
 
-            $cart['product_id']       = (string) ($product['id'] ?? $handle);
-            $cart['title']            = $product['title'] ?? $cart['title'];
-            $cart['subtitle']         = \Illuminate\Support\Str::limit(strip_tags($product['body_html'] ?? ''), 80) ?: $cart['subtitle'];
-            $cart['image']            = $image ?: $cart['image'];
-            $cart['price']            = (float) ($firstVar['price'] ?? $cart['price']);
-            $cart['compare_at_price'] = isset($firstVar['compare_at_price']) ? (float) $firstVar['compare_at_price'] : $cart['compare_at_price'];
-            $cart['option_label']     = $firstVar['title'] ?? null;
-            $cart['variant_id']       = isset($firstVar['id']) ? (string) $firstVar['id'] : null;
-            $cart['source']           = 'shopify';
+            $fallbackItem = [
+                'product_id'       => (string) ($product['id'] ?? $handle),
+                'title'            => $product['title'] ?? 'Dainely Belt',
+                'subtitle'         => \Illuminate\Support\Str::limit(strip_tags($product['body_html'] ?? ''), 80) ?: 'Premium Lumbar Support',
+                'image'            => $image ?: asset('images/dainely-belt-product.png'),
+                'price'            => (float) ($firstVar['price'] ?? 89.00),
+                'compare_at_price' => isset($firstVar['compare_at_price']) ? (float) $firstVar['compare_at_price'] : 119.00,
+                'option_label'     => $firstVar['title'] ?? null,
+                'variant_id'       => isset($firstVar['id']) ? (string) $firstVar['id'] : null,
+                'source'           => 'shopify',
+                'quantity'         => 1,
+            ];
 
-            CheckoutCart::put($cart);
+            CheckoutCart::clear();
+            CheckoutCart::add($fallbackItem);
         } catch (\Throwable $e) {
             Log::warning('Could not populate fallback cart from Shopify', ['error' => $e->getMessage()]);
         }
 
-        return $cart;
+        return CheckoutCart::get();
     }
 
     /**
@@ -106,26 +125,48 @@ class CheckoutController extends Controller
             'state'           => 'nullable|string|max:100',
             'zip'             => 'required|string|max:20',
             'country'         => 'required|string|max:2',
-            'qty'             => 'required|integer|min:1|max:20',
             'amount_cents'    => 'required|integer|min:100',
             'discount_code'   => 'nullable|string|max:50',
             'shipping_method' => 'nullable|string|max:50',
+            'items'           => 'required|array',
+            'items.*.variant_id' => 'nullable|string',
+            'items.*.product_id' => 'required|string',
+            'items.*.quantity'   => 'required|integer|min:1|max:20',
         ]);
 
         $locale           = App::getLocale();
         $orderRef         = 'DLY-' . strtoupper(\Illuminate\Support\Str::random(8));
-        $cart             = CheckoutCart::get();
-        $qty              = (int) $validated['qty'];
         $shippingMethod   = $validated['shipping_method'] ?? 'standard';
-        $totals           = $this->calculateCheckoutTotals($cart, $qty, $shippingMethod);
-        $expectedCents    = (int) round($totals['total'] * 100);
+        
+        // 1. Sync / update session cart items and quantities with what was submitted
+        $cart = CheckoutCart::get();
+        foreach ($validated['items'] as $submittedItem) {
+            foreach ($cart as &$cartItem) {
+                $match = (!empty($submittedItem['variant_id']) && $cartItem['variant_id'] === $submittedItem['variant_id'])
+                    || (empty($submittedItem['variant_id']) && $cartItem['product_id'] === $submittedItem['product_id']);
+                if ($match) {
+                    $cartItem['quantity'] = (int) $submittedItem['quantity'];
+                }
+            }
+        }
+        unset($cartItem);
+        CheckoutCart::put($cart);
+
+        // 2. Calculate totals in base currency (USD)
+        $totals           = $this->calculateCheckoutTotals($cart, $shippingMethod);
+        
+        // 3. Convert expected total (USD) to target currency (e.g. EUR) for matching amount_cents
+        $currencyCode     = $this->currency->getCurrencyForLocale($locale);
+        $expectedConverted = $this->currency->convert($totals['total'], $currencyCode);
+        $expectedCents    = (int) round($expectedConverted * 100);
         $amountCents      = (int) $validated['amount_cents'];
 
         if (abs($expectedCents - $amountCents) > 1) {
             Log::warning('Checkout amount mismatch', [
                 'expected' => $expectedCents,
                 'received' => $amountCents,
-                'cart'     => $cart['title'] ?? null,
+                'locale'   => $locale,
+                'currency' => $currencyCode,
             ]);
 
             return response()->json([
@@ -134,14 +175,12 @@ class CheckoutController extends Controller
             ], 422);
         }
 
-        $currency = $this->currency->getCurrencyForLocale($locale);
-
-        // Charge via Square
+        // Charge via Square in target currency (EUR or USD)
         $payment = $this->square->createPayment(
             $validated['source_id'],
             $amountCents,
             $orderRef,
-            $currency['code'] ?? 'USD'
+            $currencyCode
         );
 
         if (! $payment['success']) {
@@ -151,6 +190,7 @@ class CheckoutController extends Controller
             return response()->json(['success' => false, 'message' => $errorMsg], 422);
         }
 
+        // 4. Create Shopify order
         $shopifyOrder = null;
         try {
             $shopifyOrder = $this->shopify->createOrderFromCheckout([
@@ -165,7 +205,6 @@ class CheckoutController extends Controller
                 'state'             => $validated['state'] ?? null,
                 'zip'               => $validated['zip'],
                 'country'           => $validated['country'],
-                'qty'               => $qty,
                 'cart'              => $cart,
                 'shipping_method'   => $shippingMethod,
                 'shipping_usd'      => $totals['shipping'],
@@ -216,7 +255,6 @@ class CheckoutController extends Controller
                 'state'                => $validated['state'] ?? null,
                 'zip'                  => $validated['zip'],
                 'country'              => $validated['country'],
-                'qty'                  => $qty,
                 'cart'                 => $cart,
                 'amount_cents'         => $amountCents,
                 'discount_code'        => $validated['discount_code'] ?? null,
@@ -238,10 +276,15 @@ class CheckoutController extends Controller
     /**
      * @return array{subtotal: float, shipping: float, total: float}
      */
-    private function calculateCheckoutTotals(array $cart, int $qty, string $shippingMethod): array
+    private function calculateCheckoutTotals(array $cart, string $shippingMethod): array
     {
-        $unitPrice = (float) ($cart['price'] ?? 0);
-        $subtotal  = round($unitPrice * $qty, 2);
+        $subtotal = 0.0;
+        foreach ($cart as $item) {
+            $unitPrice = (float) ($item['price'] ?? 0);
+            $qty = (int) ($item['quantity'] ?? 1);
+            $subtotal += round($unitPrice * $qty, 2);
+        }
+        $subtotal  = round($subtotal, 2);
         $shipping  = $this->shopify->estimateShippingUsd($subtotal, $shippingMethod);
         $total     = round($subtotal + $shipping, 2);
 
@@ -258,10 +301,26 @@ class CheckoutController extends Controller
     public function confirmation(string $locale, string $order)
     {
         $lastOrder = session('checkout.last_order');
-        $cart      = is_array($lastOrder['cart'] ?? null) ? $lastOrder['cart'] : CheckoutCart::get();
-        $qty       = (int) ($cart['quantity'] ?? ($lastOrder['qty'] ?? 1));
-        $price     = (float) ($cart['price'] ?? 89);
-        $subtotal  = $price * $qty;
+        $cartItems = is_array($lastOrder['cart'] ?? null) 
+            ? (isset($lastOrder['cart'][0]) ? $lastOrder['cart'] : [$lastOrder['cart']]) 
+            : CheckoutCart::get();
+
+        $subtotal = 0.0;
+        $itemsCollection = collect();
+
+        foreach ($cartItems as $item) {
+            $itemQty = (int) ($item['quantity'] ?? 1);
+            $itemPrice = (float) ($item['price'] ?? 0);
+            $itemSubtotal = $itemPrice * $itemQty;
+            $subtotal += $itemSubtotal;
+
+            $itemsCollection->push((object) [
+                'product_name'    => $item['title'] ?? 'Dainely Product',
+                'quantity'        => $itemQty,
+                'total_price_usd' => $itemSubtotal,
+                'image_url'       => $item['image'] ?? asset('images/dainely-belt-product.png'),
+            ]);
+        }
 
         $totalCents = (int) ($lastOrder['amount_cents'] ?? ($subtotal * 100));
         $totalUsd   = $totalCents / 100;
@@ -285,14 +344,7 @@ class CheckoutController extends Controller
             'discount_code'       => $lastOrder['discount_code'] ?? null,
             'shipping_method'     => $shippingMethod,
             'total_usd'           => $totalUsd,
-            'items'               => collect([
-                (object) [
-                    'product_name'    => $cart['title'] ?? 'Dainely Belt',
-                    'quantity'        => $qty,
-                    'total_price_usd' => $subtotal,
-                    'image_url'       => $cart['image'] ?? asset('images/dainely-belt-product.png'),
-                ],
-            ]),
+            'items'               => $itemsCollection,
         ];
 
         return view('checkout.confirmation', compact('order'));
