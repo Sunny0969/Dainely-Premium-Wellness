@@ -26,7 +26,7 @@ class CartController extends Controller
             'source'           => 'nullable|string|in:shopify,static',
         ]);
 
-        CheckoutCart::put([
+        CheckoutCart::add([
             'product_id'       => $validated['product_id'],
             'title'            => $validated['title'],
             'subtitle'         => $validated['subtitle'] ?? null,

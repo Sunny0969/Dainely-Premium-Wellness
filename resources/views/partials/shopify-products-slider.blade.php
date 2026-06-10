@@ -77,12 +77,12 @@
                 </a>
               </h3>
 <div class="flex items-baseline gap-2 mb-4 mt-auto">
-                @if($product['price'])
-                <span class="font-display font-bold text-xl text-navy-900">${{ number_format((float) $product['price'], 2) }}</span>
-                @endif
-                @if(!empty($product['compare_at']) && (float) $product['compare_at'] > (float) ($product['price'] ?? 0))
-                <span class="text-slate-400 line-through text-sm">${{ number_format((float) $product['compare_at'], 2) }}</span>
-                @endif
+                  @if($product['price'])
+                  <span class="font-display font-bold text-xl text-navy-900">@currency((float)$product['price'])</span>
+                  @endif
+                  @if(!empty($product['compare_at']) && (float) $product['compare_at'] > (float) ($product['price'] ?? 0))
+                  <span class="text-slate-400 line-through text-sm">@currency((float)$product['compare_at'])</span>
+                  @endif
 </div>
             <button
                 type="button"

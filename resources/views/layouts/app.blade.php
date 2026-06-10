@@ -6,6 +6,24 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
+  {{-- Global Currency Config --}}
+  @php
+    $appLocale = app()->getLocale();
+    $appCurrencyCode = app(App\Services\CurrencyService::class)->getCurrencyForLocale($appLocale);
+    $appCurrencySymbol = config("currency.supported.{$appCurrencyCode}.symbol", '$');
+    $appExchangeRate = app(App\Services\CurrencyService::class)->convert(1.0, $appCurrencyCode);
+  @endphp
+  <script>
+    window.Currency = {
+        code: @json($appCurrencyCode),
+        symbol: @json($appCurrencySymbol),
+        rate: @json($appExchangeRate),
+        format: function(amount) {
+            return this.symbol + (parseFloat(amount) * this.rate).toFixed(2);
+        }
+    };
+  </script>
+
   {{-- SEO Meta --}}
   <title>@yield('title', 'Dainely — Premium Wellness for Back Pain & Sciatica Relief')</title>
   <meta name="description" content="@yield('meta_description', 'Clinically developed wellness solutions for back pain, sciatica, and posture. Trusted by thousands worldwide.')">
