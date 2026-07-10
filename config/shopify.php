@@ -34,6 +34,23 @@ return [
     // Single product page cache (seconds)
     'product_cache_ttl' => (int) env('SHOPIFY_PRODUCT_CACHE_TTL', 900),
 
+    // Discount / coupon code lookup cache (seconds)
+    'discount_cache_ttl' => (int) env('SHOPIFY_DISCOUNT_CACHE_TTL', 300),
+
     // Push website checkout orders to Shopify Admin → Orders
     'sync_orders' => filter_var(env('SHOPIFY_SYNC_ORDERS', true), FILTER_VALIDATE_BOOLEAN),
+
+    // Shopify Tax via draftOrderCalculate GraphQL
+    'tax_enabled'    => filter_var(env('SHOPIFY_TAX_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+    'tax_fallback'   => filter_var(env('SHOPIFY_TAX_FALLBACK', false), FILTER_VALIDATE_BOOLEAN),
+    'tax_cache_ttl'  => (int) env('SHOPIFY_TAX_CACHE_TTL', 300),
+    'shop_currency'  => env('SHOPIFY_SHOP_CURRENCY', 'USD'),
+
+    // Tags applied to every website order in Shopify Admin
+    'order_tags' => [
+        'DainelyLab_Order',
+        'Dainely_Order',
+        'Square_Checkout',
+        'Laravel_Order',
+    ],
 ];

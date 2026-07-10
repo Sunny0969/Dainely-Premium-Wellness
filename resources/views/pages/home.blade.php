@@ -56,7 +56,6 @@
 
 @section('content')
 @php
-  $cartAddUrl  = route('cart.store', ['locale' => $locale]);
   $beltUrl     = !empty($featuredBelt['handle'])
     ? route('products.show', ['locale' => $locale, 'slug' => $featuredBelt['handle']])
     : route('products.index', ['locale' => $locale]);
@@ -64,29 +63,17 @@
     ? route('products.show', ['locale' => $locale, 'slug' => $dailyRelief['handle']])
     : route('products.index', ['locale' => $locale]);
   $beltImage   = $featuredBelt['image'] ?? asset('images/dainely-belt-product.png');
-  $beltTitle   = $featuredBelt['title'] ?? 'Dainely Belt';
+  $heroImage   = asset('images/hero-dainely-belt-lifestyle.png');
+  $motionImage = asset('images/lifestyle-dainely-in-motion.png');
+  $beltTitle   = $featuredBelt['title'] ?? __('products.belt_cart_title');
   $beltPrice   = $featuredBelt['price'] ? (float) $featuredBelt['price'] : 64.00;
   $beltCompare = $featuredBelt['compare_at'] ? (float) $featuredBelt['compare_at'] : 119.00;
-
-  // Cart product data for the Dainely Belt quick-add
-  $beltCartData = [
-    'id'              => (string) ($featuredBelt['id'] ?? 'dainely-belt'),
-    'title'           => $beltTitle,
-    'subtitle'        => 'Premium everyday lower back stabilization',
-    'image'           => $beltImage,
-    'price'           => $beltPrice,
-    'compare_at_price'=> $beltCompare,
-    'variants'        => [],
-    'source'          => 'shopify',
-  ];
+  $freeShipDisplay = app(\App\Services\CurrencyService::class)->formatForLocale(75, $locale);
+  $priceDisplay = fn (float $usd) => app(\App\Services\CurrencyService::class)->formatForLocale($usd, $locale);
 @endphp
 
-{{-- Global cart URL for JS fallback --}}
-<script>window._cartAddUrl = @js($cartAddUrl);</script>
-
 {{-- 1. HERO — split layout, mobile image first --}}
-<section class="home-hero bg-stone-50 border-b border-stone-200/80" aria-label="Hero"
-  x-data="productPurchase(false, @js($beltCartData), @js($cartAddUrl))">
+<section class="home-hero bg-stone-50 border-b border-stone-200/80" aria-label="Hero">
   <div class="container-site">
     <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center py-10 md:py-16 lg:py-20">
 
@@ -94,13 +81,13 @@
       <div class="order-1 lg:order-2 relative animate-on-scroll">
         <div class="rounded-2xl md:rounded-3xl overflow-hidden bg-stone-200/60 shadow-soft aspect-[4/5] sm:aspect-[5/4] lg:aspect-square max-h-[min(72vh,520px)] mx-auto lg:max-h-none">
           <img
-            src="{{ asset('images/hero-lifestyle.png') }}"
-            alt="{{ $beltTitle }} worn during everyday activity"
+            src="{{ $heroImage }}"
+            alt="{{ __('home.hero_image_alt', ['product' => $beltTitle]) }}"
             class="w-full h-full object-cover object-center"
             loading="eager"
             fetchpriority="high"
-            width="640"
-            height="640"
+            width="819"
+            height="1024"
           >
         </div>
       </div>
@@ -115,18 +102,16 @@
         </p>
 
         <div class="flex flex-col sm:flex-row gap-3 mb-6">
-          {{-- SHOP NOW → Add to Cart → Checkout --}}
-          <button
-            type="button"
+          <a
+            href="{{ $beltUrl }}"
             id="hero-cta-primary"
-            @click="goToCheckout($event)"
             class="btn-primary-lg w-full sm:w-auto justify-center"
           >
             {{ __('home.hero_cta_primary') }}
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-          </button>
+          </a>
           <a href="{{ $beltUrl }}" class="btn-outline w-full sm:w-auto justify-center border-stone-300 text-stone-800 hover:border-navy-600">
-            View Product Details
+            {{ __('home.view_product_details') }}
           </a>
         </div>
 
@@ -143,22 +128,6 @@
       </div>
     </div>
   </div>
-
-  {{-- Hidden form for hero cart submission --}}
-  <form x-ref="checkoutForm" method="POST" action="{{ $cartAddUrl }}" class="hidden">
-    @csrf
-    <input type="hidden" name="product_id">
-    <input type="hidden" name="title">
-    <input type="hidden" name="subtitle">
-    <input type="hidden" name="image">
-    <input type="hidden" name="price">
-    <input type="hidden" name="compare_at_price">
-    <input type="hidden" name="quantity">
-    <input type="hidden" name="option_label">
-    <input type="hidden" name="option_value">
-    <input type="hidden" name="variant_id">
-    <input type="hidden" name="source">
-  </form>
 </section>
 
 {{-- 2. TRUST STRIP --}}
@@ -194,8 +163,7 @@
 </section>
 
 {{-- 3. FEATURED PRODUCT — Dainely Belt --}}
-<section class="section bg-stone-50/80" aria-label="Featured product"
-  x-data="productPurchase(false, @js($beltCartData), @js($cartAddUrl))">
+<section class="section bg-stone-50/80" aria-label="Featured product">
   <div class="container-site">
     <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
       <div class="order-2 lg:order-1">
@@ -204,24 +172,22 @@
         <p class="text-body text-stone-600 mb-5">{{ __('home.featured_copy') }}</p>
 
         <div class="flex items-center gap-3 mb-6">
-          <span class="font-display font-bold text-3xl text-navy-900">@currency($beltPrice)</span>
-          <span class="text-slate-400 line-through text-base">@currency($beltCompare)</span>
-          <span class="bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full">Save {{ round((($beltCompare - $beltPrice)/$beltCompare)*100) }}%</span>
+          <span class="font-display font-bold text-3xl text-navy-900">{{ $priceDisplay($beltPrice) }}</span>
+          <span class="text-slate-400 line-through text-base">{{ $priceDisplay($beltCompare) }}</span>
+          <span class="bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full">{{ __('home.save_percent', ['percent' => round((($beltCompare - $beltPrice)/$beltCompare)*100)]) }}</span>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-3">
-          {{-- ADD TO CART directly --}}
-          <button
-            type="button"
+          <a
+            href="{{ $beltUrl }}"
             id="featured-add-to-cart"
-            @click="goToCheckout($event)"
             class="btn-primary-lg inline-flex justify-center"
           >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
             {{ __('home.featured_cta') }}
-          </button>
+          </a>
           <a href="{{ $beltUrl }}" class="btn-outline inline-flex justify-center border-stone-300 text-stone-800">
-            View Details →
+            {{ __('home.view_details') }}
           </a>
         </div>
       </div>
@@ -239,21 +205,6 @@
       </div>
     </div>
   </div>
-
-  <form x-ref="checkoutForm" method="POST" action="{{ $cartAddUrl }}" class="hidden">
-    @csrf
-    <input type="hidden" name="product_id">
-    <input type="hidden" name="title">
-    <input type="hidden" name="subtitle">
-    <input type="hidden" name="image">
-    <input type="hidden" name="price">
-    <input type="hidden" name="compare_at_price">
-    <input type="hidden" name="quantity">
-    <input type="hidden" name="option_label">
-    <input type="hidden" name="option_value">
-    <input type="hidden" name="variant_id">
-    <input type="hidden" name="source">
-  </form>
 </section>
 
 {{-- 4. LIFESTYLE POSITIONING --}}
@@ -338,9 +289,9 @@
 
     <div class="grid md:grid-cols-3 gap-6">
       @foreach([
-        ['Sarah M.', 'Texas, USA', 'Comfortable enough to wear through long workdays. Fits under my shirt and stays in place.', 'testimonial-sarah.jpg'],
-        ['Jean-Pierre D.', 'Paris, France', 'Well-made support that fits into my routine. Quality materials and thoughtful design.', 'testimonial-jean.jpg'],
-        ['Klaus H.', 'Munich, Germany', 'I use it for commuting and desk work. Simple to adjust and easy to wear daily.', 'testimonial-klaus.jpg'],
+        [__('home.review_sarah_name'), __('home.review_sarah_location'), __('home.review_sarah_text'), 'testimonial-sarah.jpg'],
+        [__('home.review_jean_name'), __('home.review_jean_location'), __('home.review_jean_text'), 'testimonial-jean.jpg'],
+        [__('home.review_klaus_name'), __('home.review_klaus_location'), __('home.review_klaus_text'), 'testimonial-klaus.jpg'],
       ] as [$name, $location, $review, $avatar])
       <article class="testimonial-card border-stone-200/80 shadow-none hover:shadow-soft">
         <div class="stars mb-3">
@@ -360,36 +311,22 @@
   </div>
 </section>
 
-{{-- 7. VIDEO (only if self-hosted file exists) --}}
-<section id="home-video" class="section bg-stone-900 text-white" aria-label="Video">
+{{-- 7. IN MOTION — lifestyle use cases --}}
+<section id="home-video" class="section bg-stone-900 text-white" aria-label="{{ __('home.video_title') }}">
   <div class="container-site">
     <div class="max-w-3xl mx-auto text-center mb-8 md:mb-10">
       <h2 class="heading-section text-white mb-3">{{ __('home.video_title') }}</h2>
       <p class="text-stone-400">{{ __('home.video_desc') }}</p>
     </div>
-    <div class="rounded-2xl md:rounded-3xl overflow-hidden bg-stone-800 max-w-4xl mx-auto aspect-video ring-1 ring-white/10">
-      @if($heroVideo)
-      <video
-        class="w-full h-full object-cover"
-        playsinline
-        muted
-        loop
-        autoplay
-        preload="metadata"
-        poster="{{ asset('images/hero-lifestyle.png') }}"
-      >
-        <source src="{{ $heroVideo }}" type="video/mp4">
-      </video>
-      @else
+    <div class="rounded-2xl md:rounded-3xl overflow-hidden bg-stone-800 max-w-5xl mx-auto aspect-[1024/571] ring-1 ring-white/10">
       <img
-        src="{{ asset('images/hero-lifestyle.png') }}"
-        alt="{{ __('home.video_title') }}"
-        class="w-full h-full object-cover opacity-90"
+        src="{{ $motionImage }}"
+        alt="{{ __('home.video_image_alt') }}"
+        class="w-full h-full object-cover object-center"
         loading="lazy"
-        width="1280"
-        height="720"
+        width="1024"
+        height="571"
       >
-      @endif
     </div>
   </div>
 </section>
@@ -477,45 +414,29 @@
 </section>
 
 {{-- 13. FINAL CTA --}}
-<section class="section home-final-cta" aria-label="Call to action"
-  x-data="productPurchase(false, @js($beltCartData), @js($cartAddUrl))">
+<section class="section home-final-cta" aria-label="Call to action">
   <div class="container-narrow text-center">
     <h2 class="heading-section text-stone-900 mb-4">{{ __('home.cta_headline') }}</h2>
     <p class="text-lead text-stone-600 mb-6">{{ __('home.cta_desc') }}</p>
     <div class="flex flex-col sm:flex-row gap-3 justify-center mb-5">
-      <button
-        type="button"
+      <a
+        href="{{ $beltUrl }}"
         id="final-cta"
-        @click="goToCheckout($event)"
         class="btn-primary-lg justify-center"
       >
         {{ __('home.cta_button') }}
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-      </button>
-      <a href="{{ $beltUrl }}" class="btn-outline justify-center border-stone-300 text-stone-800">View Product Page</a>
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+      </a>
+      <a href="{{ $beltUrl }}" class="btn-outline justify-center border-stone-300 text-stone-800">{{ __('home.view_product_page') }}</a>
     </div>
     <p class="text-stone-500 text-sm">{{ __('home.cta_guarantee') }}</p>
   </div>
-  <form x-ref="checkoutForm" method="POST" action="{{ $cartAddUrl }}" class="hidden">
-    @csrf
-    <input type="hidden" name="product_id">
-    <input type="hidden" name="title">
-    <input type="hidden" name="subtitle">
-    <input type="hidden" name="image">
-    <input type="hidden" name="price">
-    <input type="hidden" name="compare_at_price">
-    <input type="hidden" name="quantity">
-    <input type="hidden" name="option_label">
-    <input type="hidden" name="option_value">
-    <input type="hidden" name="variant_id">
-    <input type="hidden" name="source">
-  </form>
 </section>
 
 {{-- Mobile sticky purchase bar --}}
 <div
   class="home-sticky-bar lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-stone-200 px-4 py-3 safe-area-pb"
-  x-data="Object.assign({ show: false }, productPurchase(false, @js($beltCartData), @js($cartAddUrl)))"
+  x-data="{ show: false }"
   x-init="
     const onScroll = () => { show = window.scrollY > 480 };
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -529,37 +450,21 @@
   x-transition:leave-start="translate-y-0 opacity-100"
   x-transition:leave-end="translate-y-full opacity-0"
   style="display: none;"
-  aria-label="Quick shop"
+  aria-label="{{ __('home.quick_shop_aria') }}"
 >
   <div class="flex items-center gap-3 max-w-lg mx-auto">
     <div class="flex-1 min-w-0">
       <p class="font-semibold text-stone-900 text-sm truncate">{{ $beltTitle }}</p>
-      <p class="text-stone-500 text-xs">@currency($beltPrice) — Free shipping over $75</p>
+      <p class="text-stone-500 text-xs">{{ __('home.sticky_free_shipping', ['price' => $priceDisplay($beltPrice), 'threshold' => $freeShipDisplay]) }}</p>
     </div>
-    {{-- SHOP NOW → cart → checkout --}}
-    <button
-      type="button"
+    <a
+      href="{{ $beltUrl }}"
       id="sticky-shop-now"
-      @click="goToCheckout($event)"
       class="btn-primary shrink-0 px-5 py-2.5 text-sm"
     >
       {{ __('home.sticky_cta') }}
-    </button>
+    </a>
   </div>
-  <form x-ref="checkoutForm" method="POST" action="{{ $cartAddUrl }}" class="hidden">
-    @csrf
-    <input type="hidden" name="product_id">
-    <input type="hidden" name="title">
-    <input type="hidden" name="subtitle">
-    <input type="hidden" name="image">
-    <input type="hidden" name="price">
-    <input type="hidden" name="compare_at_price">
-    <input type="hidden" name="quantity">
-    <input type="hidden" name="option_label">
-    <input type="hidden" name="option_value">
-    <input type="hidden" name="variant_id">
-    <input type="hidden" name="source">
-  </form>
 </div>
 
 @endsection

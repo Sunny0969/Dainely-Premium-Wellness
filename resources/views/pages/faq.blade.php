@@ -34,7 +34,7 @@
       ],
       'Sizing & Fit' => [
         ['How do I choose my size?', 'Measure your waist circumference at the belly button level. S/M fits 28"–36", L/XL fits 37"–44", 2XL fits 45"–52", 3XL fits 53"+. When in doubt, size up for comfort.'],
-        ['What if the size doesn\'t fit?', 'We offer free exchanges within 30 days of purchase. Simply contact support with your order number and preferred size — we handle the rest.'],
+        ['What if the size doesn\'t fit?', 'We offer free exchanges within 60 days of purchase. Simply contact support with your order number and preferred size — we handle the rest.'],
         ['Can I wash the Dainely Belt?', 'Yes. Hand wash in cold water with mild detergent and air dry. Do not machine wash or tumble dry, as this may affect the air cell integrity.'],
       ],
       'Shipping & Delivery' => [
@@ -43,7 +43,7 @@
         ['Do you ship to my country?', 'We ship to 80+ countries. All available shipping destinations are shown at checkout. If yours is not listed, contact support — we can usually arrange delivery.'],
       ],
       'Returns & Guarantee' => [
-        ['What is your return policy?', 'We offer a full 30-day money-back guarantee. If you are not completely satisfied, contact our support team within 30 days of delivery for a full refund — no questions asked.'],
+        ['What is your return policy?', 'We offer a full 30-day money-back guarantee. If you are not completely satisfied, contact our support team within 60 days of delivery for a full refund — no questions asked.'],
         ['How do I start a return?', 'Email ' . config('company.email') . ' with your order number and reason (optional). We will send a prepaid return label within 24 hours and process your refund within 3–5 business days of receiving the item.'],
         ['Are there any conditions on the guarantee?', 'The only requirement is that the product is returned in resalable condition (original packaging). We do not require proof of defect or explanation for the refund.'],
       ],

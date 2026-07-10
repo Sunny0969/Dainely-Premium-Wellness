@@ -10,8 +10,9 @@ use App\Http\Controllers\Frontend\PageController;
 use App\Http\Controllers\Frontend\EducationController;
 use App\Http\Controllers\Webhooks\SquareWebhookController;
 use App\Http\Controllers\Webhooks\ShopifyWebhookController;
+use App\Services\GeoLocaleService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Http;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,47 +24,17 @@ use Illuminate\Support\Facades\Http;
 |
 */
 
-// Root redirect to default locale based on geolocation
-Route::get('/', function () {
-    // 1. Check if locale is already in session or cookie
-    $locale = session('locale') ?: request()->cookie('locale');
-    
-    if (!$locale || !in_array($locale, ['en', 'fr', 'de'])) {
-        // 2. Geolocation detection via headers
-        $country = request()->header('CF-IPCountry') 
-            ?: request()->header('X-Country-Code') 
-            ?: request()->header('Cloudfront-Viewer-Country')
-            ?: request()->server('HTTP_CF_IPCOUNTRY')
-            ?: request()->server('HTTP_X_COUNTRY_CODE');
+// Root redirect — geolocate first-time visitors (VPN / IP), then cookie/session
+Route::get('/', function (Request $request, GeoLocaleService $geo) {
+    $supported = ['en', 'fr', 'de'];
+    $locale    = $request->cookie('locale');
 
-        if (!$country) {
-            // Check IP lookup fallback
-            $ip = request()->ip();
-            if ($ip && $ip !== '127.0.0.1' && $ip !== '::1' && !str_starts_with($ip, '192.168.') && !str_starts_with($ip, '10.')) {
-                // Try ipapi or ip-api.com
-                try {
-                    $response = Http::timeout(2)->get("http://ip-api.com/json/{$ip}");
-                    if ($response->successful()) {
-                        $country = $response->json('countryCode');
-                    }
-                } catch (\Exception $e) {
-                    // ignore
-                }
-            }
-        }
-
-        $country = strtoupper((string) $country);
-        if ($country === 'FR') {
-            $locale = 'fr';
-        } elseif (in_array($country, ['DE', 'AT', 'CH'])) {
-            $locale = 'de';
-        } else {
-            $locale = 'en';
-        }
+    if (! is_string($locale) || ! in_array($locale, $supported, true)) {
+        $locale = $geo->detectLocaleFromRequest($request);
     }
 
-    session(['locale' => $locale]);
-    return redirect()->route('home', ['locale' => $locale])
+    return redirect()
+        ->route('home', ['locale' => $locale])
         ->withCookie(cookie('locale', $locale, 525600));
 });
 
@@ -109,6 +80,7 @@ Route::prefix('{locale}')
 
     // ── Cart ───────────────────────────────────────────────────
     Route::post('/cart/add', [CartController::class, 'store'])->name('cart.store');
+    Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
 
     // ── Checkout ───────────────────────────────────────────────
     Route::prefix('checkout')->name('checkout.')->group(function () {
@@ -116,6 +88,7 @@ Route::prefix('{locale}')
         Route::post('/process',            [CheckoutController::class, 'process'])->name('process');
         Route::get('/confirmation/{order}',[CheckoutController::class, 'confirmation'])->name('confirmation');
         Route::post('/validate-discount',  [CheckoutController::class, 'validateDiscount'])->name('validate-discount');
+        Route::post('/tax-estimate',      [CheckoutController::class, 'estimateTax'])->name('tax-estimate');
     });
 });
 

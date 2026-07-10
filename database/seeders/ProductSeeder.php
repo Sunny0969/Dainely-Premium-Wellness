@@ -25,7 +25,6 @@ class ProductSeeder extends Seeder
             'gallery_images'     => json_encode([
                 'images/dainely-belt-product.png',
                 'images/spine-anatomy.png',
-                'images/hero-lifestyle.png',
                 'images/posture-edu.png',
             ]),
             'meta' => json_encode(['sizes' => ['S/M', 'L/XL', '2XL', '3XL']]),

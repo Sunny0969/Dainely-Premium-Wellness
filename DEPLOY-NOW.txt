@@ -1,0 +1,107 @@
+================================================================================
+DEPLOY NOW — Live fixes (dev.dainelylab.com)
+================================================================================
+
+WHY LOCAL WORKS BUT LIVE DOESN'T:
+  Live uses Cloudflare Rocket Loader which DEFERS inline scripts.
+  Without data-cfasync="false", window.__CHECKOUT__ loads AFTER Alpine starts
+  → cart empty, subtotal $0, Order Summary (0).
+
+  Latest fix adds data-cfasync="false" + backup config in checkout body.
+
+--------------------------------------------------------------------------------
+OPTION A — One command (recommended)
+--------------------------------------------------------------------------------
+
+  cd "d:\dainly Project\Dainely-Premium-Wellness"
+  $env:FTP_PASSWORD = "your-ftp-password"
+  powershell -ExecutionPolicy Bypass -File deploy-live.ps1
+
+This will:
+  1. npm run build
+  2. Sync SQUARE_* + SHOPIFY_TAX_* from local .env → server .env
+  3. Delete server config cache
+  4. Upload build + all PHP/blade/JS files
+
+--------------------------------------------------------------------------------
+OPTION B — Manual FTP (FileZilla)
+--------------------------------------------------------------------------------
+
+STEP 1 — Build locally first:
+
+  npm run build
+
+STEP 2 — Upload BUILD (both folders):
+
+  Local: public/build/*
+  → Server: /htdocs/dev.dainelylab.com/build/
+  → Server: /htdocs/public/build/
+
+  Check manifest.json for current hashed filenames after build.
+
+STEP 3 — Upload these CRITICAL files (not just build):
+
+  routes/web.php                          ← cart.update route (remove item)
+  resources/views/pages/home.blade.php    ← FR/DE hero → product page links
+  resources/views/partials/shopify-products-slider.blade.php
+  resources/views/layouts/app.blade.php
+  resources/views/checkout/index.blade.php  ← Remove button in order summary
+  resources/views/checkout/confirmation.blade.php
+  resources/views/partials/product-purchase.blade.php
+  resources/js/app.js
+  resources/js/checkout.js
+  app/Http/Controllers/Frontend/CheckoutController.php
+  app/Http/Controllers/Frontend/CartController.php
+  app/Services/ShopifyService.php
+  app/Services/ShopifyTaxService.php
+  app/Services/OrderPersistenceService.php
+  app/Support/ProductRequiresSize.php
+  config/products.php
+  resources/lang/{en,fr,de}/checkout.php
+
+  Or run: python scripts/ftp_upload.py
+
+STEP 4 — On server (SSH or hosting panel), clear view cache:
+
+  php artisan view:clear
+  php artisan config:clear
+
+STEP 5 — Server .env must have:
+
+  SQUARE_APPLICATION_ID=sandbox-sq0idb-...
+  SQUARE_ACCESS_TOKEN=...
+  SQUARE_LOCATION_ID=...
+  SQUARE_ENVIRONMENT=sandbox
+  SQUARE_CHARGE_CURRENCY=USD
+  SHOPIFY_TAX_FALLBACK=true
+
+STEP 6 — Delete on server (if exists):
+
+  bootstrap/cache/config.php
+  public/hot
+
+STEP 7 — Hard refresh: Ctrl+Shift+R (or Incognito)
+
+--------------------------------------------------------------------------------
+VERIFY LIVE
+--------------------------------------------------------------------------------
+
+  1. View Source on /en/checkout → search __CHECKOUT__
+     Must see cartItems array with products (not empty)
+
+  2. Order Summary should show correct count, subtotal, tax (not $0)
+
+  3. Plus/minus quantity updates line price + total
+
+  4. Belt product page blocks add-to-cart without size
+
+  5. /fr/checkout shows EUR totals (no USD flicker)
+
+  6. Checkout order summary: each line has "Remove" link; minus at qty 1 also removes
+
+  7. /fr/ and /de/ homepage hero CTA → product page (NOT add-to-cart)
+     View source: hero-cta-primary must be <a href=...> not <button @click="addToCart">
+
+  8. Build JS must include remove_key (manifest app-*.js newer than app-DyXDOIKi.js)
+
+================================================================================

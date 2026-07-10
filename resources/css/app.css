@@ -125,7 +125,7 @@
   }
 
   .container-site {
-    @apply max-w-7xl mx-auto px-6 sm:px-8 lg:px-8;
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
   .container-narrow {
@@ -440,6 +440,31 @@
 /* Smooth page transitions */
 .page-content {
   animation: fadeIn 0.4s ease-out;
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+/* Product landing — prevent horizontal overflow on small screens */
+.product-landing {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+.product-landing .break-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Hide duplicate in-page Order Now on mobile — sticky bar handles checkout */
+@media (max-width: 1023px) {
+  .product-landing #product-hero .btn-gold-lg {
+    display: none;
+  }
+
+  /* Lift scroll-to-top above sticky order bar */
+  body:has(.product-landing) button[aria-label="Scroll to top"] {
+    bottom: 5.75rem;
+  }
 }
 
 /* Dropdown menus */

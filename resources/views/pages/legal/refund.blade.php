@@ -24,6 +24,8 @@
 
     <div class="prose prose-slate max-w-none prose-a:text-blue-600 prose-a:underline hover:prose-a:text-blue-700">
 
+      <p>This Refund Policy applies to purchases made through dainely.com, operated by Synthium Health, Inc. ("we", "us", or "our").</p>
+
       <h2>How to Request a Return</h2>
       <ol>
         <li>Email us at <a href="mailto:contact@dainelylab.com">contact@dainelylab.com</a> with your order number — we usually respond within 1 business day.</li>

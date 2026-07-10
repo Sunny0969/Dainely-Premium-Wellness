@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'legal_name' => 'Dainely LLC',
+    'legal_name' => 'Synthium Health, Inc.',
 
     'email' => env('COMPANY_EMAIL', 'contact@dainelylab.com'),
 
@@ -9,16 +9,16 @@ return [
 
     'phone_tel' => env('COMPANY_PHONE_TEL', '+18007211224'),
 
-    'address' => '16192 Coastal Highway, County of Sussex, DE 19958, USA',
+    'address' => '2550 Sandy Plains Rd, Suite 225-356, Marietta, GA 30066',
 
     'address_lines' => [
-        '16192 Coastal Highway',
-        'County of Sussex, DE 19958, USA',
+        '2550 Sandy Plains Rd, Suite 225-356',
+        'Marietta, GA 30066',
     ],
 
     'hours' => '9 AM - 5 PM (Monday-Friday)',
 
     'hours_short' => 'Mon–Fri, 9 AM – 5 PM',
 
-    'copyright' => '© :year Dainely LLC All rights reserved',
+    'copyright' => '© :year Dainely®, a brand of Synthium Health, Inc. All rights reserved.',
 ];

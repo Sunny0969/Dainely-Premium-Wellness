@@ -5,12 +5,51 @@
 
 import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
+import registerCheckoutForm from './checkout';
 
 // Make Alpine available globally (for Blade-inline usage)
 window.Alpine = Alpine;
 
 // Register plugins
 Alpine.plugin(collapse);
+registerCheckoutForm(Alpine);
+
+Alpine.store('cartDrawer', {
+  open: false,
+  message: '',
+  itemCount: 0,
+  checkoutUrl: '',
+  timer: null,
+  show(payload = {}) {
+    this.message = payload.message || '';
+    this.itemCount = payload.item_count || 0;
+    this.checkoutUrl = payload.checkout_url || '';
+    this.open = true;
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.dismiss(), 8000);
+    this._updateBadges(this.itemCount);
+  },
+  dismiss() {
+    this.open = false;
+    clearTimeout(this.timer);
+  },
+  _updateBadges(count) {
+    document.querySelectorAll('[data-cart-count]').forEach((el) => {
+      el.textContent = count > 99 ? '99+' : String(count);
+      const link = el.closest('[data-testid="header-cart-link"]');
+      if (link) {
+        link.setAttribute(
+          'aria-label',
+          count > 0 ? `Cart, ${count} items` : 'Cart',
+        );
+      }
+    });
+    document.querySelectorAll('[data-cart-count-wrap]').forEach((el) => {
+      el.classList.toggle('hidden', count <= 0);
+      el.classList.toggle('flex', count > 0);
+    });
+  },
+});
 
 // ── Alpine Components ────────────────────────────────
 
@@ -43,13 +82,19 @@ Alpine.data('faqAccordion', () => ({
   },
 }));
 
-// Product image gallery
+// Product image gallery (standard + premium landings)
 Alpine.data('productGallery', (images = []) => ({
-  images,
+  images: Array.isArray(images) ? images.filter(Boolean) : [],
   active: 0,
   setActive(index) { this.active = index; },
   prev() { this.active = (this.active - 1 + this.images.length) % this.images.length; },
   next() { this.active = (this.active + 1) % this.images.length; },
+}));
+
+Alpine.data('productLandingGallery', (images = []) => ({
+  images: Array.isArray(images) ? images.filter(Boolean) : [],
+  active: 0,
+  setActive(i) { this.active = i; },
 }));
 
 // Cart quantity selector
@@ -62,29 +107,28 @@ Alpine.data('quantitySelector', (initial = 1, min = 1, max = 10) => ({
 }));
 
 /**
- * productPurchase — handles Add to Cart / Order Now on:
- *   - Product detail page (show.blade.php)
- *   - Product catalog cards (pages/products/index.blade.php)
- *   - Home page slider (shopify-products-slider.blade.php)
- *
- * Flow: goToCheckout() → fills hidden <form x-ref="checkoutForm"> → submit
- *   → POST /en/cart/add → CartController::store() → session
- *   → redirect → /en/checkout → Square payment
+ * productPurchase — Add to Cart (stay on page) + Order Now (checkout).
  */
-Alpine.data('productPurchase', (requiresOption = false, cartProduct = {}, cartAddUrl = '') => ({
+Alpine.data('productPurchase', (requiresOption = false, cartProduct = {}, cartAddUrl = '', checkoutUrl = '') => ({
   requiresOption: Boolean(requiresOption),
   cartProduct: cartProduct || {},
   cartAddUrl: cartAddUrl || '',
+  checkoutUrl: checkoutUrl || '',
   selectedOption: null,
+  optionError: false,
+  optionErrorMessage:
+    cartProduct?.messages?.selectOption || 'Please select an option above to continue.',
   qty: 1,
   loading: false,
 
   init() {
-    // Auto-select the first option/variant by default if options are available
+    if (this.requiresOption) return;
+
     const variants = this.cartProduct?.variants || [];
-    if (variants.length > 0) {
-      const first = variants[0];
-      this.selectedOption = first.index !== undefined ? first.index : (first.title ?? first.id);
+    if (variants.length === 1) {
+      const only = variants[0];
+      this.selectedOption =
+        only.index !== undefined ? only.index : (only.title ?? only.id);
     }
   },
 
@@ -95,10 +139,24 @@ Alpine.data('productPurchase', (requiresOption = false, cartProduct = {}, cartAd
   get selectedVariant() {
     if (!this.requiresOption || this.selectedOption === null) return null;
     const variants = this.cartProduct.variants || [];
-    return variants.find((v) => {
+    const match = variants.find((v) => {
       const key = v.index !== undefined ? v.index : (v.title ?? v.id);
-      return key === this.selectedOption;
-    }) ?? null;
+      return (
+        key === this.selectedOption
+        || v.title === this.selectedOption
+        || String(v.id) === String(this.selectedOption)
+      );
+    });
+    if (match) return match;
+    if (typeof this.selectedOption === 'string') {
+      return {
+        title: this.selectedOption,
+        id: this.selectedOption,
+        price: this.cartProduct.price,
+        compare_at_price: this.cartProduct.compare_at_price,
+      };
+    }
+    return null;
   },
 
   get unitPrice() {
@@ -109,6 +167,20 @@ Alpine.data('productPurchase', (requiresOption = false, cartProduct = {}, cartAd
 
   selectOption(value) {
     this.selectedOption = value;
+    this.optionError = false;
+  },
+
+  validateOption() {
+    if (this.canPurchase) {
+      this.optionError = false;
+      return true;
+    }
+
+    this.optionError = true;
+    const block = window.innerWidth < 1024 ? 'center' : 'nearest';
+    this.$refs.optionBlock?.scrollIntoView({ behavior: 'smooth', block });
+    this.$refs.optionBlock?.focus?.({ preventScroll: true });
+    return false;
   },
 
   incrementQty() { this.qty = Math.min(this.qty + 1, 20); },
@@ -121,105 +193,136 @@ Alpine.data('productPurchase', (requiresOption = false, cartProduct = {}, cartAd
   },
 
   purchaseLinkClasses() {
-    return this.canPurchase ? '' : 'opacity-70 cursor-not-allowed';
+    if (this.loading) return 'opacity-70 cursor-wait pointer-events-none';
+    return '';
   },
 
-  /**
-   * Main action: fills the hidden form and submits it.
-   * Called by both "Add to Cart" and "Order Now" buttons.
-   */
-  goToCheckout(event) {
+  _cartPayload(intent = 'add') {
+    const variant = this.selectedVariant;
+    return {
+      product_id: this.cartProduct.id || '',
+      title: this.cartProduct.title || '',
+      subtitle: this.cartProduct.subtitle || '',
+      image: this.cartProduct.image || '',
+      price: this.unitPrice.toFixed(2),
+      compare_at_price: String(variant?.compare_at_price ?? this.cartProduct.compare_at_price ?? ''),
+      quantity: String(this.qty),
+      option_label: variant?.title ?? '',
+      option_value: variant ? String(variant.id ?? this.selectedOption ?? '') : '',
+      variant_id: variant?.id ? String(variant.id) : '',
+      handle: this.cartProduct.handle || '',
+      source: this.cartProduct.source || 'shopify',
+      intent,
+    };
+  },
+
+  _csrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+  },
+
+  async _postCart(intent = 'add') {
+    const url = this.cartAddUrl || window._cartAddUrl || '';
+    if (!url) {
+      throw new Error('cartAddUrl is missing');
+    }
+
+    const payload = this._cartPayload(intent);
+    const body = new URLSearchParams();
+    body.append('_token', this._csrfToken());
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== '' && value !== null && value !== undefined) {
+        body.append(key, String(value));
+      }
+    });
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'X-CSRF-TOKEN': this._csrfToken(),
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: body.toString(),
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Could not add item to cart.');
+    }
+
+    return data;
+  },
+
+  async addToCart(event) {
     if (event) event.preventDefault();
 
-    if (!this.canPurchase) {
-      alert('Please select a size/option first.');
-      return;
+    if (!this.validateOption()) return;
+
+    this.loading = true;
+    try {
+      const data = await this._postCart('add');
+      Alpine.store('cartDrawer').show(data);
+    } catch (error) {
+      console.error('[Dainely] addToCart failed', error);
+      alert(error.message || 'Could not add item to cart.');
+    } finally {
+      this.loading = false;
     }
-
-    // Resolve URL — fall back to cart.store URL from data or global
-    const url = this.cartAddUrl
-      || (window._cartAddUrl || '');
-
-    if (!url) {
-      console.error('[Dainely] cartAddUrl is missing on this productPurchase component.');
-      return;
-    }
-
-    // Find the hidden form scoped to this Alpine component
-    const form = this.$refs.checkoutForm;
-
-    if (!form) {
-      // Fallback: create and submit a dynamic form
-      this._submitDynamicForm(url);
-      return;
-    }
-
-    this._fillAndSubmit(form, url);
   },
 
-  /** Fill each hidden field and submit the form */
-  _fillAndSubmit(form, url) {
-    const variant = this.selectedVariant;
+  /** Order Now — add to cart then go to checkout. */
+  async goToCheckout(event) {
+    if (event) event.preventDefault();
+
+    if (!this.validateOption()) return;
+
+    this.loading = true;
+    try {
+      const data = await this._postCart('checkout');
+      window.location.href = data.redirect || data.checkout_url || this.checkoutUrl || '/';
+    } catch (error) {
+      console.error('[Dainely] goToCheckout failed', error);
+      this._fillAndSubmitFallback('checkout');
+    } finally {
+      this.loading = false;
+    }
+  },
+
+  _fillAndSubmitFallback(intent = 'add') {
+    const url = this.cartAddUrl || window._cartAddUrl || '';
+    const form = this.$refs.checkoutForm;
+    if (!form || !url) return;
 
     const set = (name, value) => {
       const el = form.querySelector(`[name="${name}"]`);
-      if (el) el.value = (value === null || value === undefined) ? '' : String(value);
+      if (el) el.value = value === null || value === undefined ? '' : String(value);
     };
 
-    // Ensure action points to the right URL
     form.action = url;
+    const payload = this._cartPayload(intent);
+    Object.entries(payload).forEach(([name, value]) => set(name, value));
 
-    set('product_id',       this.cartProduct.id || '');
-    set('title',            this.cartProduct.title || '');
-    set('subtitle',         this.cartProduct.subtitle || '');
-    set('image',            this.cartProduct.image || '');
-    set('price',            this.unitPrice.toFixed(2));
-    set('compare_at_price', variant?.compare_at_price ?? this.cartProduct.compare_at_price ?? '');
-    set('quantity',         this.qty);
-    set('option_label',     variant?.title ?? '');
-    set('option_value',     variant ? (variant.id ?? this.selectedOption ?? '') : '');
-    set('variant_id',       variant?.id ?? '');
-    set('source',           this.cartProduct.source || 'shopify');
-
+    let intentInput = form.querySelector('[name="intent"]');
+    if (!intentInput) {
+      intentInput = document.createElement('input');
+      intentInput.type = 'hidden';
+      intentInput.name = 'intent';
+      form.appendChild(intentInput);
+    }
+    intentInput.value = intent;
     form.submit();
   },
 
-  /** Last-resort fallback: create a temporary form */
+  /** @deprecated Use _fillAndSubmitFallback */
+  _fillAndSubmit(form, url) {
+    this.cartAddUrl = url;
+    this._fillAndSubmitFallback('checkout');
+  },
+
+  /** @deprecated Use _fillAndSubmitFallback */
   _submitDynamicForm(url) {
-    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-    const csrf = csrfMeta ? csrfMeta.getAttribute('content') : '';
-    const variant = this.selectedVariant;
-
-    const fields = {
-      _token:           csrf,
-      product_id:       this.cartProduct.id || '',
-      title:            this.cartProduct.title || '',
-      subtitle:         this.cartProduct.subtitle || '',
-      image:            this.cartProduct.image || '',
-      price:            this.unitPrice.toFixed(2),
-      compare_at_price: variant?.compare_at_price ?? this.cartProduct.compare_at_price ?? '',
-      quantity:         this.qty,
-      option_label:     variant?.title ?? '',
-      option_value:     variant ? (variant.id ?? this.selectedOption ?? '') : '',
-      variant_id:       variant?.id ?? '',
-      source:           this.cartProduct.source || 'shopify',
-    };
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = url;
-    form.style.display = 'none';
-
-    Object.entries(fields).forEach(([name, value]) => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = name;
-      input.value = String(value ?? '');
-      form.appendChild(input);
-    });
-
-    document.body.appendChild(form);
-    form.submit();
+    this.cartAddUrl = url;
+    this._fillAndSubmitFallback('checkout');
   },
 }));
 
@@ -337,8 +440,40 @@ Alpine.data('lazyReviews', (url) => ({
   },
 }));
 
-// Start Alpine
-Alpine.start();
+// Start Alpine (wait briefly on checkout if config is still loading on CDN hosts)
+function bootAlpine() {
+  Alpine.start();
+}
+
+if (document.getElementById('checkout-order-summary')) {
+  const start = () => {
+    const cfg = window.__CHECKOUT__ || {};
+    const ready = (Array.isArray(cfg.cartItems) && cfg.cartItems.length > 0)
+      || Number(cfg.summarySubtotal ?? cfg.pricing?.subtotal ?? 0) > 0;
+    if (ready) {
+      bootAlpine();
+      return;
+    }
+    let attempts = 0;
+    const timer = setInterval(() => {
+      const next = window.__CHECKOUT__ || {};
+      const ok = (Array.isArray(next.cartItems) && next.cartItems.length > 0)
+        || Number(next.summarySubtotal ?? next.pricing?.subtotal ?? 0) > 0
+        || ++attempts > 40;
+      if (ok) {
+        clearInterval(timer);
+        bootAlpine();
+      }
+    }, 50);
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+} else {
+  bootAlpine();
+}
 
 // ── Intersection Observer for scroll animations ──────
 document.addEventListener('DOMContentLoaded', () => {

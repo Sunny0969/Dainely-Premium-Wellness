@@ -19,4 +19,7 @@ return [
     'contact'           => 'Contact',
     'shop_now'          => 'Shop Now',
     'view_all_products' => 'View All Products',
+    'cart'              => 'Cart',
+    'cart_with_count'   => 'Cart, :count items',
+    'continue_shopping' => 'Continue shopping',
 ];

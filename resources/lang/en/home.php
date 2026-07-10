@@ -69,6 +69,7 @@ return [
     // Video
     'video_title' => 'See Dainely in motion',
     'video_desc'  => 'Support during your workday, commute, and everyday movement.',
+    'video_image_alt' => 'Dainely belt worn at work, during commute, and everyday movement',
 
     // Daily Relief System
     'drs_title' => 'The Daily Relief System',
@@ -109,6 +110,28 @@ return [
     // Sticky bar
     'sticky_label' => 'Dainely Belt',
     'sticky_cta'   => 'Shop Now',
+    'sticky_free_shipping' => ':price — Free shipping over :threshold',
 
+    // Shared CTAs & labels
+    'view_product_details' => 'View Product Details',
+    'view_details'         => 'View Details →',
+    'view_product_page'    => 'View Product Page',
+    'save_percent'         => 'Save :percent%',
+    'hero_image_alt'       => ':product worn during everyday activity',
+    'belt_subtitle'        => 'Premium everyday lower back stabilization',
+    'quick_shop_aria'      => 'Quick shop',
+    'no_image'             => 'No image',
+    'premium_subtitle'     => 'Premium Wellness Product',
+
+    // Testimonials
+    'review_sarah_text'     => 'Comfortable enough to wear through long workdays. Fits under my shirt and stays in place.',
+    'review_sarah_name'     => 'Sarah M.',
+    'review_sarah_location' => 'Texas, USA',
+    'review_jean_text'      => 'Well-made support that fits into my routine. Quality materials and thoughtful design.',
+    'review_jean_name'      => 'Jean-Pierre D.',
+    'review_jean_location'  => 'Paris, France',
+    'review_klaus_text'     => 'I use it for commuting and desk work. Simple to adjust and easy to wear daily.',
+    'review_klaus_name'     => 'Klaus H.',
+    'review_klaus_location' => 'Munich, Germany',
 ];
 

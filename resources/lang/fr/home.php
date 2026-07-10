@@ -68,6 +68,7 @@ return [
     // Video
     'video_title' => 'Voir Dainely en action',
     'video_desc'  => 'Un soutien pour votre journée de travail, vos trajets et vos mouvements quotidiens.',
+    'video_image_alt' => 'Ceinture Dainely au travail, en déplacement et au quotidien',
 
     // Daily Relief System
     'drs_title' => 'Le Système de Soulagement Quotidien',
@@ -108,4 +109,25 @@ return [
     // Sticky bar
     'sticky_label' => 'Ceinture Dainely',
     'sticky_cta'   => 'Acheter maintenant',
+    'sticky_free_shipping' => ':price — Livraison gratuite dès :threshold',
+
+    'view_product_details' => 'Voir les détails du produit',
+    'view_details'         => 'Voir les détails →',
+    'view_product_page'    => 'Voir la page produit',
+    'save_percent'         => 'Économisez :percent%',
+    'hero_image_alt'       => ':product portée au quotidien',
+    'belt_subtitle'        => 'Stabilisation lombaire premium pour le quotidien',
+    'quick_shop_aria'      => 'Achat rapide',
+    'no_image'             => 'Pas d\'image',
+    'premium_subtitle'     => 'Produit bien-être premium',
+
+    'review_sarah_text'     => 'Assez confortable pour une journée de travail entière. Se porte sous ma chemise et reste en place.',
+    'review_sarah_name'     => 'Sarah M.',
+    'review_sarah_location' => 'Texas, États-Unis',
+    'review_jean_text'      => 'Soutien bien conçu qui s\'intègre à ma routine. Matériaux de qualité et design réfléchi.',
+    'review_jean_name'      => 'Jean-Pierre D.',
+    'review_jean_location'  => 'Paris, France',
+    'review_klaus_text'     => 'Je l\'utilise pour les trajets et au bureau. Simple à ajuster et facile à porter chaque jour.',
+    'review_klaus_name'     => 'Klaus H.',
+    'review_klaus_location' => 'Munich, Allemagne',
 ];

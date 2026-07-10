@@ -18,4 +18,8 @@ return [
     'about'             => 'À propos',
     'contact'           => 'Contact',
     'shop_now'          => 'Acheter',
+    'view_all_products' => 'Voir tous les produits',
+    'cart'              => 'Panier',
+    'cart_with_count'   => 'Panier, :count articles',
+    'continue_shopping' => 'Continuer vos achats',
 ];

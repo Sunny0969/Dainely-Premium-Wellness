@@ -1,6 +1,9 @@
 {{-- Shopify products: one row per slide, 3 columns — above Real Results --}}
 @php
   $slideCount = count($shopifyProductSlides ?? []);
+  $currencySvc = app(\App\Services\CurrencyService::class);
+  $locale = app()->getLocale();
+  $fmt = fn (float $usd) => $currencySvc->formatForLocale($usd, $locale);
 @endphp
 
 <section
@@ -45,20 +48,32 @@
           @if($slideIndex > 0) style="display: none;" @endif
         >
 @foreach($slideProducts as $product)
+          @php
+            $productHandle = (string) ($product['handle'] ?? '');
+            $productUrl = route('products.show', ['locale' => app()->getLocale(), 'slug' => $productHandle]);
+            $requiresSize = \App\Support\ProductRequiresSize::check(
+              (string) ($product['id'] ?? $productHandle),
+              (string) ($product['title'] ?? ''),
+              $productHandle,
+            );
+          @endphp
           <article
             class="card group overflow-hidden flex flex-col h-full animate-on-scroll border-stone-200/80 shadow-none hover:shadow-soft hover:-translate-y-0"
+            @unless($requiresSize)
             x-data="productPurchase(false, @js([
               'id' => (string) ($product['id'] ?? $product['handle'] ?? ''),
+              'handle' => $productHandle,
               'title' => (string) ($product['title'] ?? 'Product'),
-              'subtitle' => 'Premium Wellness Product',
+              'subtitle' => __('home.premium_subtitle'),
               'image' => (string) ($product['image'] ?? ($product['images'][0]['src'] ?? asset('images/dainely-belt-product.png'))),
               'price' => (float) ($product['price'] ?? ($product['variants'][0]['price'] ?? 0)),
               'compare_at_price' => (!empty($product['compare_at']) ? (float) $product['compare_at'] : null),
               'variants' => (array) ($product['variants'] ?? []),
               'source' => 'shopify',
-            ]), @js(route('cart.store', ['locale' => app()->getLocale()])))"
+            ]), @js(route('cart.store', ['locale' => app()->getLocale()])), @js(route('checkout.index', ['locale' => app()->getLocale()])))"
+            @endunless
           >
-            <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="block relative overflow-hidden">
+            <a href="{{ $productUrl }}" class="block relative overflow-hidden">
               @if($product['image'])
               <img
                 src="{{ $product['image'] }}"
@@ -67,32 +82,42 @@
                 loading="lazy"
               >
               @else
-              <div class="w-full aspect-[4/3] bg-slate-100 flex items-center justify-center text-slate-400 text-sm">No image</div>
+              <div class="w-full aspect-[4/3] bg-slate-100 flex items-center justify-center text-slate-400 text-sm">{{ __('home.no_image') }}</div>
               @endif
             </a>
             <div class="p-5 flex flex-col flex-1">
 <h3 class="heading-card text-base mb-2 line-clamp-2">
-            <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="hover:text-navy-700 transition-colors">
+            <a href="{{ $productUrl }}" class="hover:text-navy-700 transition-colors">
                   {{ $product['title'] }}
                 </a>
               </h3>
 <div class="flex items-baseline gap-2 mb-4 mt-auto">
-                  @if($product['price'])
-                  <span class="font-display font-bold text-xl text-navy-900">@currency((float)$product['price'])</span>
-                  @endif
-                  @if(!empty($product['compare_at']) && (float) $product['compare_at'] > (float) ($product['price'] ?? 0))
-                  <span class="text-slate-400 line-through text-sm">@currency((float)$product['compare_at'])</span>
-                  @endif
+                @if($product['price'])
+                <span class="font-display font-bold text-xl text-navy-900">{{ $fmt((float) $product['price']) }}</span>
+                @endif
+                @if(!empty($product['compare_at']) && (float) $product['compare_at'] > (float) ($product['price'] ?? 0))
+                <span class="text-slate-400 line-through text-sm">{{ $fmt((float) $product['compare_at']) }}</span>
+                @endif
 </div>
+            @if($requiresSize)
+            <a
+                href="{{ $productUrl }}"
+                class="btn-outline w-full justify-center text-sm border-stone-300 text-stone-800 hover:bg-stone-900 hover:text-white hover:border-stone-900"
+            >
+                {{ __('home.view_details') }}
+            </a>
+            @else
             <button
                 type="button"
-                @click="goToCheckout($event)"
+                @click="addToCart($event)"
                 class="btn-outline w-full justify-center text-sm border-stone-300 text-stone-800 hover:bg-stone-900 hover:text-white hover:border-stone-900"
             >
                 {{ __('home.shop_add_to_cart') }}
               </button>
+            @endif
             </div>
 
+            @unless($requiresSize)
             {{-- Hidden checkout form (required by Alpine productPurchase) --}}
             <form x-ref="checkoutForm" method="POST" action="{{ route('cart.store', ['locale' => app()->getLocale()]) }}" class="hidden">
               @csrf
@@ -106,8 +131,10 @@
               <input type="hidden" name="option_label">
               <input type="hidden" name="option_value">
               <input type="hidden" name="variant_id">
+              <input type="hidden" name="handle">
               <input type="hidden" name="source">
             </form>
+            @endunless
           </article>
           @endforeach
 

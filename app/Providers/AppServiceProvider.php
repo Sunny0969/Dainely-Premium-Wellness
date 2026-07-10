@@ -2,10 +2,13 @@
 
 namespace App\Providers;
 
+use App\Services\ProductTranslationService;
 use App\Services\ShopifyService;
-use Illuminate\Support\ServiceProvider;
+use App\Support\CheckoutCart;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,7 +17,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Hosting: subdomain docroot is dev.dainelylab.com/ (not public/).
+        $customPublic = env('APP_PUBLIC_PATH');
+        if (is_string($customPublic) && $customPublic !== '' && is_dir($customPublic)) {
+            $this->app->usePublicPath($customPublic);
+
+            return;
+        }
+
+        $alternatePublic = base_path('dev.dainelylab.com');
+        $defaultManifest = base_path('public/build/manifest.json');
+        $alternateManifest = $alternatePublic.'/build/manifest.json';
+
+        if (is_file($alternateManifest) && ! is_file($defaultManifest) && is_dir($alternatePublic)) {
+            $this->app->usePublicPath($alternatePublic);
+        }
     }
 
     /**
@@ -22,8 +39,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Illuminate\Support\Facades\Blade::directive('currency', function ($expression) {
-            return "<?php echo app(App\Services\CurrencyService::class)->format((float) ($expression), app()->getLocale()); ?>";
+        if (is_file(public_path('build/manifest.json')) && is_file(public_path('hot'))) {
+            @unlink(public_path('hot'));
+        }
+
+        // Cloudflare Rocket Loader breaks Vite ES modules; skip it on app bundles.
+        Vite::useScriptTagAttributes([
+            'data-cfasync' => 'false',
+        ]);
+
+        View::composer(['partials.header', 'partials.footer', 'partials.cart-nav-link', 'checkout.index'], function ($view) {
+            $view->with('cartItemCount', CheckoutCart::itemCount());
         });
 
         // Share Shopify products with the site header dropdown.
@@ -60,10 +86,19 @@ class AppServiceProvider extends ServiceProvider
                 ];
             });
 
+            $locale = app()->getLocale();
+            /** @var ProductTranslationService $productTranslations */
+            $productTranslations = app(ProductTranslationService::class);
+            $products = $productTranslations->applyMany($payload['products'] ?? [], $locale);
+            $featured = $payload['featured'] ?? null;
+            if (is_array($featured)) {
+                $featured = $productTranslations->apply($featured, $locale);
+            }
+
             $view->with([
-                'headerShopifyProducts' => $payload['products'] ?? [],
+                'headerShopifyProducts' => $products,
                 'headerShopifyProductsError' => $payload['error'] ?? null,
-                'featuredShopifyProduct' => $payload['featured'] ?? null,
+                'featuredShopifyProduct' => $featured,
             ]);
         });
     }

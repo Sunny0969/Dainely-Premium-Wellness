@@ -59,7 +59,15 @@ class SquareService
             && $this->getLocationId() !== '';
     }
 
-    public function createPayment(string $sourceId, int $amountCents, string $orderRef, string $currency = 'USD'): array
+    public function getChargeCurrency(): string
+    {
+        return strtoupper((string) config('square.charge_currency', 'USD'));
+    }
+
+    /**
+     * Capture a card payment. Amount must be in the merchant charge currency (USD) minor units.
+     */
+    public function createPayment(string $sourceId, int $amountCents, string $orderRef, ?string $currency = null): array
     {
         if (empty($this->accessToken)) {
             Log::error('Square createPayment aborted — SQUARE_ACCESS_TOKEN is missing', [
@@ -82,11 +90,22 @@ class SquareService
             ];
         }
 
+        $chargeCurrency = $this->getChargeCurrency();
+        $requestedCurrency = $currency !== null ? strtoupper($currency) : null;
+        if ($requestedCurrency !== null && $requestedCurrency !== $chargeCurrency) {
+            Log::warning('Square currency mismatch — using configured charge currency', [
+                'requested'  => $requestedCurrency,
+                'configured' => $chargeCurrency,
+                'order_ref'  => $orderRef,
+                'amount'     => $amountCents,
+            ]);
+        }
+
         try {
             $response = $this->httpClient()->post($this->apiBase . '/payments', [
                 'source_id'       => $sourceId,
                 'idempotency_key' => Str::uuid()->toString(),
-                'amount_money'    => ['amount' => $amountCents, 'currency' => $currency],
+                'amount_money'    => ['amount' => $amountCents, 'currency' => $chargeCurrency],
                 'location_id'     => $locationId,
                 'reference_id'    => $orderRef,
                 'note'            => 'Dainely order: ' . $orderRef,
@@ -100,7 +119,7 @@ class SquareService
                     'status'      => $body['payment']['status'] ?? null,
                     'order_ref'   => $orderRef,
                     'amount'      => $amountCents,
-                    'currency'    => $currency,
+                    'currency'    => $chargeCurrency,
                     'environment' => $this->environment,
                     'location_id' => $locationId,
                 ]);

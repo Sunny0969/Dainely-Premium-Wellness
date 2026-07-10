@@ -11,7 +11,7 @@
 <section class="section bg-white">
   <div class="container-narrow prose prose-slate max-w-none prose-a:text-blue-600 prose-a:underline hover:prose-a:text-blue-700">
 
-    <p>This Privacy Policy describes how dainely.com (the "Site" or "we") collects, uses, and discloses your Personal Information when you visit or make a purchase from the Site.</p>
+    <p>This Privacy Policy describes how dainely.com (the "Site"), operated by Synthium Health, Inc. ("we", "us", or "our"), collects, uses, and discloses your Personal Information when you visit or make a purchase from the Site.</p>
 
     <h2>Contact</h2>
     <p>After reviewing this policy, if you have additional questions, want more information about our privacy practices, or would like to make a complaint, please contact us by email at <a href="mailto:contact@dainelylab.com">contact@dainelylab.com</a>.</p>

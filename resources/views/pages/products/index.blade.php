@@ -5,22 +5,23 @@
 
   $locale = app()->getLocale();
   $cartAddUrl = route('cart.store', ['locale' => $locale]);
+  $checkoutUrl = route('checkout.index', ['locale' => $locale]);
   $filters = $filters ?? ['q' => '', 'min_price' => null, 'max_price' => null, 'sort' => ''];
   $reviewStatsByHandle = $reviewStatsByHandle ?? [];
 @endphp
 
-@section('title', 'All Products — Dainely Wellness')
-@section('meta_description', 'Shop all Dainely wellness products — premium lower back stabilization and daily wellness routines. Free shipping over $75.')
+@section('title', __('products.meta_title'))
+@section('meta_description', __('products.meta_description'))
 
 @section('content')
 
 {{-- ─── HERO ─────────────────────────────────────────────────────────────── --}}
 <section class="bg-gradient-to-b from-navy-950 to-navy-900 text-white py-14 lg:py-20">
   <div class="container-site text-center">
-    <p class="text-gold-400 text-xs font-bold uppercase tracking-widest mb-3">Shop All Products</p>
-    <h1 class="font-display font-bold text-4xl lg:text-5xl mb-4 leading-tight text-white">Premium Wellness Products</h1>
+    <p class="text-gold-400 text-xs font-bold uppercase tracking-widest mb-3">{{ __('products.eyebrow') }}</p>
+    <h1 class="font-display font-bold text-4xl lg:text-5xl mb-4 leading-tight text-white">{{ __('products.title') }}</h1>
     <p class="text-navy-300 text-base max-w-xl mx-auto leading-relaxed">
-      Every Dainely product is designed for real routines — modern movement, long workdays, and everyday life.
+      {{ __('products.subtitle') }}
     </p>
   </div>
 </section>
@@ -36,7 +37,7 @@
         <input
           id="product-search"
           type="search"
-          placeholder="Search products…"
+          placeholder="{{ __('products.search') }}"
           value="{{ $filters['q'] ?? '' }}"
           class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-navy-400 focus:border-transparent"
         >
@@ -44,14 +45,14 @@
 
       {{-- Sort buttons --}}
       <div class="flex items-center gap-1.5 flex-wrap">
-        <span class="text-slate-500 text-xs font-medium hidden sm:inline mr-1">Sort:</span>
+        <span class="text-slate-500 text-xs font-medium hidden sm:inline mr-1">{{ __('products.sort') }}:</span>
         @php $activeSort = $filters['sort'] ?? ''; @endphp
         @foreach([
-          ['default',    'Default'],
-          ['price-asc',  'Price ↑'],
-          ['price-desc', 'Price ↓'],
-          ['az',         'A → Z'],
-          ['za',         'Z → A'],
+          ['default',    __('products.sort_default')],
+          ['price-asc',  __('products.sort_price_asc')],
+          ['price-desc', __('products.sort_price_desc')],
+          ['az',         __('products.sort_az')],
+          ['za',         __('products.sort_za')],
         ] as [$val, $label])
         <button
           type="button"
@@ -63,7 +64,7 @@
       </div>
 
       {{-- Count --}}
-      <p id="product-count" class="text-slate-500 text-xs ml-auto hidden sm:block">{{ count($products) }} products</p>
+      <p id="product-count" class="text-slate-500 text-xs ml-auto hidden sm:block">{{ __('products.count', ['count' => count($products)]) }}</p>
     </div>
   </div>
 </div>
@@ -74,7 +75,7 @@
 
     @if($error)
     <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 mb-8 text-amber-800 text-sm">
-      <p class="font-semibold mb-1">⚠ Could not load products from Shopify</p>
+      <p class="font-semibold mb-1">⚠ {{ __('products.shopify_error') }}</p>
       <p>{{ $error }}</p>
     </div>
     @endif
@@ -98,12 +99,12 @@
         $pUrl        = route('products.show', ['locale' => $locale, 'slug' => $pHandle]);
         $pReviewHandle = ProductSlugResolver::resolveHandle((string) $pHandle);
         $pReviewStats  = $reviewStatsByHandle[$pReviewHandle] ?? ['average_rating' => 0, 'total_reviews' => 0];
-        $isDainBelt  = in_array($pHandle, ['dainely-belt','dainely-comfort-belt']);
-        $displayPrice   = $isDainBelt ? 64.00 : $pPrice;
-        $displayCompare = $isDainBelt ? 119.00 : $pCompare;
+        $displayPrice   = $pPrice;
+        $displayCompare = $pCompare;
         $savePct        = ($displayCompare > $displayPrice && $displayPrice > 0)
                             ? round((($displayCompare - $displayPrice) / $displayCompare) * 100)
                             : 0;
+        $cartVariants   = \App\Support\ProductLandingAssets::mapVariantsForCart($product['variants'] ?? []);
         $cartData = [
           'id'              => (string) ($product['id'] ?? $pHandle),
           'title'           => $product['title'] ?? 'Product',
@@ -111,7 +112,7 @@
           'image'           => $pImg ?: asset('images/dainely-belt-product.png'),
           'price'           => $displayPrice,
           'compare_at_price'=> $displayCompare ?: null,
-          'variants'        => [],
+          'variants'        => $cartVariants,
           'source'          => 'shopify',
         ];
       @endphp
@@ -121,7 +122,7 @@
         class="product-card group bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-lg hover:border-navy-100 transition-all flex flex-col"
         data-title="{{ strtolower($product['title'] ?? '') }}"
         data-price="{{ $displayPrice }}"
-        x-data="productPurchase(false, @js($cartData), @js($cartAddUrl))"
+        x-data="productPurchase(false, @js($cartData), @js($cartAddUrl), @js($checkoutUrl))"
       >
 
         {{-- Image --}}
@@ -165,20 +166,18 @@
           {{-- Price --}}
           <div class="flex items-center gap-2 mb-2">
             @if($displayPrice > 0)
-            <span class="font-bold text-navy-900 text-base">@currency($displayPrice)</span>
+            <span class="font-bold text-navy-900 text-base">{{ app(\App\Services\CurrencyService::class)->formatForLocale($displayPrice, $locale) }}</span>
             @if($displayCompare > $displayPrice)
-            <span class="text-slate-400 line-through text-xs">@currency($displayCompare)</span>
+            <span class="text-slate-400 line-through text-xs">{{ app(\App\Services\CurrencyService::class)->formatForLocale($displayCompare, $locale) }}</span>
             @endif
             @else
-            <span class="text-slate-400 text-sm italic">Price on request</span>
+            <span class="text-slate-400 text-sm italic">{{ __('products.price_on_request') }}</span>
             @endif
           </div>
 
           {{-- Size/variant note --}}
-          @if($isDainBelt)
-          <p class="text-slate-400 text-[10px] mb-3">Sizes: S/M · L/XL · 2XL · 3XL</p>
-          @elseif($pVars > 1)
-          <p class="text-slate-400 text-[10px] mb-3">{{ $pVars }} options available</p>
+          @if($pVars > 1)
+          <p class="text-slate-400 text-[10px] mb-3">{{ __('products.options_available', ['count' => $pVars]) }}</p>
           @endif
 
           {{-- CTA buttons --}}
@@ -188,13 +187,13 @@
             <button
               type="button"
               id="add-to-cart-{{ $product['id'] ?? $loop->index }}"
-              @click="goToCheckout($event)"
+              @click="addToCart($event)"
               class="flex-1 inline-flex items-center justify-center gap-1.5 bg-navy-700 hover:bg-navy-800 active:scale-95 text-white text-xs font-bold px-3 py-2.5 rounded-xl transition-all shadow-sm"
             >
               <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
               </svg>
-              Add to Cart
+              {{ __('products.add_to_cart') }}
             </button>
 
             {{-- VIEW PRODUCT --}}
@@ -203,7 +202,7 @@
               id="view-product-{{ $product['id'] ?? $loop->index }}"
               class="inline-flex items-center justify-center gap-1 border border-slate-200 hover:border-navy-400 hover:text-navy-700 text-slate-600 text-xs font-semibold px-3 py-2.5 rounded-xl transition-colors"
             >
-              View
+              {{ __('products.view_product_short') }}
               <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </a>
           </div>

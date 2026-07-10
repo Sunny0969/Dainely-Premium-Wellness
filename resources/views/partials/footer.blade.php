@@ -26,6 +26,15 @@
           <li><a href="{{ route('education.mobility', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.mobility') }}</a></li>
           <li><a href="{{ route('blog.index', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.blog') }}</a></li>
           <li><a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.all_products') }}</a></li>
+          @php $footerCartCount = (int) ($cartItemCount ?? \App\Support\CheckoutCart::itemCount()); @endphp
+          <li>
+            <a href="{{ route('checkout.index', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors inline-flex items-center gap-2">
+              {{ __('nav.cart') }}
+              @if($footerCartCount > 0)
+                <span class="min-w-[1.125rem] h-[1.125rem] px-1 bg-white/20 text-white text-[10px] font-bold rounded-full inline-flex items-center justify-center">{{ $footerCartCount > 99 ? '99+' : $footerCartCount }}</span>
+              @endif
+            </a>
+          </li>
         </ul>
       </div>
 
@@ -44,24 +53,22 @@
 
       {{-- Need help column --}}
       <div class="flex-1 w-full min-w-[200px]">
-        <h3 class="text-sm font-bold uppercase tracking-widest text-navy-400 mb-4">Need Help?</h3>
-        <p class="text-navy-300 text-sm leading-relaxed mb-4">
-          Contact us and our team will get back to you as soon as possible.
-        </p>
+        <h3 class="text-sm font-bold uppercase tracking-widest text-navy-400 mb-4">{{ __('footer.need_help_title') }}</h3>
+        <p class="text-navy-300 text-sm leading-relaxed mb-4">{{ __('footer.need_help_copy') }}</p>
 
         <div class="space-y-4 text-sm">
           <div>
-            <p class="text-navy-400 font-bold text-[11px] uppercase tracking-wider mb-1">Hours Of Operation</p>
+            <p class="text-navy-400 font-bold text-[11px] uppercase tracking-wider mb-1">{{ __('footer.hours_label') }}</p>
             <p class="text-navy-300">{{ config('company.hours') }}</p>
           </div>
 
           <div>
-            <p class="text-navy-400 font-bold text-[11px] uppercase tracking-wider mb-1">Email</p>
+            <p class="text-navy-400 font-bold text-[11px] uppercase tracking-wider mb-1">{{ __('footer.email_label') }}</p>
             <a href="mailto:{{ config('company.email') }}" class="text-navy-300 hover:text-white transition-colors">{{ config('company.email') }}</a>
           </div>
 
           <div>
-            <p class="text-navy-400 font-bold text-[11px] uppercase tracking-wider mb-1">Phone</p>
+            <p class="text-navy-400 font-bold text-[11px] uppercase tracking-wider mb-1">{{ __('footer.phone_label') }}</p>
             <a href="tel:{{ config('company.phone_tel') }}" class="text-navy-300 hover:text-white transition-colors">{{ config('company.phone_display') }}</a>
           </div>
         </div>
@@ -69,23 +76,21 @@
 
       {{-- Sign up and save column --}}
       <div class="flex-1 w-full min-w-[250px] lg:flex-[1.2]">
-        <h3 class="text-sm font-bold uppercase tracking-widest text-navy-400 mb-4">Sign up and save</h3>
-        <p class="text-navy-300 text-sm leading-relaxed mb-4">
-          Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.
-        </p>
+        <h3 class="text-sm font-bold uppercase tracking-widest text-navy-400 mb-4">{{ __('footer.newsletter_title') }}</h3>
+        <p class="text-navy-300 text-sm leading-relaxed mb-4">{{ __('footer.newsletter_copy') }}</p>
         <form action="#" method="POST" class="relative flex items-center w-full mb-6">
           @csrf
           <input 
             type="email" 
             name="email" 
-            placeholder="Enter your email" 
+            placeholder="{{ __('footer.newsletter_placeholder') }}" 
             required 
             class="w-full bg-white/5 border border-white/10 rounded-lg pl-4 pr-12 py-2.5 text-sm text-white placeholder-navy-400 focus:outline-none focus:border-navy-500 focus:ring-1 focus:ring-navy-500 transition-colors"
           >
           <button 
             type="submit" 
             class="absolute right-1 top-1 bottom-1 px-3 bg-navy-600 hover:bg-navy-700 text-white rounded-md transition-colors flex items-center justify-center"
-            aria-label="Subscribe"
+            aria-label="{{ __('footer.subscribe') }}"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
@@ -128,7 +133,7 @@
         <div class="flex items-center gap-3">
           <a href="{{ route('privacy', ['locale' => app()->getLocale()]) }}" class="hover:text-white transition-colors">{{ __('footer.privacy_policy') }}</a>
           <span class="text-navy-700">·</span>
-          <a href="{{ route('terms', ['locale' => app()->getLocale()]) }}" class="hover:text-white transition-colors">Terms</a>
+          <a href="{{ route('terms', ['locale' => app()->getLocale()]) }}" class="hover:text-white transition-colors">{{ __('footer.terms') }}</a>
         </div>
       </div>
 

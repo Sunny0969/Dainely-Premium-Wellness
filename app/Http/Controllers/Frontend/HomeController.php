@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Services\ProductTranslationService;
 use App\Services\ShopifyService;
 use App\Support\ProductSlugResolver;
 
 class HomeController extends Controller
 {
-    public function __construct(protected ShopifyService $shopify) {}
+    public function __construct(
+        protected ShopifyService $shopify,
+        protected ProductTranslationService $productTranslations,
+    ) {}
 
     public function index()
     {
@@ -16,7 +20,10 @@ class HomeController extends Controller
 
         $shopifyResult = $this->shopify->fetchProducts(12);
         $shopifyProducts = $shopifyResult['success']
-            ? $this->shopify->mapProductsForDisplay($shopifyResult['products'])
+            ? $this->productTranslations->applyMany(
+                $this->shopify->mapProductsForDisplay($shopifyResult['products']),
+                $locale
+            )
             : [];
         $shopifyProductSlides = array_chunk($shopifyProducts, 3);
         $shopifyProductsError = $shopifyResult['success'] ? null : $shopifyResult['error'];
@@ -51,7 +58,10 @@ class HomeController extends Controller
         }
 
         $mapped = $this->shopify->mapProductsForDisplay([$result['product']]);
+        $product = $mapped[0] ?? null;
 
-        return $mapped[0] ?? null;
+        return $product
+            ? $this->productTranslations->apply($product, app()->getLocale())
+            : null;
     }
 }

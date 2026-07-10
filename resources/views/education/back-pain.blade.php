@@ -15,7 +15,7 @@
           <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           <span class="text-white">Back Pain</span>
         </nav>
-        <p class="eyebrow text-gold-400 mb-4">Medical Education Series</p>
+        <p class="eyebrow text-gold-400 mb-4">Medical Education Service</p>
         <h1 class="font-display font-bold text-white mb-6" style="font-size:clamp(2rem,4vw,3.25rem);line-height:1.1">
           Understanding Chronic Back Pain
         </h1>

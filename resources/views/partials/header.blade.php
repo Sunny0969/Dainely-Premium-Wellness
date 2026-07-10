@@ -7,6 +7,7 @@
   $shopNowUrl = !empty($headerShopifyProducts[0]['handle'])
     ? route('products.show', ['locale' => app()->getLocale(), 'slug' => $headerShopifyProducts[0]['handle']])
     : route('products.index', ['locale' => app()->getLocale()]);
+  $headerCartCount = (int) ($cartItemCount ?? \App\Support\CheckoutCart::itemCount());
 @endphp
 
 <header
@@ -132,7 +133,7 @@
       </div>
 
       {{-- Right side actions --}}
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0">
 
         {{-- Language Switcher --}}
         <div class="relative" x-data="langSwitcher()" @click.away="close()">
@@ -164,16 +165,13 @@
           </div>
         </div>
 
-        {{-- CTA Button --}}
-        <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="hidden sm:inline-flex btn-primary text-xs px-5 py-2.5">
+        {{-- CTA Button (desktop) --}}
+        <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="hidden lg:inline-flex btn-primary text-xs px-5 py-2.5">
           {{ __('nav.shop_now') }}
         </a>
 
-        {{-- Mobile CTA (responsive) --}}
-        <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="sm:hidden btn-primary text-xs px-4 py-2.5">
-          {{ __('nav.shop_now') }}
-        </a>
-
+        {{-- Cart (always visible, top-right) --}}
+        @include('partials.cart-nav-link', ['showLabel' => false])
 
         {{-- Mobile menu toggle --}}
         <button
@@ -219,6 +217,12 @@
         <a href="{{ route('education.posture', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('nav.posture') }}</a>
         <a href="{{ route('blog.index', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors">{{ __('nav.blog') }}</a>
         <a href="{{ route('about', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors">{{ __('nav.about') }}</a>
+        <a href="{{ route('checkout.index', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors flex items-center justify-between gap-3">
+          <span>{{ __('nav.cart') }}</span>
+          @if($headerCartCount > 0)
+            <span class="min-w-[1.25rem] h-5 px-1.5 bg-navy-600 text-white text-xs font-bold rounded-full flex items-center justify-center">{{ $headerCartCount > 99 ? '99+' : $headerCartCount }}</span>
+          @endif
+        </a>
         <div class="pt-2 px-3">
           <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="btn-primary w-full justify-center text-sm">{{ __('nav.shop_now') }}</a>
         </div>

@@ -18,6 +18,9 @@ return [
     'webhook_signature_key' => env('SQUARE_WEBHOOK_SIGNATURE_KEY', ''),
     'verify_ssl'     => env('SQUARE_VERIFY_SSL', true),
 
+    // Square merchant account processes charges in this currency (USD only for DMEDE).
+    'charge_currency' => strtoupper(env('SQUARE_CHARGE_CURRENCY', 'USD')),
+
     // Square API base URLs
     'api_url' => env('SQUARE_ENVIRONMENT', 'sandbox') === 'production'
         ? 'https://connect.squareup.com'

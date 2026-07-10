@@ -25,7 +25,7 @@ class CurrencyService
     public function getRates(): array
     {
         return Cache::remember('currency_rates', $this->cacheTtl, function () {
-            return $this->fetchRatesFromApi();
+            return $this->mergeSupportedRates($this->fetchRatesFromApi());
         });
     }
 
@@ -45,6 +45,37 @@ class CurrencyService
     }
 
     /**
+     * USD → target currency rate (e.g. 0.92 for EUR).
+     */
+    public function getUsdToCurrencyRate(string $targetCurrency): float
+    {
+        if ($targetCurrency === 'USD') {
+            return 1.0;
+        }
+
+        $rates = $this->getRates();
+
+        return (float) ($rates[$targetCurrency] ?? 1.0);
+    }
+
+    /**
+     * Convert a display-currency amount back to USD (inverse of convert()).
+     */
+    public function convertToUsd(float $amountDisplay, string $displayCurrency): float
+    {
+        if ($displayCurrency === 'USD') {
+            return round($amountDisplay, 2);
+        }
+
+        $rate = $this->getUsdToCurrencyRate($displayCurrency);
+        if ($rate <= 0) {
+            return round($amountDisplay, 2);
+        }
+
+        return round($amountDisplay / $rate, 2);
+    }
+
+    /**
      * Format a USD amount for display in target currency.
      */
     public function format(float $amountUsd, string $localeOrCurrency): string
@@ -60,12 +91,60 @@ class CurrencyService
     }
 
     /**
-     * Get the currency code for the current locale.
+     * Get the display currency for the current locale and geo context.
      */
     public function getCurrencyForLocale(string $locale): string
     {
-        $map = config('currency.locale_currency', []);
-        return $map[$locale] ?? 'USD';
+        return $this->resolveDisplayCurrency($locale);
+    }
+
+    /**
+     * Resolve storefront display currency (locale + optional geo country).
+     */
+    public function resolveDisplayCurrency(string $locale, ?string $countryCode = null): string
+    {
+        if (in_array($locale, ['fr', 'de'], true)) {
+            return (string) (config('currency.locale_currency')[$locale] ?? 'EUR');
+        }
+
+        $country = $countryCode ?? session('geo_country');
+        if (is_string($country) && $country !== '') {
+            $geo = app(GeoLocaleService::class);
+            $mapped = $geo->mapCountryToCurrency($country);
+            if ($mapped !== null && array_key_exists($mapped, $this->supported)) {
+                return $mapped;
+            }
+        }
+
+        return (string) (config('currency.locale_currency')['en'] ?? 'USD');
+    }
+
+    /**
+     * Format a USD amount for display in the locale's currency.
+     */
+    public function formatForLocale(float $amountUsd, string $locale): string
+    {
+        return $this->format($amountUsd, $this->resolveDisplayCurrency($locale));
+    }
+
+    /**
+     * @return array{code: string, symbol: string, name: string, decimals: int}
+     */
+    public function getCurrencyMeta(string $currencyCode): array
+    {
+        $meta = $this->supported[$currencyCode] ?? $this->supported['USD'];
+
+        return [
+            'code'     => $currencyCode,
+            'symbol'   => $meta['symbol'] ?? '$',
+            'name'     => $meta['name'] ?? $currencyCode,
+            'decimals' => (int) ($meta['decimals'] ?? 2),
+        ];
+    }
+
+    public function freeShippingThresholdUsd(): float
+    {
+        return 75.0;
     }
 
     /**
@@ -77,9 +156,11 @@ class CurrencyService
         try {
             $rates = $this->fetchRatesFromApi();
             Cache::put('currency_rates', $rates, $this->cacheTtl);
+
             return true;
         } catch (\Exception $e) {
             Log::error('Currency rate refresh failed: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -108,7 +189,18 @@ class CurrencyService
         }
 
         $data = $response->json();
-        return $data['rates'] ?? $this->fallbackRates();
+        return $this->mergeSupportedRates($data['rates'] ?? $this->fallbackRates());
+    }
+
+    /**
+     * Ensure every supported currency has a rate (API may omit or cache may be partial).
+     *
+     * @param  array<string, float|int>  $rates
+     * @return array<string, float|int>
+     */
+    protected function mergeSupportedRates(array $rates): array
+    {
+        return array_merge($this->fallbackRates(), $rates);
     }
 
     /**
@@ -122,6 +214,12 @@ class CurrencyService
             'GBP' => 0.79,
             'CAD' => 1.36,
             'AUD' => 1.53,
+            'NZD' => 1.64,
+            'SEK' => 10.5,
+            'NOK' => 10.8,
+            'DKK' => 6.9,
+            'PLN' => 4.0,
+            'ZAR' => 18.5,
         ];
     }
 }

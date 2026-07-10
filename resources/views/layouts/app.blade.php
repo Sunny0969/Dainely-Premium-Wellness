@@ -13,7 +13,7 @@
     $appCurrencySymbol = config("currency.supported.{$appCurrencyCode}.symbol", '$');
     $appExchangeRate = app(App\Services\CurrencyService::class)->convert(1.0, $appCurrencyCode);
   @endphp
-  <script>
+  <script data-cfasync="false">
     window.Currency = {
         code: @json($appCurrencyCode),
         symbol: @json($appCurrencySymbol),
@@ -53,10 +53,11 @@
   <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicon.svg') }}">
   <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 
+  {{-- Page config must load before the Vite bundle --}}
+  @stack('head_scripts')
+
   {{-- Vite Assets --}}
   @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-  @stack('head_scripts')
 </head>
 <body class="min-h-screen flex flex-col" x-data="scrollTop()">
 
@@ -96,6 +97,8 @@
 
 {{-- Site Footer --}}
 @include('partials.footer')
+
+@include('partials.cart-drawer')
 
 {{-- Scroll to Top Button --}}
 <button

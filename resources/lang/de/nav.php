@@ -18,4 +18,8 @@ return [
     'about'             => 'Über uns',
     'contact'           => 'Kontakt',
     'shop_now'          => 'Jetzt kaufen',
+    'view_all_products' => 'Alle Produkte ansehen',
+    'cart'              => 'Warenkorb',
+    'cart_with_count'   => 'Warenkorb, :count Artikel',
+    'continue_shopping' => 'Weiter einkaufen',
 ];

@@ -35,9 +35,57 @@ return [
             'locale'    => 'en_GB',
             'decimals'  => 2,
         ],
+        'CAD' => [
+            'symbol'    => 'CA$',
+            'name'      => 'Canadian Dollar',
+            'locale'    => 'en_CA',
+            'decimals'  => 2,
+        ],
+        'AUD' => [
+            'symbol'    => 'AU$',
+            'name'      => 'Australian Dollar',
+            'locale'    => 'en_AU',
+            'decimals'  => 2,
+        ],
+        'NZD' => [
+            'symbol'    => 'NZ$',
+            'name'      => 'New Zealand Dollar',
+            'locale'    => 'en_NZ',
+            'decimals'  => 2,
+        ],
+        'SEK' => [
+            'symbol'    => 'kr',
+            'name'      => 'Swedish Krona',
+            'locale'    => 'sv_SE',
+            'decimals'  => 2,
+        ],
+        'NOK' => [
+            'symbol'    => 'kr',
+            'name'      => 'Norwegian Krone',
+            'locale'    => 'nb_NO',
+            'decimals'  => 2,
+        ],
+        'DKK' => [
+            'symbol'    => 'kr',
+            'name'      => 'Danish Krone',
+            'locale'    => 'da_DK',
+            'decimals'  => 2,
+        ],
+        'PLN' => [
+            'symbol'    => 'zł',
+            'name'      => 'Polish Złoty',
+            'locale'    => 'pl_PL',
+            'decimals'  => 2,
+        ],
+        'ZAR' => [
+            'symbol'    => 'R',
+            'name'      => 'South African Rand',
+            'locale'    => 'en_ZA',
+            'decimals'  => 2,
+        ],
     ],
 
-    // Currency mapped to locale
+    // Currency mapped to locale (when no geo country is available)
     'locale_currency' => [
         'en' => 'USD',
         'fr' => 'EUR',

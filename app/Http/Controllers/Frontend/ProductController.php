@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Services\ProductTranslationService;
 use App\Services\ShopifyService;
 use App\Services\ReviewService;
+use App\Services\CurrencyService;
 use App\Support\ProductSlugResolver;
 
 class ProductController extends Controller
@@ -12,13 +14,18 @@ class ProductController extends Controller
     public function __construct(
         protected ShopifyService $shopify,
         protected ReviewService $reviews,
+        protected CurrencyService $currency,
+        protected ProductTranslationService $productTranslations,
     ) {}
 
     public function index(string $locale)
     {
         $result = $this->shopify->fetchProducts(50);
         $products = $result['success']
-            ? $this->shopify->mapProductsForDisplay($result['products'])
+            ? $this->productTranslations->applyMany(
+                $this->shopify->mapProductsForDisplay($result['products']),
+                $locale
+            )
             : [];
 
         $error = $result['success'] ? null : ($result['error'] ?? 'Could not load products from Shopify.');
@@ -83,7 +90,11 @@ class ProductController extends Controller
         ))));
         $reviewStatsByHandle = $this->reviews->getCachedStatsForHandles($reviewHandles);
 
-        return view('pages.products.index', compact('products', 'locale', 'error', 'reviewStatsByHandle'))
+        $freeShippingLabel = __('products.free_shipping', [
+            'amount' => $this->currency->formatForLocale($this->currency->freeShippingThresholdUsd(), $locale),
+        ]);
+
+        return view('pages.products.index', compact('products', 'locale', 'error', 'reviewStatsByHandle', 'freeShippingLabel'))
             ->with('filters', [
                 'q' => $q,
                 'min_price' => $minPrice,
@@ -101,7 +112,7 @@ class ProductController extends Controller
             abort(404);
         }
 
-        $product = $shopifyResult['product'];
+        $product = $this->productTranslations->apply($shopifyResult['product'], $locale);
 
         // Cached stats only (no blocking API calls). Reviews load via AJAX.
         $productHandle = $product['handle'] ?? $handle;

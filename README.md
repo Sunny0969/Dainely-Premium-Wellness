@@ -90,4 +90,4 @@ routes/web.php                 # Locale-prefixed routes + webhooks
 
 ## License
 
-Proprietary — Dainely LLC.
+Proprietary — Synthium Health, Inc.

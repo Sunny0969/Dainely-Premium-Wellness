@@ -1,236 +1,177 @@
 @extends('layouts.app')
-@section('title', 'Secure Checkout | Dainely')
-@section('meta_description', 'Complete your Dainely order securely. Powered by Square Payments.')
+@section('title', __('checkout.title'))
+@section('meta_description', __('checkout.meta_description'))
 
-{{-- Load Square Web Payments SDK in <head> --}}
+@php
+  $checkoutCountries = [
+    'US', 'GB', 'CA', 'AU', 'FR', 'DE', 'NL', 'BE', 'ES', 'IT', 'SE', 'NO', 'DK',
+    'CH', 'AT', 'PL', 'PT', 'IE', 'NZ', 'ZA',
+  ];
+  $checkoutCountryLabels = [
+    'US' => 'United States',
+    'GB' => 'United Kingdom',
+    'CA' => 'Canada',
+    'AU' => 'Australia',
+    'FR' => 'France',
+    'DE' => 'Germany',
+    'NL' => 'Netherlands',
+    'BE' => 'Belgium',
+    'ES' => 'Spain',
+    'IT' => 'Italy',
+    'SE' => 'Sweden',
+    'NO' => 'Norway',
+    'DK' => 'Denmark',
+    'CH' => 'Switzerland',
+    'AT' => 'Austria',
+    'PL' => 'Poland',
+    'PT' => 'Portugal',
+    'IE' => 'Ireland',
+    'NZ' => 'New Zealand',
+    'ZA' => 'South Africa',
+  ];
+  $geoSvc = app(\App\Services\GeoLocaleService::class);
+  $defaultCountry = $geoSvc->defaultCheckoutCountry($locale, $checkoutCountries);
+  $squareCountryLocales = [
+    'US' => 'en-US', 'GB' => 'en-GB', 'UK' => 'en-GB', 'CA' => 'en-CA', 'AU' => 'en-AU',
+    'FR' => 'fr-FR', 'DE' => 'de-DE', 'NL' => 'nl-NL', 'IE' => 'en-IE', 'NZ' => 'en-NZ',
+    'BE' => 'fr-BE', 'ES' => 'es-ES', 'IT' => 'it-IT', 'SE' => 'sv-SE', 'NO' => 'nb-NO',
+    'DK' => 'da-DK', 'CH' => 'de-CH', 'AT' => 'de-AT', 'PL' => 'pl-PL', 'PT' => 'pt-PT', 'ZA' => 'en-ZA',
+  ];
+  $squareLocale = match ($locale) {
+    'fr' => 'fr-FR',
+    'de' => 'de-DE',
+    default => $squareCountryLocales[$defaultCountry] ?? 'en-US',
+  };
+  $chargeCurrency = strtoupper((string) config('square.charge_currency', 'USD'));
+  $usdSymbol = app(\App\Services\CurrencyService::class)->getCurrencyMeta($chargeCurrency)['symbol'] ?? '$';
+  $freeShipAmount = ($currencyMeta['symbol'] ?? $pricing['currency_symbol']) . number_format($pricing['free_shipping_threshold'], 2);
+  $summarySubtotal = array_sum(array_map(fn ($item) => (float) ($item['line_total'] ?? 0), $cartItems));
+  $summaryItemCount = array_sum(array_map(fn ($item) => max(1, (int) ($item['quantity'] ?? 1)), $cartItems));
+  $vatNote = in_array($locale, ['fr', 'de'], true) ? __('checkout.vat_note') : null;
+  $currencySvc = app(\App\Services\CurrencyService::class);
+  $rates = $currencySvc->getRates();
+  $currencyMetaForJs = collect(config('currency.supported', []))->mapWithKeys(function ($meta, $code) use ($rates) {
+      return [$code => [
+          'symbol' => $meta['symbol'] ?? '$',
+          'rate'   => (float) ($rates[$code] ?? 1.0),
+      ]];
+  })->all();
+  $checkoutClientConfig = [
+    'cartItems'            => $cartItems,
+    'pricing'              => $pricing,
+    'summarySubtotal'      => $summarySubtotal,
+    'summaryTax'           => (float) ($pricing['tax'] ?? 0),
+    'summarySubtotalUsd'   => (float) ($pricing['subtotal_usd'] ?? 0),
+    'currencySymbol'       => $pricing['currency_symbol'],
+    'currencyCode'         => $pricing['currency_code'],
+    'lockDisplayCurrency'  => true,
+    'paymentCurrency'      => $pricing['currency_code'],
+    'paymentCountry'       => $defaultCountry,
+    'chargeCurrency'       => $chargeCurrency,
+    'usdSymbol'            => $usdSymbol,
+    'exchangeRate'         => $pricing['exchange_rate'] ?? 1,
+    'squareLocale'         => $squareLocale,
+    'sizeLabel'            => __('checkout.size_label'),
+    'defaultCountry'       => $defaultCountry,
+    'shippingCost'         => $pricing['shipping'] ?? 0,
+    'taxAmount'            => $pricing['tax'] ?? 0,
+    'labelFree'            => __('checkout.free'),
+    'labelTaxCalculating'  => __('checkout.tax_calculating'),
+    'freeShipQualifies'    => __('checkout.free_ship_qualifies'),
+    'freeShipRemaining'    => __('checkout.free_ship_remaining', ['amount' => $freeShipAmount]),
+    'paymentSuccessMessage'=> __('checkout.payment_success'),
+    'squareAppId'          => $squareAppId,
+    'squareLocationId'     => $squareLocationId,
+    'urls'                 => [
+      'taxEstimate'      => route('checkout.tax-estimate', ['locale' => $locale]),
+      'discountValidate' => route('checkout.validate-discount', ['locale' => $locale]),
+      'process'            => route('checkout.process', ['locale' => $locale]),
+      'cartUpdate'         => route('cart.update', ['locale' => $locale]),
+      'shopUrl'            => route('products.index', ['locale' => $locale]),
+    ],
+    'taxFallback'          => config('shopify_tax_fallback'),
+    'countryCurrency'      => $geoSvc->countryCurrencyMap(),
+    'currencyMeta'         => $currencyMetaForJs,
+    'postalPlaceholders'   => config('postal.placeholders', []),
+    'postalPatterns'       => \App\Support\PostalCode::patternsForClient(),
+    'postalUppercase'      => config('postal.uppercase_on_validate', []),
+    'squareSkipPrefillCountries'   => config('postal.square_skip_prefill_countries', ['AU', 'NZ']),
+    'squareCountryLocales' => $squareCountryLocales,
+    'i18n' => [
+      'err_first_name'        => __('checkout.err_first_name'),
+      'err_last_name'         => __('checkout.err_last_name'),
+      'err_email'             => __('checkout.err_email'),
+      'err_address'           => __('checkout.err_address'),
+      'err_city'              => __('checkout.err_city'),
+      'err_zip'               => __('checkout.err_zip'),
+      'err_zip_invalid'       => __('checkout.err_zip_invalid'),
+      'err_billing_zip'       => __('checkout.err_billing_zip'),
+      'err_billing_zip_mismatch' => __('checkout.err_billing_zip_mismatch'),
+      'err_country'           => __('checkout.err_country'),
+      'discount_applied'      => __('checkout.discount_applied'),
+      'invalid_discount'      => __('checkout.invalid_discount'),
+      'err_discount_validate' => __('checkout.err_discount_validate'),
+      'err_payment_not_ready' => __('checkout.err_payment_not_ready'),
+      'err_payment_failed'    => __('checkout.err_payment_failed'),
+      'err_card_tokenize'     => __('checkout.err_card_tokenize'),
+      'err_unexpected'        => __('checkout.err_unexpected'),
+      'err_server_response'   => __('checkout.err_server_response'),
+      'err_tax_failed'        => __('checkout.tax_estimate_failed'),
+      'err_secure_context'    => 'Square requires a secure page. Locally, open http://localhost:8000 (not 127.0.0.1). On live, use HTTPS.',
+      'err_sdk_load'          => 'Payment SDK failed to load. Please refresh the page.',
+      'err_square_app'        => 'Square Application ID is missing. Set SQUARE_APPLICATION_ID in .env.',
+      'err_square_location'   => 'Square Location ID is missing. In Square Developer Dashboard → Sandbox → Locations, copy your Location ID into SQUARE_LOCATION_ID in .env.',
+      'err_square_init'       => 'Could not load payment form',
+      'remove_item'           => __('checkout.remove_item'),
+      'remove_item_aria'      => __('checkout.remove_item_aria'),
+    ],
+  ];
+@endphp
+
+{{-- Checkout config + Square SDK in <head> (before Vite bundle runs) --}}
 @push('head_scripts')
+<script data-cfasync="false">window.__CHECKOUT__ = @json($checkoutClientConfig);</script>
 @if($squareEnv === 'sandbox')
-<script src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
+<script data-cfasync="false" src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
 @else
-<script src="https://web.squarecdn.com/v1/square.js"></script>
+<script data-cfasync="false" src="https://web.squarecdn.com/v1/square.js"></script>
 @endif
-<script>
-document.addEventListener('alpine:init', () => {
-  Alpine.data('checkoutForm', () => ({
-    step: 1,
-    loading: false,
-    cardReady: false,
-    paymentError: '',
-    paymentSuccess: '',
-    cartItems: @json($cart),
-    exchangeRate: @json($currency['exchange_rate'] ?? app(App\Services\CurrencyService::class)->convert(1.0, $currency['code'])),
-    currencySymbol: @json($currency['symbol'] ?? '$'),
-    discountCode: '',
-    discountMessage: '',
-    discountValid: false,
-    discount: 0,
-    form: {
-      first_name: '',
-      last_name: '',
-      email: '',
-      phone: '',
-      address1: '',
-      address2: '',
-      city: '',
-      state: '',
-      zip: '',
-      country: 'US',
-      shipping_method: 'standard',
-    },
-    errors: {},
-    squareCard: null,
-    payments: null,
-    get subtotal() {
-      return this.cartItems.reduce((sum, item) => sum + parseFloat(item.price || 0) * (parseInt(item.quantity) || 1), 0);
-    },
-    get shipping() {
-      if (this.subtotal >= 75) return 0;
-      const baseShipping = this.form.shipping_method === 'express' ? 24.99 : 9.99;
-      return parseFloat((baseShipping * this.exchangeRate).toFixed(2));
-    },
-    get total() {
-      return Math.max(0, this.subtotal - this.discount + this.shipping);
-    },
-    async init() {
-      this.$watch('step', async (val) => {
-        if (val === 3 && !this.squareCard) {
-          await this.initSquare();
-        }
-      });
-    },
-    async initSquare() {
-      try {
-        if (window.location.hostname === '127.0.0.1') {
-          window.location.replace(window.location.href.replace('127.0.0.1', 'localhost'));
-          return;
-        }
-
-        if (!window.isSecureContext && window.location.protocol !== 'https:') {
-          this.paymentError = 'Square requires a secure page. Locally, open http://localhost:8000 (not 127.0.0.1). On live, use HTTPS.';
-          return;
-        }
-
-        if (!window.Square) {
-          this.paymentError = 'Payment SDK failed to load. Please refresh the page.';
-          return;
-        }
-
-        const appId = @json($squareAppId);
-        const locationId = @json($squareLocationId);
-
-        if (!appId) {
-          this.paymentError = 'Square Application ID is missing. Set SQUARE_APPLICATION_ID in .env.';
-          return;
-        }
-
-        if (!locationId) {
-          this.paymentError = 'Square Location ID is missing. In Square Developer Dashboard → Sandbox → Locations, copy your Location ID into SQUARE_LOCATION_ID in .env.';
-          return;
-        }
-
-        this.payments = window.Square.payments(appId, locationId);
-        this.squareCard = await this.payments.card({
-          style: {
-            '.input-container': { borderColor: '#e2e8f0' },
-            '.input-container.is-focus': { borderColor: '#1e3a8a' },
-            input: { color: '#1e293b', fontSize: '14px' },
-            'input::placeholder': { color: '#94a3b8' },
-          }
-        });
-        await this.squareCard.attach('#card-container');
-        this.cardReady = true;
-        this.paymentError = '';
-      } catch (e) {
-        console.error('Square init error:', e);
-        this.paymentError = 'Could not load payment form: ' + (e.message || 'Unknown error');
-      }
-    },
-    validateStep() {
-      this.errors = {};
-      if (this.step === 1) {
-        if (!this.form.first_name.trim()) this.errors.first_name = 'First name is required';
-        if (!this.form.last_name.trim()) this.errors.last_name = 'Last name is required';
-        if (!this.form.email.trim() || !this.form.email.includes('@')) this.errors.email = 'Valid email is required';
-      }
-      if (this.step === 2) {
-        if (!this.form.address1.trim()) this.errors.address1 = 'Address is required';
-        if (!this.form.city.trim()) this.errors.city = 'City is required';
-        if (!this.form.zip.trim()) this.errors.zip = 'Postal code is required';
-        if (!this.form.country) this.errors.country = 'Country is required';
-      }
-      return Object.keys(this.errors).length === 0;
-    },
-    nextStep() {
-      if (this.validateStep()) this.step++;
-    },
-    async applyDiscount() {
-      if (!this.discountCode.trim()) return;
-      try {
-        const res = await fetch(@json(route('checkout.validate-discount', ['locale' => $locale])), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-          },
-          body: JSON.stringify({ code: this.discountCode, subtotal_usd: this.subtotal }),
-        });
-        const data = await res.json();
-        if (data.valid) {
-          this.discountValid = true;
-          this.discount = data.discount || 0;
-          this.discountMessage = data.message || 'Discount applied!';
-        } else {
-          this.discountValid = false;
-          this.discount = 0;
-          this.discountMessage = data.message || 'Invalid code.';
-        }
-      } catch (e) {
-        this.discountMessage = 'Could not validate code.';
-      }
-    },
-    async submitOrder() {
-      if (!this.squareCard) {
-        this.paymentError = 'Payment form not ready.';
-        return;
-      }
-      this.loading = true;
-      this.paymentError = '';
-      this.paymentSuccess = '';
-      try {
-        const result = await this.squareCard.tokenize();
-        if (result.status !== 'OK') {
-          this.paymentError = result.errors?.[0]?.message || 'Card tokenization failed.';
-          this.loading = false;
-          return;
-        }
-        const sourceId = result.token;
-        const res = await fetch(@json(route('checkout.process', ['locale' => $locale])), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-          },
-          body: JSON.stringify({
-            source_id: sourceId,
-            first_name: this.form.first_name,
-            last_name: this.form.last_name,
-            email: this.form.email,
-            phone: this.form.phone,
-            address1: this.form.address1,
-            address2: this.form.address2,
-            city: this.form.city,
-            state: this.form.state,
-            zip: this.form.zip,
-            country: this.form.country,
-            shipping_method: this.form.shipping_method,
-            qty: this.cartItems.reduce((sum, item) => sum + parseInt(item.quantity), 0),
-            items: this.cartItems.map(item => ({
-              product_id: item.product_id,
-              variant_id: item.variant_id || '',
-              quantity: item.quantity
-            })),
-            discount_code: this.discountCode,
-            amount_cents: Math.round(this.total * 100),
-          }),
-        });
-        const data = await res.json();
-        if (data.success) {
-          this.paymentSuccess = 'Payment successful! Redirecting...';
-          setTimeout(() => { window.location.href = data.redirect || '/'; }, 1500);
-        } else {
-          this.paymentError = data.message || 'Payment failed. Please try again.';
-        }
-      } catch (e) {
-        this.paymentError = 'An unexpected error occurred: ' + e.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-  }));
-});
-</script>
 @endpush
 
 @section('content')
+{{-- Backup config for hosts that defer head scripts (e.g. Cloudflare Rocket Loader) --}}
+<script data-cfasync="false">window.__CHECKOUT__ = @json($checkoutClientConfig);</script>
 <div class="min-h-screen bg-slate-50">
 
   {{-- Checkout header --}}
   <div class="bg-white border-b border-slate-100 py-4">
-    <div class="container-site flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <img src="{{ asset('images/Dainelycut.png') }}" alt="Dainely" class="h-10 w-auto">
+    <div class="container-site flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 min-w-0">
+        <a href="{{ route('home', ['locale' => $locale]) }}" class="flex-shrink-0" aria-label="Dainely Home">
+          <img src="{{ asset('images/Dainelycut.png') }}" alt="Dainely" class="h-10 w-auto">
+        </a>
         <span class="text-slate-300 hidden sm:inline">|</span>
-        <span class="text-slate-500 text-sm hidden sm:inline">Secure Checkout</span>
+        <span class="text-slate-500 text-sm hidden sm:inline truncate">{{ __('checkout.secure_checkout') }}</span>
       </div>
-      <div class="flex items-center gap-2 text-slate-500 text-sm">
-        <svg class="w-4 h-4 text-sage-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-        <span class="hidden sm:inline">256-bit SSL Secured</span>
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <a
+          href="{{ route('products.index', ['locale' => $locale]) }}"
+          class="inline-flex text-sm font-medium text-navy-600 hover:text-navy-800 hover:underline"
+        >
+          {{ __('nav.continue_shopping') }}
+        </a>
+        <div class="hidden md:flex items-center gap-2 text-slate-500 text-sm">
+          <svg class="w-4 h-4 text-sage-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <span>{{ __('checkout.ssl_secured') }}</span>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="container-site py-10">
-    <div class="grid lg:grid-cols-[1fr_400px] gap-10 items-start" x-data="checkoutForm">
+    <div class="grid lg:grid-cols-[1fr_400px] gap-10 items-start" x-data="checkoutForm"
+         data-display-currency="{{ $pricing['currency_code'] }}"
+         data-display-symbol="{{ $pricing['currency_symbol'] }}">
 
       {{-- LEFT: Multi-step form --}}
       <div class="space-y-6">
@@ -239,48 +180,48 @@ document.addEventListener('alpine:init', () => {
         <div class="flex items-center mb-2">
           <div class="flex items-center gap-2">
             <div class="step-indicator" :class="step >= 1 ? 'active' : ''">1</div>
-            <span class="text-sm font-medium" :class="step >= 1 ? 'text-navy-700' : 'text-slate-400'">Contact</span>
+            <span class="text-sm font-medium" :class="step >= 1 ? 'text-navy-700' : 'text-slate-400'">{{ __('checkout.step_contact') }}</span>
           </div>
           <div class="flex-1 h-0.5 mx-3" :class="step >= 2 ? 'bg-navy-600' : 'bg-slate-200'"></div>
           <div class="flex items-center gap-2">
             <div class="step-indicator" :class="step >= 2 ? 'active' : ''">2</div>
-            <span class="text-sm font-medium" :class="step >= 2 ? 'text-navy-700' : 'text-slate-400'">Shipping</span>
+            <span class="text-sm font-medium" :class="step >= 2 ? 'text-navy-700' : 'text-slate-400'">{{ __('checkout.step_shipping') }}</span>
           </div>
           <div class="flex-1 h-0.5 mx-3" :class="step >= 3 ? 'bg-navy-600' : 'bg-slate-200'"></div>
           <div class="flex items-center gap-2">
             <div class="step-indicator" :class="step >= 3 ? 'active' : ''">3</div>
-            <span class="text-sm font-medium" :class="step >= 3 ? 'text-navy-700' : 'text-slate-400'">Payment</span>
+            <span class="text-sm font-medium" :class="step >= 3 ? 'text-navy-700' : 'text-slate-400'">{{ __('checkout.step_payment') }}</span>
           </div>
         </div>
 
         {{-- STEP 1: Contact --}}
         <div class="card p-6" x-show="step === 1" x-transition>
-          <h2 class="font-display font-bold text-navy-900 text-xl mb-6">Contact Information</h2>
+          <h2 class="font-display font-bold text-navy-900 text-xl mb-6">{{ __('checkout.contact_title') }}</h2>
           <div class="grid sm:grid-cols-2 gap-4">
             <div>
-              <label class="form-label" for="first_name">First Name *</label>
-              <input type="text" id="first_name" x-model="form.first_name" class="form-input" placeholder="Sarah" required autocomplete="given-name">
-              <p x-show="errors.first_name" class="text-red-500 text-xs mt-1" x-text="errors.first_name"></p>
+              <label class="form-label" for="first_name">{{ __('checkout.first_name') }} {{ __('checkout.required') }}</label>
+              <input type="text" id="first_name" x-model="form.first_name" class="form-input" :class="errors.first_name ? 'border-red-500 ring-1 ring-red-500' : ''" placeholder="Sarah" required autocomplete="given-name">
+              <p x-show="errors.first_name" x-cloak class="text-red-600 text-xs mt-1" x-text="errors.first_name"></p>
             </div>
             <div>
-              <label class="form-label" for="last_name">Last Name *</label>
-              <input type="text" id="last_name" x-model="form.last_name" class="form-input" placeholder="Mitchell" required autocomplete="family-name">
-              <p x-show="errors.last_name" class="text-red-500 text-xs mt-1" x-text="errors.last_name"></p>
+              <label class="form-label" for="last_name">{{ __('checkout.last_name') }} {{ __('checkout.required') }}</label>
+              <input type="text" id="last_name" x-model="form.last_name" class="form-input" :class="errors.last_name ? 'border-red-500 ring-1 ring-red-500' : ''" placeholder="Mitchell" required autocomplete="family-name">
+              <p x-show="errors.last_name" x-cloak class="text-red-600 text-xs mt-1" x-text="errors.last_name"></p>
             </div>
             <div class="sm:col-span-2">
-              <label class="form-label" for="email">Email Address *</label>
-              <input type="email" id="email" x-model="form.email" class="form-input" placeholder="sarah@example.com" required autocomplete="email">
-              <p class="text-slate-400 text-xs mt-1">Order confirmation will be sent here.</p>
-              <p x-show="errors.email" class="text-red-500 text-xs mt-1" x-text="errors.email"></p>
+              <label class="form-label" for="email">{{ __('checkout.email') }} {{ __('checkout.required') }}</label>
+              <input type="email" id="email" x-model="form.email" class="form-input" :class="errors.email ? 'border-red-500 ring-1 ring-red-500' : ''" placeholder="sarah@example.com" required autocomplete="email">
+              <p class="text-slate-400 text-xs mt-1">{{ __('checkout.email_hint') }}</p>
+              <p x-show="errors.email" x-cloak class="text-red-600 text-xs mt-1" x-text="errors.email"></p>
             </div>
             <div class="sm:col-span-2">
-              <label class="form-label" for="phone">Phone Number (optional)</label>
+              <label class="form-label" for="phone">{{ __('checkout.phone') }}</label>
               <input type="tel" id="phone" x-model="form.phone" class="form-input" placeholder="+1 555 000 0000" autocomplete="tel">
             </div>
           </div>
           <div class="mt-6">
             <button type="button" @click="nextStep()" class="btn-primary-lg w-full justify-center">
-              Continue to Shipping
+              {{ __('checkout.continue_shipping') }}
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
             </button>
           </div>
@@ -289,94 +230,92 @@ document.addEventListener('alpine:init', () => {
         {{-- STEP 2: Shipping --}}
         <div class="card p-6" x-show="step === 2" x-transition>
           <div class="flex items-center justify-between mb-6">
-            <h2 class="font-display font-bold text-navy-900 text-xl">Shipping Address</h2>
-            <button @click="step = 1" class="text-navy-600 text-sm hover:underline">← Edit Contact</button>
+            <h2 class="font-display font-bold text-navy-900 text-xl">{{ __('checkout.shipping_title') }}</h2>
+            <button @click="step = 1" class="text-navy-600 text-sm hover:underline">{{ __('checkout.edit_contact') }}</button>
           </div>
           <div class="space-y-4">
             <div>
-              <label class="form-label" for="address1">Street Address *</label>
-              <input type="text" id="address1" x-model="form.address1" class="form-input" placeholder="123 Main Street" required autocomplete="address-line1">
+              <label class="form-label" for="address1">{{ __('checkout.address1') }} {{ __('checkout.required') }}</label>
+              <input type="text" id="address1" x-model="form.address1" class="form-input" :class="errors.address1 ? 'border-red-500 ring-1 ring-red-500' : ''" placeholder="123 Main Street" required autocomplete="address-line1">
+              <p x-show="errors.address1" x-cloak class="text-red-600 text-xs mt-1" x-text="errors.address1"></p>
             </div>
             <div>
-              <label class="form-label" for="address2">Apartment, Suite (optional)</label>
+              <label class="form-label" for="address2">{{ __('checkout.address2') }}</label>
               <input type="text" id="address2" x-model="form.address2" class="form-input" placeholder="Apt 4B" autocomplete="address-line2">
             </div>
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="form-label" for="city">City *</label>
-                <input type="text" id="city" x-model="form.city" class="form-input" placeholder="New York" required autocomplete="address-level2">
+                <label class="form-label" for="city">{{ __('checkout.city') }} {{ __('checkout.required') }}</label>
+                <input type="text" id="city" x-model="form.city" class="form-input" :class="errors.city ? 'border-red-500 ring-1 ring-red-500' : ''" placeholder="New York" required autocomplete="address-level2">
+                <p x-show="errors.city" x-cloak class="text-red-600 text-xs mt-1" x-text="errors.city"></p>
               </div>
               <div>
-                <label class="form-label" for="state">State / Province</label>
+                <label class="form-label" for="state">{{ __('checkout.state') }}</label>
                 <input type="text" id="state" x-model="form.state" class="form-input" placeholder="NY" autocomplete="address-level1">
               </div>
             </div>
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="form-label" for="zip">Postal Code *</label>
-                <input type="text" id="zip" x-model="form.zip" class="form-input" placeholder="10001" required autocomplete="postal-code">
+                <label class="form-label" for="zip">{{ __('checkout.zip') }} {{ __('checkout.required') }}</label>
+                <input
+                  type="text"
+                  id="zip"
+                  x-model="form.zip"
+                  class="form-input"
+                  :class="errors.zip ? 'border-red-500 ring-1 ring-red-500' : ''"
+                  :placeholder="zipPlaceholder()"
+                  inputmode="text"
+                  autocapitalize="characters"
+                  autocomplete="postal-code"
+                  required
+                >
+                <p x-show="errors.zip" x-cloak class="text-red-600 text-xs mt-1" x-text="errors.zip"></p>
               </div>
               <div>
-                <label class="form-label" for="country">Country *</label>
-                <select id="country" x-model="form.country" class="form-input" required autocomplete="country">
-                  <option value="">Select country...</option>
-                  <option value="US">United States</option>
-                  <option value="GB">United Kingdom</option>
-                  <option value="CA">Canada</option>
-                  <option value="AU">Australia</option>
-                  <option value="FR">France</option>
-                  <option value="DE">Germany</option>
-                  <option value="NL">Netherlands</option>
-                  <option value="BE">Belgium</option>
-                  <option value="ES">Spain</option>
-                  <option value="IT">Italy</option>
-                  <option value="SE">Sweden</option>
-                  <option value="NO">Norway</option>
-                  <option value="DK">Denmark</option>
-                  <option value="CH">Switzerland</option>
-                  <option value="AT">Austria</option>
-                  <option value="PL">Poland</option>
-                  <option value="PT">Portugal</option>
-                  <option value="IE">Ireland</option>
-                  <option value="NZ">New Zealand</option>
-                  <option value="ZA">South Africa</option>
+                <label class="form-label" for="country">{{ __('checkout.country') }} {{ __('checkout.required') }}</label>
+                <select id="country" x-model="form.country" @change="onCountryChange()" class="form-input" :class="errors.country ? 'border-red-500 ring-1 ring-red-500' : ''" required autocomplete="country">
+                  <option value="">{{ __('checkout.select_country') }}</option>
+                  @foreach($checkoutCountryLabels as $code => $label)
+                  <option value="{{ $code }}" @selected($defaultCountry === $code)>{{ $label }}</option>
+                  @endforeach
                 </select>
+                <p x-show="errors.country" x-cloak class="text-red-600 text-xs mt-1" x-text="errors.country"></p>
               </div>
             </div>
           </div>
 
           {{-- Shipping method --}}
           <div class="mt-6">
-            <p class="form-label mb-3">Shipping Method</p>
+            <p class="form-label mb-3">{{ __('checkout.shipping_method') }}</p>
             <div class="space-y-2">
               <label class="flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-colors"
                 :class="form.shipping_method === 'standard' ? 'border-navy-600 bg-navy-50' : 'border-slate-200 hover:border-navy-300'">
                 <div class="flex items-center gap-3">
                   <input type="radio" x-model="form.shipping_method" value="standard" class="text-navy-600">
                   <div>
-                    <p class="font-semibold text-slate-800 text-sm">Standard Shipping</p>
-                    <p class="text-slate-400 text-xs">5–8 business days</p>
+                    <p class="font-semibold text-slate-800 text-sm">{{ __('checkout.standard_shipping') }}</p>
+                    <p class="text-slate-400 text-xs">{{ __('checkout.standard_days') }}</p>
                   </div>
                 </div>
-                <span class="font-semibold text-slate-700" x-text="subtotal >= 75 ? 'FREE' : currencySymbol + (9.99 * exchangeRate).toFixed(2)"></span>
+                <span class="font-semibold text-slate-700" x-text="subtotal() >= pricing.free_shipping_threshold ? labelFree : formatMoney(shippingRate('standard'))"></span>
               </label>
               <label class="flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-colors"
                 :class="form.shipping_method === 'express' ? 'border-navy-600 bg-navy-50' : 'border-slate-200 hover:border-navy-300'">
                 <div class="flex items-center gap-3">
                   <input type="radio" x-model="form.shipping_method" value="express" class="text-navy-600">
                   <div>
-                    <p class="font-semibold text-slate-800 text-sm">Express Shipping</p>
-                    <p class="text-slate-400 text-xs">2–3 business days</p>
+                    <p class="font-semibold text-slate-800 text-sm">{{ __('checkout.express_shipping') }}</p>
+                    <p class="text-slate-400 text-xs">{{ __('checkout.express_days') }}</p>
                   </div>
                 </div>
-                <span class="font-semibold text-slate-700" x-text="currencySymbol + (24.99 * exchangeRate).toFixed(2)"></span>
+                <span class="font-semibold text-slate-700" x-text="subtotal() >= pricing.free_shipping_threshold ? labelFree : formatMoney(shippingRate('express'))"></span>
               </label>
             </div>
           </div>
 
           <div class="mt-6">
             <button type="button" @click="nextStep()" class="btn-primary-lg w-full justify-center">
-              Continue to Payment
+              {{ __('checkout.continue_payment') }}
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
             </button>
           </div>
@@ -385,19 +324,34 @@ document.addEventListener('alpine:init', () => {
         {{-- STEP 3: Payment --}}
         <div class="card p-6" x-show="step === 3" x-transition>
           <div class="flex items-center justify-between mb-6">
-            <h2 class="font-display font-bold text-navy-900 text-xl">Payment</h2>
-            <button @click="step = 2" class="text-navy-600 text-sm hover:underline">← Edit Shipping</button>
+            <h2 class="font-display font-bold text-navy-900 text-xl">{{ __('checkout.payment_title') }}</h2>
+            <button @click="step = 2" class="text-navy-600 text-sm hover:underline">{{ __('checkout.edit_shipping') }}</button>
+          </div>
+
+          {{-- Localized amount due (display currency) --}}
+          <div class="mb-5 rounded-xl border-2 border-navy-100 bg-navy-50 px-5 py-4">
+            <p class="text-slate-500 text-xs uppercase tracking-wide font-semibold mb-1">{{ __('checkout.payment_amount_due') }}</p>
+            <p class="font-display font-bold text-3xl text-navy-900">
+              <span x-text="formatMoney(total())"></span>
+              <span class="text-lg font-semibold text-slate-500 ml-1" x-text="currencyCode"></span>
+            </p>
+            @if(in_array($locale, ['fr', 'de'], true))
+            <p class="text-slate-500 text-xs mt-2" x-show="currencyCode !== chargeCurrency">
+              {{ __('checkout.charge_usd_note') }}
+              <strong x-text="formatUsd(totalUsd()) + ' ' + chargeCurrency"></strong>{{ __('checkout.charge_usd_note_suffix') }}
+            </p>
+            @endif
           </div>
 
           {{-- Card brands --}}
           <div class="flex items-center gap-2 mb-5">
-            <span class="text-slate-500 text-xs">We accept:</span>
+            <span class="text-slate-500 text-xs">{{ __('checkout.we_accept') }}</span>
             @foreach(['VISA', 'MC', 'AMEX', 'DISCOVER'] as $card)
             <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1 rounded">{{ $card }}</span>
             @endforeach
             <div class="ml-auto flex items-center gap-1 text-sage-600">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-              <span class="text-xs font-semibold">256-bit SSL</span>
+              <span class="text-xs font-semibold">{{ __('checkout.ssl_secured') }}</span>
             </div>
           </div>
 
@@ -406,21 +360,28 @@ document.addEventListener('alpine:init', () => {
             <div class="flex items-center gap-2 mb-4">
               <svg class="w-8 h-8 text-navy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
               <div>
-                <p class="text-slate-800 font-semibold text-sm">Secure Card Payment</p>
-                <p class="text-slate-400 text-xs">Your card details are never stored on our servers</p>
+                <p class="text-slate-800 font-semibold text-sm">{{ __('checkout.secure_card') }}</p>
+                <p class="text-slate-400 text-xs">{{ __('checkout.card_never_stored') }}</p>
               </div>
             </div>
 
-            {{-- Square Web Payments SDK mounts here --}}
-            <div id="card-container" class="min-h-[56px]"></div>
+            <div
+              id="card-container"
+              class="min-h-[56px]"
+              data-square-app-id="{{ $squareAppId }}"
+              data-square-location-id="{{ $squareLocationId }}"
+              data-payment-currency="{{ $pricing['currency_code'] }}"
+              data-payment-country="{{ $defaultCountry }}"
+              data-square-locale="{{ $squareLocale }}"
+            ></div>
             <div id="payment-status-container" class="text-sm text-slate-500 mt-2 hidden"></div>
           </div>
 
           {{-- Sandbox test card notice --}}
           @if($squareEnv === 'sandbox')
           <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-sm">
-            <p class="font-semibold text-amber-800 mb-1">Sandbox Mode — Test Card</p>
-            <p class="text-amber-700 text-xs mb-2">Card: <strong>4111 1111 1111 1111</strong> &nbsp;|&nbsp; Exp: any future date &nbsp;|&nbsp; CVV: 111 &nbsp;|&nbsp; ZIP: 12345</p>
+            <p class="font-semibold text-amber-800 mb-1">{{ __('checkout.sandbox_title') }}</p>
+            <p class="text-amber-700 text-xs mb-2">{{ __('checkout.sandbox_card') }}</p>
             @if(!$squareConfigured)
             <p class="text-amber-800 text-xs">Add <strong>SQUARE_LOCATION_ID</strong> to <code>.env</code> from Square Developer Dashboard → Sandbox → Locations.</p>
             @endif
@@ -444,53 +405,72 @@ document.addEventListener('alpine:init', () => {
           >
             <span x-show="!loading" class="flex items-center gap-2">
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-              Place Order — <span x-text="currencySymbol + total.toFixed(2)"></span>
+              {{ __('checkout.place_order') }} — <span x-text="formatMoney(total())"></span>
             </span>
             <span x-show="loading" class="flex items-center gap-2">
               <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-              Processing...
+              {{ __('checkout.processing') }}
             </span>
           </button>
           <p class="text-slate-400 text-xs text-center mt-3">
-            By placing your order you agree to our
-            <a href="{{ route('terms', ['locale' => $locale]) }}" class="underline hover:text-navy-700">Terms</a> and
-            <a href="{{ route('privacy', ['locale' => $locale]) }}" class="underline hover:text-navy-700">Privacy Policy</a>.
+            {{ __('checkout.terms_prefix') }}
+            <a href="{{ route('terms', ['locale' => $locale]) }}" class="underline hover:text-navy-700">{{ __('checkout.terms') }}</a>
+            &amp;
+            <a href="{{ route('privacy', ['locale' => $locale]) }}" class="underline hover:text-navy-700">{{ __('checkout.privacy') }}</a>.
           </p>
         </div>
       </div>
 
-      {{-- RIGHT: Order Summary --}}
-      <div class="space-y-4 lg:sticky lg:top-24">
+      {{-- RIGHT: Order Summary (server-rendered + Alpine-enhanced) --}}
+      <div class="space-y-4 lg:sticky lg:top-24" id="checkout-order-summary">
         <div class="card p-6">
-          <h3 class="font-display font-bold text-navy-900 text-lg mb-5">Order Summary</h3>
+          <h3 class="font-display font-bold text-navy-900 text-lg mb-5">
+            {{ __('checkout.order_summary') }}
+            (<span x-text="cartItemCount()">{{ $summaryItemCount }}</span>)
+          </h3>
 
-          <div class="space-y-4 mb-5">
-            <template x-for="(item, index) in cartItems" :key="item.variant_id || item.product_id">
-              <div class="flex items-center gap-4">
-                <div class="relative flex-shrink-0">
+          <div class="space-y-4 mb-5 max-h-80 overflow-y-auto overflow-x-visible pr-1 pt-1">
+            <template x-for="item in cartItems" :key="item.key">
+              <div class="flex items-start gap-3">
+                <div class="relative flex-shrink-0 pt-1 pb-1">
                   <img :src="item.image" :alt="item.title" class="w-16 h-16 rounded-xl object-cover bg-slate-100 ring-1 ring-slate-100">
-                  <span class="absolute -top-2 -right-2 min-w-[1.25rem] h-5 px-1 bg-navy-600 text-white text-xs rounded-full flex items-center justify-center font-bold" x-text="item.quantity"></span>
+                  <span class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 bg-navy-600 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-sm ring-2 ring-white" x-text="item.quantity"></span>
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="font-semibold text-slate-800 text-sm truncate" x-text="item.title"></p>
-                  <p class="text-slate-400 text-xs truncate" x-text="item.option_label ? ('Size: ' + item.option_label) : (item.subtitle || '')"></p>
-                  <div class="flex items-center gap-2 mt-1">
-                    <button type="button" @click="item.quantity = Math.max(1, item.quantity - 1)" class="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm flex items-center justify-center">−</button>
-                    <span class="font-semibold text-navy-900 text-sm min-w-[1rem] text-center" x-text="item.quantity"></span>
-                    <button type="button" @click="item.quantity++" class="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm flex items-center justify-center">+</button>
+                  <p
+                    class="text-slate-400 text-xs truncate"
+                    x-text="item.option_label ? (sizeLabel + ': ' + item.option_label) : (item.subtitle || '')"
+                  ></p>
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
+                    <div class="flex items-center gap-2">
+                      <button type="button" @click="updateQty(item.key, -1)" class="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm flex items-center justify-center" aria-label="Decrease quantity">−</button>
+                      <span class="font-semibold text-navy-900 text-sm min-w-[1rem] text-center" x-text="item.quantity"></span>
+                      <button type="button" @click="updateQty(item.key, 1)" class="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm flex items-center justify-center" aria-label="Increase quantity">+</button>
+                    </div>
+                    <button
+                      type="button"
+                      @click="removeItem(item.key)"
+                      class="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-red-600 transition-colors"
+                      :aria-label="checkoutI18n.remove_item_aria + ' ' + item.title"
+                    >
+                      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                      <span x-text="checkoutI18n.remove_item">{{ __('checkout.remove_item') }}</span>
+                    </button>
                   </div>
                 </div>
-                <p class="font-semibold text-navy-900 whitespace-nowrap" x-text="currencySymbol + (parseFloat(item.price) * parseInt(item.quantity)).toFixed(2)"></p>
+                <p class="font-semibold text-navy-900 whitespace-nowrap pt-1" x-text="formatMoney(lineTotal(item))"></p>
               </div>
             </template>
+            <p x-show="cartItems.length === 0" x-cloak class="text-slate-500 text-sm">{{ __('checkout.cart_empty') }}</p>
           </div>
 
           {{-- Discount code --}}
           <div class="border-t border-slate-100 pt-4 mb-4">
-            <label class="form-label mb-2" for="discount-code">Discount Code</label>
+            <label class="form-label mb-2" for="discount-code">{{ __('checkout.discount_code') }}</label>
             <div class="flex gap-2">
-              <input type="text" id="discount-code" x-model="discountCode" class="form-input flex-1" placeholder="Enter code" @keydown.enter="applyDiscount()">
-              <button @click="applyDiscount()" class="btn-outline px-4 text-sm whitespace-nowrap">Apply</button>
+              <input type="text" id="discount-code" x-model="discountCode" class="form-input flex-1" placeholder="{{ __('checkout.discount_placeholder') }}" @keydown.enter="applyDiscount()">
+              <button @click="applyDiscount()" class="btn-outline px-4 text-sm whitespace-nowrap">{{ __('checkout.apply') }}</button>
             </div>
             <p x-show="discountMessage" class="text-sm mt-2" :class="discountValid ? 'text-sage-600' : 'text-red-600'" x-text="discountMessage"></p>
           </div>
@@ -498,21 +478,29 @@ document.addEventListener('alpine:init', () => {
           {{-- Totals --}}
           <div class="space-y-2 border-t border-slate-100 pt-4">
             <div class="flex justify-between text-sm">
-              <span class="text-slate-500">Subtotal</span>
-              <span class="text-slate-700" x-text="currencySymbol + subtotal.toFixed(2)"></span>
+              <span class="text-slate-500">{{ __('checkout.subtotal') }}</span>
+              <span class="text-slate-700" x-text="displaySubtotal()">{{ $pricing['currency_symbol'] }}{{ number_format($summarySubtotal, 2) }}</span>
             </div>
             <div class="flex justify-between text-sm" x-show="discount > 0">
-              <span class="text-sage-600">Discount</span>
-              <span class="text-sage-600" x-text="'-' + currencySymbol + discount.toFixed(2)"></span>
+              <span class="text-sage-600">{{ __('checkout.discount') }}</span>
+              <span class="text-sage-600" x-text="'-' + formatMoney(discount)"></span>
             </div>
             <div class="flex justify-between text-sm">
-              <span class="text-slate-500">Shipping</span>
-              <span x-text="shipping === 0 ? 'FREE' : currencySymbol + shipping.toFixed(2)"
-                    :class="shipping === 0 ? 'text-sage-600 font-semibold' : 'text-slate-700'"></span>
+              <span class="text-slate-500">{{ __('checkout.shipping') }}</span>
+              <span x-text="shippingCost === 0 ? labelFree : formatMoney(shippingCost)"
+                    :class="shippingCost === 0 ? 'text-sage-600 font-semibold' : 'text-slate-700'">{{ ($pricing['shipping'] ?? 0) == 0 ? __('checkout.free') : $pricing['currency_symbol'] . number_format((float) ($pricing['shipping'] ?? 0), 2) }}</span>
             </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-500">{{ __('checkout.tax') }}<span x-show="taxLoading" class="text-xs text-slate-400 ml-1">…</span></span>
+              <span class="text-slate-700" x-text="displayTax()">{{ $pricing['currency_symbol'] }}{{ number_format((float) ($pricing['tax'] ?? 0), 2) }}</span>
+            </div>
+            <p x-show="taxError" class="text-amber-600 text-xs" x-text="taxError"></p>
+            @if($vatNote)
+            <p class="text-slate-400 text-xs">{{ $vatNote }}</p>
+            @endif
             <div class="flex justify-between font-bold text-lg border-t border-slate-200 pt-3 mt-2">
-              <span class="text-navy-900">Total</span>
-              <span class="text-navy-900" x-text="currencySymbol + total.toFixed(2)"></span>
+              <span class="text-navy-900">{{ __('checkout.total') }} (<span x-text="currencyCode">{{ $pricing['currency_code'] }}</span>)</span>
+              <span class="text-navy-900" x-text="displayTotal()">{{ $pricing['currency_symbol'] }}{{ number_format((float) ($pricing['total'] ?? 0), 2) }}</span>
             </div>
           </div>
         </div>
@@ -524,8 +512,8 @@ document.addEventListener('alpine:init', () => {
               <svg class="w-4 h-4 text-sage-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
             </div>
             <div>
-              <p class="text-slate-800 text-sm font-semibold">30-Day Money-Back Guarantee</p>
-              <p class="text-slate-400 text-xs">Full refund, no questions asked</p>
+              <p class="text-slate-800 text-sm font-semibold">{{ __('checkout.guarantee_title') }}</p>
+              <p class="text-slate-400 text-xs">{{ __('checkout.guarantee_copy') }}</p>
             </div>
           </div>
           <div class="flex items-center gap-3">
@@ -533,8 +521,8 @@ document.addEventListener('alpine:init', () => {
               <svg class="w-4 h-4 text-navy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
             </div>
             <div>
-              <p class="text-slate-800 text-sm font-semibold">Free Shipping Over $75</p>
-              <p class="text-slate-400 text-xs" x-text="subtotal >= 75 ? 'Your order qualifies!' : 'Free shipping on orders over $75'"></p>
+              <p class="text-slate-800 text-sm font-semibold">{{ __('checkout.free_ship_title', ['amount' => $freeShipAmount]) }}</p>
+              <p class="text-slate-400 text-xs" x-text="subtotal() >= pricing.free_shipping_threshold ? freeShipQualifies : freeShipRemaining"></p>
             </div>
           </div>
           <div class="flex items-center gap-3">
@@ -542,8 +530,8 @@ document.addEventListener('alpine:init', () => {
               <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
             </div>
             <div>
-              <p class="text-slate-800 text-sm font-semibold">Secure Payment</p>
-              <p class="text-slate-400 text-xs">Powered by Square — 256-bit SSL</p>
+              <p class="text-slate-800 text-sm font-semibold">{{ __('checkout.secure_pay_title') }}</p>
+              <p class="text-slate-400 text-xs">{{ __('checkout.secure_pay_copy') }}</p>
             </div>
           </div>
         </div>

@@ -68,6 +68,7 @@ return [
     // Video
     'video_title' => 'Dainely in Bewegung sehen',
     'video_desc'  => 'Unterstützung während der Arbeit, beim Pendeln und im Alltag.',
+    'video_image_alt' => 'Dainely Gürtel bei der Arbeit, auf dem Weg und im Alltag',
 
     // Daily Relief System
     'drs_title' => 'Das Tägliche Linderungssystem',
@@ -108,4 +109,25 @@ return [
     // Sticky bar
     'sticky_label' => 'Dainely Gürtel',
     'sticky_cta'   => 'Jetzt kaufen',
+    'sticky_free_shipping' => ':price — Kostenloser Versand ab :threshold',
+
+    'view_product_details' => 'Produktdetails ansehen',
+    'view_details'         => 'Details ansehen →',
+    'view_product_page'    => 'Produktseite ansehen',
+    'save_percent'         => ':percent% sparen',
+    'hero_image_alt'       => ':product im Alltag getragen',
+    'belt_subtitle'        => 'Premium Lendenwirbelstabilisierung für den Alltag',
+    'quick_shop_aria'      => 'Schnell kaufen',
+    'no_image'             => 'Kein Bild',
+    'premium_subtitle'     => 'Premium Wellness-Produkt',
+
+    'review_sarah_text'     => 'Bequem genug für lange Arbeitstage. Passt unter mein Hemd und bleibt an Ort und Stelle.',
+    'review_sarah_name'     => 'Sarah M.',
+    'review_sarah_location' => 'Texas, USA',
+    'review_jean_text'      => 'Gut verarbeitete Stütze für meinen Alltag. Hochwertige Materialien und durchdachtes Design.',
+    'review_jean_name'      => 'Jean-Pierre D.',
+    'review_jean_location'  => 'Paris, Frankreich',
+    'review_klaus_text'     => 'Ich nutze ihn beim Pendeln und am Schreibtisch. Einfach anzupassen und täglich tragbar.',
+    'review_klaus_name'     => 'Klaus H.',
+    'review_klaus_location' => 'München, Deutschland',
 ];
