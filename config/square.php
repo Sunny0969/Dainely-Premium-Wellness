@@ -21,6 +21,8 @@ return [
     // Square merchant account processes charges in this currency (USD only for DMEDE).
     'charge_currency' => strtoupper(env('SQUARE_CHARGE_CURRENCY', 'USD')),
 
+    'fallback_enabled' => filter_var(env('FEATURES_SQUARE_FALLBACK', true), FILTER_VALIDATE_BOOLEAN),
+
     // Square API base URLs
     'api_url' => env('SQUARE_ENVIRONMENT', 'sandbox') === 'production'
         ? 'https://connect.squareup.com'

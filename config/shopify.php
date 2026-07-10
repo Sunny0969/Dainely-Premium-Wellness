@@ -13,6 +13,10 @@ return [
 
     'store_domain'    => env('SHOPIFY_SHOP_DOMAIN', env('SHOPIFY_STORE_DOMAIN', 'dmede-usa.myshopify.com')),
     'access_token'    => env('SHOPIFY_ADMIN_ACCESS_TOKEN', env('SHOPIFY_ACCESS_TOKEN', '')),
+
+    // Shopify Storefront API (GraphQL)
+    'storefront_domain'       => env('SHOPIFY_STOREFRONT_DOMAIN', env('SHOPIFY_SHOP_DOMAIN', 'dmede-usa.myshopify.com')),
+    'storefront_access_token' => env('SHOPIFY_STOREFRONT_ACCESS_TOKEN', ''),
     'client_id'       => env('SHOPIFY_KEY', env('SHOPIFY_CLIENT_ID', '')),
     'client_secret'   => env('SHOPIFY_SECRET', env('SHOPIFY_CLIENT_SECRET', '')),
     'webhook_secret'  => env('SHOPIFY_WEBHOOK_SECRET', ''),
