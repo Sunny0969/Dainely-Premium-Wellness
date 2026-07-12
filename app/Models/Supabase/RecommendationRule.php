@@ -3,7 +3,6 @@
 namespace App\Models\Supabase;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RecommendationRule extends Model
 {
@@ -12,22 +11,15 @@ class RecommendationRule extends Model
     protected $table = 'recommendation_rules';
 
     protected $fillable = [
-        'name',
-        'trigger_type',
-        'trigger_value',
-        'recommended_product_id',
-        'is_active',
+        'rule_type',
+        'source_item_type',
+        'source_item_id',
+        'recommended_item_type',
+        'recommended_item_id',
+        'score',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'score' => 'float',
     ];
-
-    /**
-     * Get the recommended product.
-     */
-    public function recommendedProduct(): BelongsTo
-    {
-        return $this->belongsTo(Product::class, 'recommended_product_id');
-    }
 }

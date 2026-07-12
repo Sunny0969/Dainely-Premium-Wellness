@@ -8,9 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::connection('supabase')->hasTable('product_content')) {
+            return;
+        }
+
         Schema::connection('supabase')->create('product_content', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained('dainely_products')->cascadeOnDelete();
             $table->string('locale', 5)->index();
             $table->text('overview')->nullable();
             $table->text('benefits')->nullable();

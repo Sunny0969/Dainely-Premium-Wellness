@@ -3,6 +3,7 @@
 namespace App\Models\Supabase;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class UserActivityLog extends Model
 {
@@ -10,16 +11,25 @@ class UserActivityLog extends Model
 
     protected $table = 'user_activity_log';
 
+    public $timestamps = false;
+
     protected $fillable = [
-        'session_id',
         'visitor_id',
-        'action',
-        'details',
-        'ip_address',
-        'user_agent',
+        'user_id',
+        'event_type',
+        'item_type',
+        'item_id',
+        'context',
+        'created_at',
     ];
 
     protected $casts = [
-        'details' => 'array',
+        'context'    => 'array',
+        'created_at' => 'datetime',
     ];
+
+    public function item(): MorphTo
+    {
+        return $this->morphTo();
+    }
 }

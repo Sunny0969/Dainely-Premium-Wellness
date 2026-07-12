@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Webhooks\ShopifyWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -7,7 +8,11 @@ use Illuminate\Support\Facades\Route;
 | API Routes
 |--------------------------------------------------------------------------
 |
-| Public JSON endpoints live in routes/web.php (e.g. product reviews).
-| Add authenticated API routes here when needed.
+| Phase 2 §4.1 — Shopify product synchronisation webhook.
+| Full path: POST /api/webhooks/shopify
 |
 */
+
+Route::post('/webhooks/shopify', [ShopifyWebhookController::class, 'handle'])
+    ->middleware('webhook.shopify')
+    ->name('api.webhooks.shopify');

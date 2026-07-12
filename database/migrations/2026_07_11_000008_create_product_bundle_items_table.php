@@ -8,11 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::connection('supabase')->hasTable('product_bundle_items')) {
+            return;
+        }
+
         Schema::connection('supabase')->create('product_bundle_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('bundle_id')->constrained('product_bundles')->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
-            $table->string('variant_id'); // target component variant ID in Shopify
+            $table->foreignId('product_id')->constrained('dainely_products')->cascadeOnDelete();
             $table->integer('quantity')->default(1);
             $table->timestamps();
         });

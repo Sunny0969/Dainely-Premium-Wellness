@@ -8,13 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::connection('supabase')->hasTable('product_bundles')) {
+            return;
+        }
+
         Schema::connection('supabase')->create('product_bundles', function (Blueprint $table) {
             $table->id();
-            $table->string('shopify_product_id')->unique()->index();
-            $table->string('handle')->unique();
-            $table->decimal('price_usd', 10, 2);
-            $table->boolean('is_active')->default(true);
+            $table->string('bundle_shopify_product_id');
+            $table->string('locale', 5);
+            $table->string('title');
+            $table->text('description')->nullable();
             $table->timestamps();
+
+            $table->unique(['bundle_shopify_product_id', 'locale']);
         });
     }
 

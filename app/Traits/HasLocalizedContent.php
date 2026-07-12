@@ -8,15 +8,20 @@ trait HasLocalizedContent
 {
     /**
      * Scope a query to only include records of a given locale.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  string|null  $locale
-     * @return \Illuminate\Database\Eloquent\Builder
+     * Alias: forLocale() (Phase 2 doc naming).
      */
     public function scopeLocalized(Builder $query, ?string $locale = null): Builder
     {
         $locale = $locale ?? app()->getLocale();
 
         return $query->where('locale', $locale);
+    }
+
+    /**
+     * Phase 2 doc name — same as localized().
+     */
+    public function scopeForLocale(Builder $query, ?string $locale = null): Builder
+    {
+        return $this->scopeLocalized($query, $locale);
     }
 }

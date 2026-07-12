@@ -42,22 +42,41 @@ class CheckoutController extends Controller
             $this->populateFeaturedBeltFallback();
         }
 
-        $rawItems     = CheckoutCart::getItems();
+        $rawItems = CheckoutCart::getItems();
 
-        // ── Shopify Native Checkout Redirect ────────────────────────────────
-        if (config('shopify.native_checkout', true) && !request()->has('square')) {
+        // ── Phase 2: Shopify Native Checkout (primary — Shopify handles payment) ──
+        // Square is temporary fallback only (?square=1 or when Shopify URL creation fails).
+        $useSquareFallback = request()->boolean('square')
+            && filter_var(env('FEATURES_SQUARE_FALLBACK', config('square.fallback_enabled', true)), FILTER_VALIDATE_BOOLEAN);
+
+        if (config('shopify.native_checkout', true) && ! $useSquareFallback) {
             $result = $this->shopifyCheckout->createCheckout($rawItems);
-            if ($result['success'] && !empty($result['web_url'])) {
-                // Clear the local cart session since the user is moving to Shopify
+
+            if ($result['success'] && ! empty($result['web_url'])) {
                 CheckoutCart::clear();
+
                 return redirect()->away($result['web_url']);
-            } else {
-                Log::warning('Shopify native checkout failed. Falling back to Square checkout.', [
-                    'error' => $result['error'] ?? 'unknown'
+            }
+
+            Log::warning('Shopify native checkout failed. Considering Square fallback.', [
+                'error' => $result['error'] ?? 'unknown',
+            ]);
+
+            $squareFallbackEnabled = filter_var(
+                env('FEATURES_SQUARE_FALLBACK', config('square.fallback_enabled', true)),
+                FILTER_VALIDATE_BOOLEAN
+            );
+
+            if (! $squareFallbackEnabled) {
+                return back()->withErrors([
+                    'checkout' => $result['error'] ?? __('checkout.unavailable'),
                 ]);
             }
+            // Fall through to temporary Square checkout UI below.
         }
-        $items        = $this->totals->itemsForDisplay($rawItems, $locale);
+
+        // ── TEMPORARY Square fallback UI (not primary payment path) ──────────
+        $items         = $this->totals->itemsForDisplay($rawItems, $locale);
         $initialTaxUsd = $this->shopifyTax->estimateInitialUsd($rawItems, $locale, 'standard');
         $pricing      = $this->totals->calculate($rawItems, 'standard', $locale, 0, $initialTaxUsd);
         $currencyMeta = $this->currency->getCurrencyMeta($pricing['currency_code']);
@@ -285,6 +304,15 @@ class CheckoutController extends Controller
             ], 422);
         }
 
+        /*
+         * ─────────────────────────────────────────────────────────────────────
+         * TEMPORARY Square payment fallback (Phase 2)
+         * Primary payments are handled by Shopify Native Checkout.
+         * This block runs only when the customer is on the Square fallback page
+         * (?square=1 or Shopify checkout URL creation failed).
+         * Do not delete — keep for emergency fallback until Square is retired.
+         * ─────────────────────────────────────────────────────────────────────
+         */
         $payment = $this->square->createPayment(
             $validated['source_id'],
             $squareCents,
@@ -294,11 +322,13 @@ class CheckoutController extends Controller
 
         if (! $payment['success']) {
             $errorMsg = $payment['errors'][0]['detail'] ?? 'Payment declined.';
-            Log::warning('Checkout payment failed', ['ref' => $orderRef, 'error' => $errorMsg]);
+            Log::warning('Checkout payment failed (Square fallback)', ['ref' => $orderRef, 'error' => $errorMsg]);
 
             return response()->json(['success' => false, 'message' => $errorMsg], 422);
         }
 
+        // Primary path note: Shopify Checkout already collected payment; this
+        // payload only syncs a Square-fallback order into Shopify Admin.
         $shopifyPayload = [
             'order_number'      => $orderRef,
             'email'             => $validated['email'],

@@ -15,7 +15,7 @@ class WebhookLog extends Model
         'event_type',
         'payload',
         'status',
-        'error_message',
+        'error',
         'processed_at',
     ];
 

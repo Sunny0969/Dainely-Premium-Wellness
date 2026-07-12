@@ -2,9 +2,9 @@
 
 namespace App\Models\Supabase;
 
+use App\Traits\HasLocalizedContent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use App\Traits\HasLocalizedContent;
 
 class SearchIndex extends Model
 {
@@ -19,13 +19,11 @@ class SearchIndex extends Model
         'searchable_id',
         'locale',
         'title',
-        'content',
-        'search_vector',
+        'body_plain',
+        'keywords',
+        'tsv',
     ];
 
-    /**
-     * Get the owning searchable model.
-     */
     public function searchable(): MorphTo
     {
         return $this->morphTo();

@@ -5,9 +5,18 @@ $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 
 Write-Host "`n=== 1/5 NPM build (CSS + JS) ===" -ForegroundColor Cyan
-npm ci 2>$null
+# npm writes warnings to stderr; do not treat as terminating errors
+$prevEap = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+npm ci
 if ($LASTEXITCODE -ne 0) { npm install }
 npm run build
+$buildExit = $LASTEXITCODE
+$ErrorActionPreference = $prevEap
+if ($buildExit -ne 0) {
+    Write-Host "ERROR: npm run build failed (exit $buildExit)" -ForegroundColor Red
+    exit $buildExit
+}
 
 Write-Host "`n=== 2/5 Remove Vite dev marker ===" -ForegroundColor Cyan
 $hot = Join-Path $PSScriptRoot "public\hot"

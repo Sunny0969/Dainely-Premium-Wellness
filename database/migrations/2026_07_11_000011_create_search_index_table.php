@@ -9,21 +9,24 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::connection('supabase')->hasTable('search_index')) {
+            return;
+        }
+
         Schema::connection('supabase')->create('search_index', function (Blueprint $table) {
             $table->id();
-            $table->string('searchable_type')->index();
-            $table->unsignedBigInteger('searchable_id')->index();
-            $table->string('locale', 5)->index();
+            $table->morphs('searchable');
+            $table->string('locale', 5);
             $table->string('title');
-            $table->text('content');
+            $table->text('body_plain');
+            $table->text('keywords')->nullable();
             $table->timestamps();
 
-            $table->unique(['searchable_type', 'searchable_id', 'locale']);
+            $table->index('locale');
         });
 
-        // Add search_vector column and GIN index using raw SQL
-        DB::connection('supabase')->statement('ALTER TABLE search_index ADD COLUMN search_vector tsvector');
-        DB::connection('supabase')->statement('CREATE INDEX search_index_vector_idx ON search_index USING GIN(search_vector)');
+        DB::connection('supabase')->statement('ALTER TABLE search_index ADD COLUMN tsv tsvector');
+        DB::connection('supabase')->statement('CREATE INDEX search_idx ON search_index USING GIN (tsv)');
     }
 
     public function down(): void

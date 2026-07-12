@@ -2,11 +2,14 @@
 
 namespace App\Models\Supabase;
 
+use App\Traits\HasLocalizedContent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class PageBlock extends Model
 {
+    use HasLocalizedContent;
+
     protected $connection = 'supabase';
 
     protected $table = 'page_blocks';
@@ -14,22 +17,25 @@ class PageBlock extends Model
     protected $fillable = [
         'blockable_type',
         'blockable_id',
-        'type',
+        'locale',
+        'block_type',
+        'title',
         'content',
         'sort_order',
-        'is_active',
+        'visible',
     ];
 
     protected $casts = [
-        'content'   => 'array',
-        'is_active' => 'boolean',
+        'visible' => 'boolean',
     ];
 
-    /**
-     * Get the owning blockable model.
-     */
     public function blockable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function scopeVisible($query)
+    {
+        return $query->where('visible', true);
     }
 }

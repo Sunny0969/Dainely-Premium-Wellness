@@ -8,13 +8,17 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::connection('supabase')->hasTable('webhook_logs')) {
+            return;
+        }
+
         Schema::connection('supabase')->create('webhook_logs', function (Blueprint $table) {
             $table->id();
-            $table->string('source')->index(); // shopify, square, judge, video-ai, wallpass
-            $table->string('event_type')->index();
+            $table->string('source');
+            $table->string('event_type');
             $table->json('payload');
-            $table->string('status')->default('pending')->index(); // pending, processed, failed
-            $table->text('error_message')->nullable();
+            $table->string('status')->default('pending');
+            $table->text('error')->nullable();
             $table->timestamp('processed_at')->nullable();
             $table->timestamps();
         });

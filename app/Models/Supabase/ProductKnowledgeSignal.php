@@ -2,9 +2,9 @@
 
 namespace App\Models\Supabase;
 
+use App\Traits\HasLocalizedContent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Traits\HasLocalizedContent;
 
 class ProductKnowledgeSignal extends Model
 {
@@ -17,27 +17,27 @@ class ProductKnowledgeSignal extends Model
     protected $fillable = [
         'product_id',
         'locale',
+        'speaker_type',
         'question',
         'answer',
-        'is_approved',
+        'keywords',
         'source',
+        'confidence',
+        'approved',
+        'embedding_id',
     ];
 
     protected $casts = [
-        'is_approved' => 'boolean',
+        'keywords'   => 'array',
+        'confidence' => 'float',
+        'approved'   => 'boolean',
     ];
 
-    /**
-     * Scope a query to only include approved signals.
-     */
     public function scopeApproved($query)
     {
-        return $query->where('is_approved', true);
+        return $query->where('approved', true);
     }
 
-    /**
-     * Get the product that owns the knowledge signal.
-     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'product_id');

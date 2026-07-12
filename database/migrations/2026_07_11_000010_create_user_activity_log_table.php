@@ -8,15 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::connection('supabase')->hasTable('user_activity_log')) {
+            return;
+        }
+
         Schema::connection('supabase')->create('user_activity_log', function (Blueprint $table) {
             $table->id();
-            $table->string('session_id')->index();
-            $table->string('visitor_id')->nullable()->index();
-            $table->string('action'); // page_view, click, search, scroll, etc.
-            $table->json('details')->nullable();
-            $table->string('ip_address')->nullable();
-            $table->text('user_agent')->nullable();
-            $table->timestamps();
+            $table->string('visitor_id');
+            $table->string('user_id')->nullable();
+            $table->string('event_type');
+            $table->morphs('item');
+            $table->json('context')->nullable();
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 

@@ -298,30 +298,40 @@
 </section>
 @endif
 
-{{-- ── 6. FAQ ───────────────────────────────────────────────── --}}
+{{-- ── 6. FAQ (Phase 2 §6.4: semantic HTML, not JS-only) ── --}}
 @include('partials.reviews-lazy', ['handle' => $handle])
 
-<section class="section bg-stone-50" aria-label="FAQ" x-data="faqAccordion()">
+@php
+  $dbFaqItems = $faqItems ?? collect();
+  $landingFaqs = collect($landingList('faqs') ?? [])->map(function ($row) {
+      return (object) ['question' => $row[1] ?? '', 'answer' => $row[2] ?? ''];
+  })->filter(fn ($f) => $f->question !== '' && $f->answer !== '');
+  $allFaqs = $landingFaqs->concat($dbFaqItems);
+@endphp
+
+@if($allFaqs->isNotEmpty())
+<section class="faq-section section bg-stone-50" id="faq" aria-labelledby="premium-faq-heading">
   <div class="container-site">
     <div class="text-center mb-12">
       <p class="eyebrow mb-3">{{ __($langKey . '.faq_eyebrow') }}</p>
-      <h2 class="heading-section mb-4">{{ __($langKey . '.faq_title') }}</h2>
+      <h2 id="premium-faq-heading" class="heading-section mb-4">{{ __($langKey . '.faq_title') }}</h2>
     </div>
     <div class="max-w-2xl mx-auto space-y-3">
-      @foreach($landingList('faqs') as [$id, $q, $a])
-      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <button @click="toggle('{{ $id }}')" class="w-full flex items-center justify-between px-6 py-4 text-left focus:outline-none group">
-          <span class="font-semibold text-slate-800 text-sm group-hover:text-navy-700 transition-colors">{{ $q }}</span>
-          <svg class="w-5 h-5 text-slate-400 transition-transform duration-200 flex-shrink-0 ml-4" :class="isOpen('{{ $id }}') ? 'rotate-180 text-navy-600' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-        </button>
-        <div x-show="isOpen('{{ $id }}')" x-collapse class="px-6 pb-5">
-          <p class="text-slate-600 text-sm leading-relaxed">{{ $a }}</p>
+      @foreach($allFaqs as $faq)
+      <details class="group bg-white rounded-2xl border border-slate-200 px-6 py-4 open:shadow-sm">
+        <summary class="cursor-pointer list-none font-semibold text-slate-800 text-sm flex items-center justify-between gap-4">
+          <span>{{ $faq->question }}</span>
+          <svg class="w-5 h-5 text-slate-400 transition-transform duration-200 flex-shrink-0 group-open:rotate-180 group-open:text-navy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </summary>
+        <div class="mt-3 text-slate-600 text-sm leading-relaxed">
+          {!! nl2br(e($faq->answer)) !!}
         </div>
-      </div>
+      </details>
       @endforeach
     </div>
   </div>
 </section>
+@endif
 
 {{-- ── 7. FINAL CTA ─────────────────────────────────────────── --}}
 <section class="section bg-gradient-to-b from-stone-50 to-white" aria-label="Final call to action">

@@ -583,6 +583,7 @@
   'showSizeGuide'    => $landingAssets['showSizeGuide'] ?? false,
   'sizeGuideHref'    => $landingAssets['sizeGuideHref'] ?? '#size-guide',
   'productTitle'     => $title,
+  'faqItems'         => $faqItems ?? collect(),
 ])
 
 @else
@@ -753,6 +754,33 @@
 @endif
 
 @include('partials.reviews-lazy', ['handle' => $handle])
+
+{{-- Phase 2 §6.4: Semantic FAQ HTML (server-rendered, progressive enhancement) --}}
+@php $faqItems = $faqItems ?? collect(); @endphp
+@if($faqItems->isNotEmpty())
+<section class="faq-section section bg-slate-50 border-t border-slate-100" id="faq" aria-labelledby="faq-heading">
+  <div class="container-site max-w-3xl mx-auto">
+    <h2 id="faq-heading" class="font-display text-2xl md:text-3xl font-bold text-navy-900 mb-6 text-center">
+      {{ __('product_landing.faq_eyebrow') }}
+    </h2>
+    <div class="space-y-3">
+      @foreach($faqItems as $faq)
+        <details class="group bg-white rounded-xl border border-slate-200 px-5 py-4 open:shadow-sm">
+          <summary class="cursor-pointer list-none font-semibold text-navy-900 flex items-center justify-between gap-4">
+            <span>{{ $faq->question }}</span>
+            <span class="text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </span>
+          </summary>
+          <div class="mt-3 text-slate-600 text-sm leading-relaxed prose prose-slate max-w-none">
+            {!! nl2br(e($faq->answer)) !!}
+          </div>
+        </details>
+      @endforeach
+    </div>
+  </div>
+</section>
+@endif
 
 <section class="py-8 bg-white border-t border-slate-100">
   <div class="container-site text-center">

@@ -21,7 +21,26 @@ class ShopifyCheckoutService
     }
 
     /**
+     * Phase 2 helper — returns Shopify Checkout web URL or throws.
+     * Payment is handled entirely by Shopify on the returned URL.
+     *
+     * @param  array<int, array{variant_id?: string, quantity?: int}>  $cartItems
+     */
+    public function createCheckoutUrl(array $cartItems): string
+    {
+        $result = $this->createCheckout($cartItems);
+
+        if (! ($result['success'] ?? false) || empty($result['web_url'])) {
+            throw new \Exception($result['error'] ?? 'Unable to create checkout.');
+        }
+
+        return $result['web_url'];
+    }
+
+    /**
      * Create a Shopify native checkout from local cart items.
+     * Uses Storefront Cart API (checkoutCreate is deprecated).
+     * Shopify hosts payment (Shop Pay, cards, local methods, tax).
      *
      * @param array $items Local cart items
      * @param array|null $address Customer shipping address (optional)
@@ -36,26 +55,113 @@ class ShopifyCheckoutService
             return ['success' => false, 'error' => 'Storefront API access token is missing. Please configure it in .env.'];
         }
 
-        $lineItems = [];
+        $lines = [];
         foreach ($items as $item) {
             $variantId = $item['variant_id'] ?? null;
             if (!$variantId) {
                 continue;
             }
 
-            // Standardize variant ID to Shopify GID format
-            if (!str_starts_with((string)$variantId, 'gid://')) {
+            if (! str_starts_with((string) $variantId, 'gid://')) {
                 $variantId = "gid://shopify/ProductVariant/{$variantId}";
             }
 
-            $lineItems[] = [
-                'variantId' => $variantId,
-                'quantity'  => (int)($item['quantity'] ?? 1),
+            $lines[] = [
+                'merchandiseId' => $variantId,
+                'quantity'      => (int) ($item['quantity'] ?? 1),
             ];
         }
 
-        if (empty($lineItems)) {
+        if ($lines === []) {
             return ['success' => false, 'error' => 'No valid product variants found in cart.'];
+        }
+
+        $input = [
+            'lines' => $lines,
+            'attributes' => [
+                ['key' => 'checkout_source', 'value' => 'Laravel Client Side'],
+                ['key' => 'app_locale', 'value' => app()->getLocale()],
+                ['key' => 'return_url', 'value' => (string) config('shopify.checkout_return_url', config('app.url'))],
+            ],
+        ];
+
+        if ($email) {
+            $input['buyerIdentity'] = ['email' => $email];
+        }
+
+        if ($discountCode) {
+            $input['discountCodes'] = [$discountCode];
+        }
+
+        $query = <<<'GRAPHQL'
+mutation cartCreate($input: CartInput!) {
+  cartCreate(input: $input) {
+    cart {
+      id
+      checkoutUrl
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+GRAPHQL;
+
+        try {
+            $response = $this->graphql($query, ['input' => $input]);
+
+            if ($response['failed']) {
+                return ['success' => false, 'error' => $response['error']];
+            }
+
+            $result = $response['json'];
+            $errors = $result['data']['cartCreate']['userErrors'] ?? [];
+            if (! empty($errors)) {
+                Log::warning('Shopify cartCreate returned user errors', ['errors' => $errors]);
+                return [
+                    'success' => false,
+                    'error' => $errors[0]['message'] ?? 'Shopify checkout creation failed.',
+                ];
+            }
+
+            $cart = $result['data']['cartCreate']['cart'] ?? null;
+            if (! $cart || empty($cart['checkoutUrl'])) {
+                // Fallback for older stores still supporting Checkout API
+                return $this->createLegacyCheckout($items, $address, $email, $discountCode);
+            }
+
+            return [
+                'success' => true,
+                'checkout_id' => $cart['id'],
+                'web_url' => $cart['checkoutUrl'],
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Error creating Shopify checkout', [
+                'message' => $e->getMessage(),
+            ]);
+            return ['success' => false, 'error' => 'An unexpected error occurred: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Legacy Checkout API fallback (deprecated by Shopify).
+     */
+    protected function createLegacyCheckout(array $items, ?array $address, ?string $email, ?string $discountCode): array
+    {
+        $lineItems = [];
+        foreach ($items as $item) {
+            $variantId = $item['variant_id'] ?? null;
+            if (! $variantId) {
+                continue;
+            }
+            if (! str_starts_with((string) $variantId, 'gid://')) {
+                $variantId = "gid://shopify/ProductVariant/{$variantId}";
+            }
+            $lineItems[] = [
+                'variantId' => $variantId,
+                'quantity'  => (int) ($item['quantity'] ?? 1),
+            ];
         }
 
         $input = [
@@ -63,7 +169,7 @@ class ShopifyCheckoutService
             'customAttributes' => [
                 ['key' => 'checkout_source', 'value' => 'Laravel Client Side'],
                 ['key' => 'app_locale', 'value' => app()->getLocale()],
-            ]
+            ],
         ];
 
         if ($email) {
@@ -83,151 +189,114 @@ class ShopifyCheckoutService
             ];
         }
 
-        if ($discountCode) {
-            // Storefront API applies discount via checkoutDiscountCodeApplyV2 after creation
-            Log::info("Discount code supplied: {$discountCode}. Will apply after checkout creation.");
-        }
-
         $query = <<<'GRAPHQL'
 mutation checkoutCreate($input: CheckoutCreateInput!) {
   checkoutCreate(input: $input) {
-    checkout {
-      id
-      webUrl
-    }
-    checkoutUserErrors {
-      code
-      field
-      message
-    }
+    checkout { id webUrl }
+    checkoutUserErrors { code field message }
   }
 }
 GRAPHQL;
 
-        try {
-            $response = Http::withHeaders([
-                'X-Shopify-Storefront-Access-Token' => $this->token,
-                'Content-Type' => 'application/json',
-            ])
-            ->post($this->apiBase, [
-                'query' => $query,
-                'variables' => [
-                    'input' => $input,
-                ],
-            ]);
-
-            if ($response->failed()) {
-                Log::error('Shopify Storefront API request failed', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
-                return ['success' => false, 'error' => 'Failed to connect to Shopify. Code: ' . $response->status()];
-            }
-
-            $result = $response->json();
-            $errors = $result['data']['checkoutCreate']['checkoutUserErrors'] ?? [];
-
-            if (!empty($errors)) {
-                Log::warning('Shopify checkout creation returned user errors', ['errors' => $errors]);
-                return [
-                    'success' => false,
-                    'error' => $errors[0]['message'] ?? 'Shopify checkout creation failed.',
-                ];
-            }
-
-            $checkout = $result['data']['checkoutCreate']['checkout'] ?? null;
-            if (!$checkout || empty($checkout['webUrl'])) {
-                Log::error('Shopify checkout creation payload missing checkout/webUrl', ['result' => $result]);
-                return ['success' => false, 'error' => 'Invalid response from Shopify checkout.'];
-            }
-
-            $checkoutId = $checkout['id'];
-            $webUrl = $checkout['webUrl'];
-
-            // If discount code exists, apply it
-            if ($discountCode) {
-                $applyResult = $this->applyDiscountCode($checkoutId, $discountCode);
-                if ($applyResult['success']) {
-                    $webUrl = $applyResult['webUrl'];
-                }
-            }
-
-            return [
-                'success' => true,
-                'checkout_id' => $checkoutId,
-                'web_url' => $webUrl,
-            ];
-
-        } catch (\Throwable $e) {
-            Log::error('Error creating Shopify checkout', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return ['success' => false, 'error' => 'An unexpected error occurred: ' . $e->getMessage()];
+        $response = $this->graphql($query, ['input' => $input]);
+        if ($response['failed']) {
+            return ['success' => false, 'error' => $response['error']];
         }
+
+        $result = $response['json'];
+        $errors = $result['data']['checkoutCreate']['checkoutUserErrors'] ?? [];
+        if (! empty($errors)) {
+            return ['success' => false, 'error' => $errors[0]['message'] ?? 'Checkout failed'];
+        }
+
+        $checkout = $result['data']['checkoutCreate']['checkout'] ?? null;
+        if (! $checkout || empty($checkout['webUrl'])) {
+            Log::error('Shopify checkout creation payload missing checkout/webUrl', ['result' => $result]);
+            return ['success' => false, 'error' => 'Invalid response from Shopify checkout.'];
+        }
+
+        $webUrl = $checkout['webUrl'];
+        if ($discountCode) {
+            $apply = $this->applyDiscountCode($checkout['id'], $discountCode);
+            if ($apply['success']) {
+                $webUrl = $apply['webUrl'];
+            }
+        }
+
+        return [
+            'success' => true,
+            'checkout_id' => $checkout['id'],
+            'web_url' => $webUrl,
+        ];
     }
 
-    /**
-     * Apply a discount code to an existing checkout.
-     *
-     * @param string $checkoutId
-     * @param string $discountCode
-     * @return array
-     */
     protected function applyDiscountCode(string $checkoutId, string $discountCode): array
     {
         $query = <<<'GRAPHQL'
 mutation checkoutDiscountCodeApplyV2($checkoutId: ID!, $discountCode: String!) {
   checkoutDiscountCodeApplyV2(checkoutId: $checkoutId, discountCode: $discountCode) {
-    checkout {
-      id
-      webUrl
-    }
-    checkoutUserErrors {
-      code
-      field
-      message
-    }
+    checkout { id webUrl }
+    checkoutUserErrors { code field message }
   }
 }
 GRAPHQL;
 
         try {
-            $response = Http::withHeaders([
-                'X-Shopify-Storefront-Access-Token' => $this->token,
-                'Content-Type' => 'application/json',
-            ])
-            ->post($this->apiBase, [
-                'query' => $query,
-                'variables' => [
-                    'checkoutId' => $checkoutId,
-                    'discountCode' => $discountCode,
-                ],
+            $response = $this->graphql($query, [
+                'checkoutId' => $checkoutId,
+                'discountCode' => $discountCode,
             ]);
 
-            if ($response->failed()) {
+            if ($response['failed']) {
                 return ['success' => false];
             }
 
-            $result = $response->json();
+            $result = $response['json'];
             $errors = $result['data']['checkoutDiscountCodeApplyV2']['checkoutUserErrors'] ?? [];
-
-            if (!empty($errors)) {
-                Log::warning('Failed to apply discount to Shopify checkout', ['errors' => $errors]);
+            if (! empty($errors)) {
                 return ['success' => false];
             }
 
             $checkout = $result['data']['checkoutDiscountCodeApplyV2']['checkout'] ?? null;
-            if ($checkout && !empty($checkout['webUrl'])) {
-                return [
-                    'success' => true,
-                    'webUrl' => $checkout['webUrl'],
-                ];
+            if ($checkout && ! empty($checkout['webUrl'])) {
+                return ['success' => true, 'webUrl' => $checkout['webUrl']];
             }
         } catch (\Throwable $e) {
             Log::error('Error applying discount code to Shopify checkout', ['error' => $e->getMessage()]);
         }
 
         return ['success' => false];
+    }
+
+    protected function graphql(string $query, array $variables = []): array
+    {
+        $response = Http::withOptions([
+            'verify' => (bool) config('shopify.verify_ssl', true),
+        ])->withHeaders([
+            'X-Shopify-Storefront-Access-Token' => $this->token,
+            'Content-Type' => 'application/json',
+        ])->post($this->apiBase, [
+            'query' => $query,
+            'variables' => $variables,
+        ]);
+
+        if ($response->failed()) {
+            Log::error('Shopify Storefront API request failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return [
+                'failed' => true,
+                'error' => 'Failed to connect to Shopify. Code: ' . $response->status(),
+                'json' => [],
+            ];
+        }
+
+        return [
+            'failed' => false,
+            'error' => null,
+            'json' => $response->json() ?? [],
+        ];
     }
 }

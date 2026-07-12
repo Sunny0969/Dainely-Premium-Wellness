@@ -128,6 +128,11 @@
   ];
 @endphp
 
+{{--
+  TEMPORARY Square fallback UI only.
+  Primary checkout redirects to Shopify (payment handled by Shopify).
+  This page loads when ?square=1 or Shopify checkout URL creation fails.
+--}}
 {{-- Checkout config + Square SDK in <head> (before Vite bundle runs) --}}
 @push('head_scripts')
 <script data-cfasync="false">window.__CHECKOUT__ = @json($checkoutClientConfig);</script>

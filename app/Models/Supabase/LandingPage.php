@@ -2,9 +2,9 @@
 
 namespace App\Models\Supabase;
 
+use App\Traits\HasLocalizedContent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use App\Traits\HasLocalizedContent;
 
 class LandingPage extends Model
 {
@@ -20,26 +20,26 @@ class LandingPage extends Model
         'title',
         'meta_title',
         'meta_description',
-        'is_active',
+        'canonical_url',
+        'published',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'published' => 'boolean',
     ];
 
-    /**
-     * Get all of the page blocks for the landing page.
-     */
     public function pageBlocks(): MorphMany
     {
         return $this->morphMany(PageBlock::class, 'blockable')->orderBy('sort_order');
     }
 
-    /**
-     * Get all of the page's FAQs.
-     */
     public function faqs(): MorphMany
     {
         return $this->morphMany(Faq::class, 'faqable')->orderBy('sort_order');
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('published', true);
     }
 }

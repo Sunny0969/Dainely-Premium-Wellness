@@ -8,6 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Shared Supabase may already have a client "products" table — skip to avoid conflict
+        if (Schema::hasTable('products')) {
+            return;
+        }
+
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('sku')->unique();

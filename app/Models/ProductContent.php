@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use App\Models\Supabase\Product;
+use App\Traits\HasLocalizedContent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductContent extends Model
 {
+    use HasLocalizedContent;
+
     protected $connection = 'supabase';
 
     protected $table = 'product_content';

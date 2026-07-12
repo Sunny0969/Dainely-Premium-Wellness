@@ -92,11 +92,15 @@ Route::prefix('{locale}')
     });
 });
 
-// ── Webhooks (no locale prefix, no session middleware) ─────────────────
-// These bypass CSRF because they use HMAC signature validation
-Route::middleware(['api'])->prefix('webhooks')->group(function () {
-    Route::post('/square',  [SquareWebhookController::class, 'handle'])->name('webhooks.square');
+// ── Webhooks (no locale prefix, no CSRF — HMAC via middleware) ─────────
+// Keep /webhooks/shopify for existing Shopify Admin registrations.
+// Docs route also lives at POST /api/webhooks/shopify (routes/api.php).
+Route::middleware(['api', 'webhook.shopify'])->prefix('webhooks')->group(function () {
     Route::post('/shopify', [ShopifyWebhookController::class, 'handle'])->name('webhooks.shopify');
+});
+
+Route::middleware(['api'])->prefix('webhooks')->group(function () {
+    Route::post('/square', [SquareWebhookController::class, 'handle'])->name('webhooks.square');
 });
 
 // ── XML Sitemap ─────────────────────────────────────────────────────

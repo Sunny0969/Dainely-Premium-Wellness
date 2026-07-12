@@ -8,13 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::connection('supabase')->hasTable('recommendation_rules')) {
+            return;
+        }
+
         Schema::connection('supabase')->create('recommendation_rules', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('trigger_type')->index(); // cart_has_product, visitor_viewed_product, etc.
-            $table->string('trigger_value')->nullable();
-            $table->foreignId('recommended_product_id')->constrained('products')->cascadeOnDelete();
-            $table->boolean('is_active')->default(true);
+            $table->string('rule_type');
+            $table->morphs('source_item');
+            $table->morphs('recommended_item');
+            $table->float('score')->default(1.0);
             $table->timestamps();
         });
     }

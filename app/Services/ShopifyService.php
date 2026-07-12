@@ -350,6 +350,157 @@ class ShopifyService
     }
 
     /**
+     * Paginate the full Shopify catalog for Phase 2 bulk sync into Supabase.
+     *
+     * @return array{success: bool, products: array<int, array>, error: ?string, source: ?string}
+     */
+    public function fetchAllProducts(int $pageSize = 250): array
+    {
+        $pageSize = max(1, min($pageSize, 250));
+
+        if ($this->hasAdminAccessToken()) {
+            return $this->fetchAllProductsFromAdminApi($pageSize, $this->token);
+        }
+
+        $auth = $this->requestAccessTokenViaClientCredentials();
+        if ($auth['success'] && ! empty($auth['token'])) {
+            $admin = $this->fetchAllProductsFromAdminApi($pageSize, $auth['token']);
+            if ($admin['success']) {
+                $admin['source'] = 'client_credentials';
+
+                return $admin;
+            }
+        }
+
+        if (filter_var(config('shopify.use_storefront_catalog', true), FILTER_VALIDATE_BOOLEAN)) {
+            return $this->fetchAllProductsFromStorefront($pageSize);
+        }
+
+        return [
+            'success'  => false,
+            'products' => [],
+            'error'    => $auth['error'] ?? 'Could not load full Shopify catalog.',
+            'source'   => null,
+        ];
+    }
+
+    /**
+     * @return array{success: bool, products: array<int, array>, error: ?string, source: string}
+     */
+    protected function fetchAllProductsFromAdminApi(int $pageSize, string $accessToken): array
+    {
+        $all = [];
+        $sinceId = 0;
+
+        try {
+            do {
+                $query = ['limit' => $pageSize];
+                if ($sinceId > 0) {
+                    $query['since_id'] = $sinceId;
+                }
+
+                $response = $this->httpClient([
+                    'X-Shopify-Access-Token' => $accessToken,
+                    'Content-Type'           => 'application/json',
+                ])->get($this->apiBase . '/products.json', $query);
+
+                if (! $response->successful()) {
+                    $message = $response->json('errors') ?? $response->body();
+                    if (is_array($message)) {
+                        $message = json_encode($message);
+                    }
+
+                    return [
+                        'success'  => false,
+                        'products' => $all,
+                        'error'    => trim((string) $message) ?: 'Shopify Admin API pagination failed.',
+                        'source'   => 'admin',
+                    ];
+                }
+
+                $batch = $response->json()['products'] ?? [];
+                if ($batch === []) {
+                    break;
+                }
+
+                foreach ($batch as $product) {
+                    $all[] = $product;
+                    $sinceId = max($sinceId, (int) ($product['id'] ?? 0));
+                }
+            } while (count($batch) >= $pageSize);
+
+            return [
+                'success'  => true,
+                'products' => $all,
+                'error'    => null,
+                'source'   => 'admin',
+            ];
+        } catch (\Exception $e) {
+            Log::error('Shopify fetchAllProductsFromAdminApi: ' . $e->getMessage());
+
+            return [
+                'success'  => false,
+                'products' => $all,
+                'error'    => $e->getMessage(),
+                'source'   => 'admin',
+            ];
+        }
+    }
+
+    /**
+     * @return array{success: bool, products: array<int, array>, error: ?string, source: string}
+     */
+    protected function fetchAllProductsFromStorefront(int $pageSize): array
+    {
+        $all = [];
+        $page = 1;
+
+        try {
+            do {
+                $response = $this->httpClient()
+                    ->get("https://{$this->domain}/products.json", [
+                        'limit' => $pageSize,
+                        'page'  => $page,
+                    ]);
+
+                if (! $response->successful()) {
+                    return [
+                        'success'  => false,
+                        'products' => $all,
+                        'error'    => 'Storefront catalog unavailable (HTTP ' . $response->status() . ').',
+                        'source'   => 'storefront',
+                    ];
+                }
+
+                $batch = $response->json()['products'] ?? [];
+                if ($batch === []) {
+                    break;
+                }
+
+                foreach ($batch as $product) {
+                    $all[] = $product;
+                }
+
+                $page++;
+            } while (count($batch) >= $pageSize && $page <= 40);
+
+            return [
+                'success'  => true,
+                'products' => $all,
+                'error'    => null,
+                'source'   => 'storefront',
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success'  => false,
+                'products' => $all,
+                'error'    => $e->getMessage(),
+                'source'   => 'storefront',
+            ];
+        }
+    }
+
+    /**
      * @return array{success: bool, products: array, error: ?string, status: int, source?: string}
      */
     public function fetchProductsFromAdminApi(int $limit, ?string $accessToken = null): array

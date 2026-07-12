@@ -8,15 +8,22 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::connection('supabase')->hasTable('page_blocks')) {
+            return;
+        }
+
         Schema::connection('supabase')->create('page_blocks', function (Blueprint $table) {
             $table->id();
-            $table->string('blockable_type')->index();
-            $table->unsignedBigInteger('blockable_id')->index();
-            $table->string('type'); // hero, benefits, video, testimonials, faqs, cta, comparison, bundle
-            $table->json('content'); // JSON payload of block settings
+            $table->morphs('blockable');
+            $table->string('locale', 5);
+            $table->string('block_type');
+            $table->string('title')->nullable();
+            $table->text('content')->nullable();
             $table->integer('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
+            $table->boolean('visible')->default(true);
             $table->timestamps();
+
+            $table->index(['blockable_type', 'blockable_id', 'locale']);
         });
     }
 

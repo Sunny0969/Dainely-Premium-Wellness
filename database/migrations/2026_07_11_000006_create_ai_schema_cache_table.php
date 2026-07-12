@@ -8,17 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::connection('supabase')->hasTable('ai_schema_cache')) {
+            return;
+        }
+
         Schema::connection('supabase')->create('ai_schema_cache', function (Blueprint $table) {
             $table->id();
-            $table->string('schemaable_type')->index();
-            $table->unsignedBigInteger('schemaable_id')->index();
-            $table->string('locale', 5)->index();
-            $table->string('schema_type'); // Product, FAQPage, BreadcrumbList, WebPage, etc.
-            $table->json('schema_json');
-            $table->timestamp('expires_at')->nullable();
+            $table->string('cacheable_type');
+            $table->unsignedBigInteger('cacheable_id');
+            $table->string('locale', 5);
+            $table->json('schema_data');
+            $table->string('schema_version')->default('1.0');
+            $table->timestamp('generated_at')->useCurrent();
             $table->timestamps();
 
-            $table->unique(['schemaable_type', 'schemaable_id', 'locale', 'schema_type'], 'schema_cache_unique');
+            $table->unique(['cacheable_type', 'cacheable_id', 'locale']);
         });
     }
 
