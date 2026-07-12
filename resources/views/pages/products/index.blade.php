@@ -104,6 +104,7 @@
         $savePct        = ($displayCompare > $displayPrice && $displayPrice > 0)
                             ? round((($displayCompare - $displayPrice) / $displayCompare) * 100)
                             : 0;
+        $isDainBelt     = str_contains(strtolower((string) $pHandle), 'dainely-belt') || str_contains(strtolower((string) ($product['title'] ?? '')), 'dainely belt');
         $cartVariants   = \App\Support\ProductLandingAssets::mapVariantsForCart($product['variants'] ?? []);
         $cartData = [
           'id'              => (string) ($product['id'] ?? $pHandle),

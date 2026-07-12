@@ -58,6 +58,9 @@
 
   {{-- Vite Assets --}}
   @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+  {{-- JSON-LD Structured Data Stack --}}
+  @stack('json-ld')
 </head>
 <body class="min-h-screen flex flex-col" x-data="scrollTop()">
 

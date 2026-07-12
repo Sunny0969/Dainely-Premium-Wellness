@@ -107,13 +107,26 @@
                 {{ __('home.view_details') }}
             </a>
             @else
-            <button
-                type="button"
-                @click="addToCart($event)"
-                class="btn-outline w-full justify-center text-sm border-stone-300 text-stone-800 hover:bg-stone-900 hover:text-white hover:border-stone-900"
-            >
-                {{ __('home.shop_add_to_cart') }}
+            <div class="flex flex-col gap-2 w-full">
+              <button
+                  type="button"
+                  @click="addToCart($event)"
+                  class="btn-outline w-full justify-center text-sm border-stone-300 text-stone-800 hover:bg-stone-900 hover:text-white hover:border-stone-900"
+              >
+                  {{ __('home.shop_add_to_cart') }}
               </button>
+              <div x-show="addedToCart" x-cloak x-transition>
+                <a
+                  :href="checkoutUrl"
+                  class="w-full flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-center cursor-pointer"
+                >
+                  <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>{{ __('products.view_cart_checkout') }}</span>
+                </a>
+              </div>
+            </div>
             @endif
             </div>
 

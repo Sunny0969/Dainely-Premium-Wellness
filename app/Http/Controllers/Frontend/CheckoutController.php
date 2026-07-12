@@ -9,6 +9,7 @@ use App\Services\OrderPersistenceService;
 use App\Services\ShopifyService;
 use App\Services\ShopifyTaxService;
 use App\Services\SquareService;
+use App\Services\ShopifyCheckoutService;
 use App\Support\CheckoutCart;
 use App\Support\CheckoutTotals;
 use App\Support\PostalCode;
@@ -26,6 +27,7 @@ class CheckoutController extends Controller
         protected CurrencyService $currency,
         protected CheckoutTotals $totals,
         protected OrderPersistenceService $orderPersistence,
+        protected ShopifyCheckoutService $shopifyCheckout,
     ) {}
 
     public function index()
@@ -41,6 +43,20 @@ class CheckoutController extends Controller
         }
 
         $rawItems     = CheckoutCart::getItems();
+
+        // ── Shopify Native Checkout Redirect ────────────────────────────────
+        if (config('shopify.native_checkout', true) && !request()->has('square')) {
+            $result = $this->shopifyCheckout->createCheckout($rawItems);
+            if ($result['success'] && !empty($result['web_url'])) {
+                // Clear the local cart session since the user is moving to Shopify
+                CheckoutCart::clear();
+                return redirect()->away($result['web_url']);
+            } else {
+                Log::warning('Shopify native checkout failed. Falling back to Square checkout.', [
+                    'error' => $result['error'] ?? 'unknown'
+                ]);
+            }
+        }
         $items        = $this->totals->itemsForDisplay($rawItems, $locale);
         $initialTaxUsd = $this->shopifyTax->estimateInitialUsd($rawItems, $locale, 'standard');
         $pricing      = $this->totals->calculate($rawItems, 'standard', $locale, 0, $initialTaxUsd);

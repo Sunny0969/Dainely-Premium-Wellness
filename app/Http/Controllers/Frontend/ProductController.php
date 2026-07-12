@@ -103,7 +103,7 @@ class ProductController extends Controller
             ]);
     }
 
-    public function show(string $locale, string $slug)
+    public function show(string $locale, string $slug, \App\Services\JsonLdBuilder $jsonLdBuilder)
     {
         $handle = ProductSlugResolver::resolveHandle($slug);
         $shopifyResult = $this->shopify->fetchProductByHandle($handle);
@@ -118,10 +118,28 @@ class ProductController extends Controller
         $productHandle = $product['handle'] ?? $handle;
         $reviewStats   = $this->reviews->getCachedStats($productHandle);
 
+        // Try to fetch from Supabase to get localized description / caching
+        $dbProduct = \App\Models\Supabase\Product::where('handle', $productHandle)->first();
+        $dbContent = null;
+        if ($dbProduct) {
+            $dbContent = $dbProduct->productContents()->localized($locale)->first();
+        } else {
+            // Fallback: create an unsaved instance to satisfy the builder
+            $dbProduct = new \App\Models\Supabase\Product([
+                'title' => $product['title'] ?? '',
+                'handle' => $productHandle,
+                'price' => $product['price'] ?? null,
+                'status' => 'active',
+            ]);
+        }
+
+        $productJsonLd = $jsonLdBuilder->buildProductSchema($dbProduct, $dbContent);
+
         return view('products.show', [
-            'product'     => $product,
-            'reviews'     => [],
-            'reviewStats' => $reviewStats,
+            'product'       => $product,
+            'reviews'       => [],
+            'reviewStats'   => $reviewStats,
+            'productJsonLd' => $productJsonLd,
         ]);
     }
 }

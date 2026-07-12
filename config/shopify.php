@@ -17,6 +17,7 @@ return [
     // Shopify Storefront API (GraphQL)
     'storefront_domain'       => env('SHOPIFY_STOREFRONT_DOMAIN', env('SHOPIFY_SHOP_DOMAIN', 'dmede-usa.myshopify.com')),
     'storefront_access_token' => env('SHOPIFY_STOREFRONT_ACCESS_TOKEN', ''),
+    'native_checkout'         => filter_var(env('SHOPIFY_NATIVE_CHECKOUT', true), FILTER_VALIDATE_BOOLEAN),
     'client_id'       => env('SHOPIFY_KEY', env('SHOPIFY_CLIENT_ID', '')),
     'client_secret'   => env('SHOPIFY_SECRET', env('SHOPIFY_CLIENT_SECRET', '')),
     'webhook_secret'  => env('SHOPIFY_WEBHOOK_SECRET', ''),

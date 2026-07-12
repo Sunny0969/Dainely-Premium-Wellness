@@ -23,58 +23,76 @@
       <input type="text" id="faq-search" placeholder="Search questions..." class="form-input pl-12 w-full" oninput="filterFAQ(this.value)">
     </div>
 
-    @php
-    $faqs = [
-      'Product & Science' => [
-        ['How does the Dainely Belt relieve back pain?', 'The Dainely Belt uses targeted lumbar decompression — inflatable air cells gently separate the vertebrae, reducing disc pressure and sciatic nerve compression. This addresses the root cause rather than masking symptoms.'],
-        ['How quickly will I see results?', 'Most customers report meaningful pain reduction within 7–14 days of consistent daily use (2–3 hours per day). 87% of users report measurable improvement within 4 weeks.'],
-        ['Is the Dainely Belt clinically validated?', 'Yes. The belt was co-developed with board-certified physiotherapists over 3 years. Our design is based on peer-reviewed research on lumbar support mechanics and sciatica nerve decompression.'],
-        ['Can I wear it while working at a desk?', 'Absolutely. The belt is designed for extended wear — the breathable fabric and adjustable compression make it comfortable for 2–4 hours of seated use. Many customers wear it during their work day.'],
-        ['Does it work for sciatica specifically?', 'Yes. By reducing lumbar disc pressure, the belt directly alleviates the nerve compression that causes sciatic pain. Many customers with diagnosed sciatica report significant relief within 2 weeks.'],
-      ],
-      'Sizing & Fit' => [
-        ['How do I choose my size?', 'Measure your waist circumference at the belly button level. S/M fits 28"–36", L/XL fits 37"–44", 2XL fits 45"–52", 3XL fits 53"+. When in doubt, size up for comfort.'],
-        ['What if the size doesn\'t fit?', 'We offer free exchanges within 60 days of purchase. Simply contact support with your order number and preferred size — we handle the rest.'],
-        ['Can I wash the Dainely Belt?', 'Yes. Hand wash in cold water with mild detergent and air dry. Do not machine wash or tumble dry, as this may affect the air cell integrity.'],
-      ],
-      'Shipping & Delivery' => [
-        ['Where do you ship to?', 'We ship worldwide. Free standard shipping is available on all orders over $75. Express and tracked options are available at checkout.'],
-        ['How long does delivery take?', 'USA & Canada: 3–5 business days. Europe: 5–8 business days. Rest of World: 7–14 business days. Expedited options available at checkout.'],
-        ['Do you ship to my country?', 'We ship to 80+ countries. All available shipping destinations are shown at checkout. If yours is not listed, contact support — we can usually arrange delivery.'],
-      ],
-      'Returns & Guarantee' => [
-        ['What is your return policy?', 'We offer a full 30-day money-back guarantee. If you are not completely satisfied, contact our support team within 60 days of delivery for a full refund — no questions asked.'],
-        ['How do I start a return?', 'Email ' . config('company.email') . ' with your order number and reason (optional). We will send a prepaid return label within 24 hours and process your refund within 3–5 business days of receiving the item.'],
-        ['Are there any conditions on the guarantee?', 'The only requirement is that the product is returned in resalable condition (original packaging). We do not require proof of defect or explanation for the refund.'],
-      ],
-    ];
-    @endphp
+@inject('jsonLd', 'App\Services\JsonLdBuilder')
 
-    @foreach($faqs as $category => $items)
-    <div class="mb-10" x-data="{ search: '' }">
-      <h2 class="font-display font-bold text-navy-900 text-2xl mb-5 flex items-center gap-3">
-        <span class="w-8 h-0.5 bg-gold-400 inline-block"></span>
-        {{ $category }}
-      </h2>
-      <div class="space-y-3">
-        @foreach($items as $index => [$question, $answer])
-        <div class="faq-item" x-data="{open: false}" id="faq-{{ Str::slug($question) }}">
-          <button
-            @click="open = !open"
-            class="faq-trigger w-full flex items-center justify-between gap-4 p-5"
-            :aria-expanded="open"
-          >
-            <span class="font-semibold text-slate-800 text-left text-base">{{ $question }}</span>
-            <svg class="w-5 h-5 text-navy-600 flex-shrink-0 transition-transform duration-300" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-          <div class="faq-content" x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
-            <p class="text-slate-600 text-sm leading-relaxed">{{ $answer }}</p>
-          </div>
-        </div>
-        @endforeach
+@php
+$faqs = [
+  'Product & Science' => [
+    ['How does the Dainely Belt relieve back pain?', 'The Dainely Belt uses targeted lumbar decompression — inflatable air cells gently separate the vertebrae, reducing disc pressure and sciatic nerve compression. This addresses the root cause rather than masking symptoms.'],
+    ['How quickly will I see results?', 'Most customers report meaningful pain reduction within 7–14 days of consistent daily use (2–3 hours per day). 87% of users report measurable improvement within 4 weeks.'],
+    ['Is the Dainely Belt clinically validated?', 'Yes. The belt was co-developed with board-certified physiotherapists over 3 years. Our design is based on peer-reviewed research on lumbar support mechanics and sciatica nerve decompression.'],
+    ['Can I wear it while working at a desk?', 'Absolutely. The belt is designed for extended wear — the breathable fabric and adjustable compression make it comfortable for 2–4 hours of seated use. Many customers wear it during their work day.'],
+    ['Does it work for sciatica specifically?', 'Yes. By reducing lumbar disc pressure, the belt directly alleviates the nerve compression that causes sciatic pain. Many customers with diagnosed sciatica report significant relief within 2 weeks.'],
+  ],
+  'Sizing & Fit' => [
+    ['How do I choose my size?', 'Measure your waist circumference at the belly button level. S/M fits 28"–36", L/XL fits 37"–44", 2XL fits 45"–52", 3XL fits 53"+. When in doubt, size up for comfort.'],
+    ['What if the size doesn\'t fit?', 'We offer free exchanges within 60 days of purchase. Simply contact support with your order number and preferred size — we handle the rest.'],
+    ['Can I wash the Dainely Belt?', 'Yes. Hand wash in cold water with mild detergent and air dry. Do not machine wash or tumble dry, as this may affect the air cell integrity.'],
+  ],
+  'Shipping & Delivery' => [
+    ['Where do you ship to?', 'We ship worldwide. Free standard shipping is available on all orders over $75. Express and tracked options are available at checkout.'],
+    ['How long does delivery take?', 'USA & Canada: 3–5 business days. Europe: 5–8 business days. Rest of World: 7–14 business days. Expedited options available at checkout.'],
+    ['Do you ship to my country?', 'We ship to 80+ countries. All available shipping destinations are shown at checkout. If yours is not listed, contact support — we can usually arrange delivery.'],
+  ],
+  'Returns & Guarantee' => [
+    ['What is your return policy?', 'We offer a full 30-day money-back guarantee. If you are not completely satisfied, contact our support team within 60 days of delivery for a full refund — no questions asked.'],
+    ['How do I start a return?', 'Email ' . config('company.email') . ' with your order number and reason (optional). We will send a prepaid return label within 24 hours and process your refund within 3–5 business days of receiving the item.'],
+    ['Are there any conditions on the guarantee?', 'The only requirement is that the product is returned in resalable condition (original packaging). We do not require proof of defect or explanation for the refund.'],
+  ],
+];
+
+// Flatten FAQs array for JSON-LD generation
+$flatFaqs = collect();
+foreach ($faqs as $category => $items) {
+    foreach ($items as $item) {
+        $flatFaqs->push((object)[
+            'question' => $item[0],
+            'answer' => $item[1]
+        ]);
+    }
+}
+$faqJsonLd = $jsonLd->buildFaqSchema($flatFaqs);
+@endphp
+
+@push('json-ld')
+<script type="application/ld+json">
+{!! $faqJsonLd !!}
+</script>
+@endpush
+
+@foreach($faqs as $category => $items)
+<div class="mb-10">
+  <h2 class="font-display font-bold text-navy-900 text-2xl mb-5 flex items-center gap-3">
+    <span class="w-8 h-0.5 bg-gold-400 inline-block"></span>
+    {{ $category }}
+  </h2>
+  <div class="space-y-3">
+    @foreach($items as $index => [$question, $answer])
+    <details class="faq-item group border border-slate-100 rounded-xl overflow-hidden bg-slate-50 transition-all duration-200" id="faq-{{ Str::slug($question) }}">
+      <summary class="faq-trigger w-full flex items-center justify-between gap-4 p-5 cursor-pointer list-none select-none font-semibold text-slate-800 text-left text-base">
+        <span>{{ $question }}</span>
+        <svg class="w-5 h-5 text-navy-600 flex-shrink-0 transition-transform duration-300 group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </summary>
+      <div class="faq-content p-5 pt-0 bg-slate-50 text-slate-600 text-sm leading-relaxed">
+        <p>{{ $answer }}</p>
       </div>
-    </div>
+    </details>
     @endforeach
+  </div>
+</div>
+@endforeach
 
     {{-- Still have questions CTA --}}
     <div class="mt-12 bg-navy-50 rounded-3xl p-8 text-center">

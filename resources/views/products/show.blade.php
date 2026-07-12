@@ -1,5 +1,11 @@
 @extends('layouts.app')
 
+@push('json-ld')
+    <script type="application/ld+json">
+        {!! $productJsonLd !!}
+    </script>
+@endpush
+
 @php
   $title     = $product['title'] ?? 'Product';
   $desc      = $product['body_html'] ?? '';

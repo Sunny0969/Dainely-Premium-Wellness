@@ -78,18 +78,19 @@ return [
             'sslmode' => env('DB_SSLMODE', 'require'),
         ],
 
+        // ── Supabase (PostgreSQL) — Phase 2 Application Backend ──────────────
         'supabase' => [
-            'driver' => 'pgsql',
-            'host' => env('DB_SUPABASE_HOST', env('DB_HOST', '127.0.0.1')),
-            'port' => env('DB_SUPABASE_PORT', env('DB_PORT', '5432')),
-            'database' => env('DB_SUPABASE_DATABASE', env('DB_DATABASE', 'postgres')),
-            'username' => env('DB_SUPABASE_USERNAME', env('DB_USERNAME', 'postgres')),
-            'password' => env('DB_SUPABASE_PASSWORD', env('DB_PASSWORD', '')),
-            'charset' => 'utf8',
-            'prefix' => '',
+            'driver'         => 'pgsql',
+            'host'           => env('DB_SUPABASE_HOST', 'db.fewrygnbuizfebcwlvjz.supabase.co'),
+            'port'           => env('DB_SUPABASE_PORT', '5432'),
+            'database'       => env('DB_SUPABASE_DATABASE', 'postgres'),
+            'username'       => env('DB_SUPABASE_USERNAME', 'postgres'),
+            'password'       => env('DB_SUPABASE_PASSWORD', ''),
+            'charset'        => 'utf8',
+            'prefix'         => '',
             'prefix_indexes' => true,
-            'search_path' => 'public',
-            'sslmode' => env('DB_SUPABASE_SSLMODE', env('DB_SSLMODE', 'require')),
+            'search_path'    => 'public',
+            'sslmode'        => env('DB_SUPABASE_SSLMODE', 'require'),
         ],
 
         'sqlsrv' => [

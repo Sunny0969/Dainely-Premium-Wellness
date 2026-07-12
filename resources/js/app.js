@@ -120,15 +120,14 @@ Alpine.data('productPurchase', (requiresOption = false, cartProduct = {}, cartAd
     cartProduct?.messages?.selectOption || 'Please select an option above to continue.',
   qty: 1,
   loading: false,
+  addedToCart: false,
 
   init() {
-    if (this.requiresOption) return;
-
     const variants = this.cartProduct?.variants || [];
-    if (variants.length === 1) {
-      const only = variants[0];
+    if (variants.length > 0) {
+      const first = variants[0];
       this.selectedOption =
-        only.index !== undefined ? only.index : (only.title ?? only.id);
+        first.index !== undefined ? first.index : (first.title ?? first.id);
     }
   },
 
@@ -168,6 +167,7 @@ Alpine.data('productPurchase', (requiresOption = false, cartProduct = {}, cartAd
   selectOption(value) {
     this.selectedOption = value;
     this.optionError = false;
+    this.addedToCart = false;
   },
 
   validateOption() {
@@ -183,8 +183,14 @@ Alpine.data('productPurchase', (requiresOption = false, cartProduct = {}, cartAd
     return false;
   },
 
-  incrementQty() { this.qty = Math.min(this.qty + 1, 20); },
-  decrementQty() { this.qty = Math.max(this.qty - 1, 1); },
+  incrementQty() {
+    this.qty = Math.min(this.qty + 1, 20);
+    this.addedToCart = false;
+  },
+  decrementQty() {
+    this.qty = Math.max(this.qty - 1, 1);
+    this.addedToCart = false;
+  },
 
   optionClasses(value) {
     return this.selectedOption === value
@@ -262,6 +268,7 @@ Alpine.data('productPurchase', (requiresOption = false, cartProduct = {}, cartAd
     try {
       const data = await this._postCart('add');
       Alpine.store('cartDrawer').show(data);
+      this.addedToCart = true;
     } catch (error) {
       console.error('[Dainely] addToCart failed', error);
       alert(error.message || 'Could not add item to cart.');

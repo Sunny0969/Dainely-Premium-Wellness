@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Webhooks;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Supabase\WebhookLog;
+use App\Jobs\SyncProductJob;
 use App\Services\ShopifyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -27,12 +29,42 @@ class ShopifyWebhookController extends Controller
 
         Log::info('Shopify webhook received', ['topic' => $topic]);
 
-        match ($topic) {
-            'orders/fulfilled' => $this->handleOrderFulfilled($payload),
-            'orders/cancelled' => $this->handleOrderCancelled($payload),
-            'refunds/create'   => $this->handleRefund($payload),
-            default            => Log::info("Shopify webhook: unhandled topic {$topic}"),
-        };
+        // 1. Log webhook to database as pending
+        $log = WebhookLog::create([
+            'source'     => 'shopify',
+            'event_type' => $topic,
+            'payload'    => $payload,
+            'status'     => 'pending',
+        ]);
+
+        // 2. Dispatch product sync job or handle other topics
+        if (str_starts_with($topic, 'products/')) {
+            SyncProductJob::dispatch($log->id, $topic, $payload);
+        } else {
+            try {
+                match ($topic) {
+                    'orders/fulfilled' => $this->handleOrderFulfilled($payload),
+                    'orders/cancelled' => $this->handleOrderCancelled($payload),
+                    'refunds/create'   => $this->handleRefund($payload),
+                    default            => Log::info("Shopify webhook: unhandled topic {$topic}"),
+                };
+
+                $log->update([
+                    'status'       => 'processed',
+                    'processed_at' => now(),
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Shopify webhook processing failed', [
+                    'topic' => $topic,
+                    'error' => $e->getMessage(),
+                ]);
+
+                $log->update([
+                    'status'        => 'failed',
+                    'error_message' => $e->getMessage(),
+                ]);
+            }
+        }
 
         return response()->json(['received' => true]);
     }
@@ -60,3 +92,4 @@ class ShopifyWebhookController extends Controller
         $order?->update(['status' => 'refunded']);
     }
 }
+

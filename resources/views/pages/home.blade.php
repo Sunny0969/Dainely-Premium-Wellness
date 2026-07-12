@@ -62,15 +62,16 @@
   $drsUrl      = !empty($dailyRelief['handle'])
     ? route('products.show', ['locale' => $locale, 'slug' => $dailyRelief['handle']])
     : route('products.index', ['locale' => $locale]);
-  $beltImage   = $featuredBelt['image'] ?? asset('images/dainely-belt-product.png');
+  $beltImage   = ($featuredBelt['image'] ?? null) ?: asset('images/dainely-belt-product.png');
   $heroImage   = asset('images/hero-dainely-belt-lifestyle.png');
   $motionImage = asset('images/lifestyle-dainely-in-motion.png');
   $beltTitle   = $featuredBelt['title'] ?? __('products.belt_cart_title');
-  $beltPrice   = $featuredBelt['price'] ? (float) $featuredBelt['price'] : 64.00;
-  $beltCompare = $featuredBelt['compare_at'] ? (float) $featuredBelt['compare_at'] : 119.00;
+  $beltPrice   = !empty($featuredBelt['price']) ? (float) $featuredBelt['price'] : 64.00;
+  $beltCompare = !empty($featuredBelt['compare_at']) ? (float) $featuredBelt['compare_at'] : 119.00;
   $freeShipDisplay = app(\App\Services\CurrencyService::class)->formatForLocale(75, $locale);
   $priceDisplay = fn (float $usd) => app(\App\Services\CurrencyService::class)->formatForLocale($usd, $locale);
 @endphp
+
 
 {{-- 1. HERO — split layout, mobile image first --}}
 <section class="home-hero bg-stone-50 border-b border-stone-200/80" aria-label="Hero">
