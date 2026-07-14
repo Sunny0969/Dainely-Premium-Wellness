@@ -42,4 +42,28 @@ class LandingPage extends Model
     {
         return $query->where('published', true);
     }
+
+    /**
+     * Boot the model and attach event listeners for indexing.
+     */
+    protected static function booted()
+    {
+        static::saved(function ($page) {
+            if ($page->published) {
+                app(\App\Services\SearchService::class)->index(
+                    self::class,
+                    $page->id,
+                    $page->locale,
+                    $page->title,
+                    $page->meta_title . ' ' . $page->meta_description
+                );
+            } else {
+                app(\App\Services\SearchService::class)->deindex(self::class, $page->id);
+            }
+        });
+
+        static::deleted(function ($page) {
+            app(\App\Services\SearchService::class)->deindex(self::class, $page->id);
+        });
+    }
 }

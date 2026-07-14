@@ -217,8 +217,20 @@ class ProductController extends Controller
         }
 
         // §6.2–6.3 JSON-LD @graph (cached 24h)
-        $jsonLd = $jsonLdBuilder->buildForProduct($dbProduct, $locale);
-        $productJsonLd = json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $productJsonLd = $jsonLdBuilder->buildProductSchema($dbProduct, $dbContent);
+
+        // Log product view activity for personalization & tracking
+        if ($dbProduct && $dbProduct->id) {
+            app(\App\Services\AnalyticsService::class)->logActivity(
+                'view_product', 
+                \App\Models\Supabase\Product::class, 
+                $dbProduct->id, 
+                [
+                    'handle' => $productHandle,
+                    'title'  => $product['title'] ?? '',
+                ]
+            );
+        }
 
         return view('products.show', [
             'product'       => $product,

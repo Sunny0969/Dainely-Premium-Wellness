@@ -58,7 +58,11 @@ class LocaleMiddleware
 
         $response = $next($request);
 
-        return $response->withCookie(cookie('locale', $locale, 525600));
+        if (method_exists($response, 'withCookie')) {
+            return $response->withCookie(cookie('locale', $locale, 525600));
+        }
+
+        return $response;
     }
 
     protected function shouldGeoRedirectToRegionalLocale(Request $request, ?string $routeLocale): bool

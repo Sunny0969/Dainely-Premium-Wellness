@@ -36,6 +36,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\TrackPageViews::class,
         ],
 
         'api' => [
@@ -66,5 +67,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'locale'   => \App\Http\Middleware\LocaleMiddleware::class,
         'webhook.shopify' => \App\Http\Middleware\VerifyShopifyWebhook::class,
+        'admin.auth' => \App\Http\Middleware\AdminAuth::class,
     ];
 }

@@ -76,8 +76,43 @@ class PageController extends Controller
 
     public function sitemap(string $locale)
     {
+        $urls = [];
+
+        // Static routes
+        $urls[] = route('home', ['locale' => $locale]);
+        $urls[] = route('products.index', ['locale' => $locale]);
+        $urls[] = route('about', ['locale' => $locale]);
+        $urls[] = route('contact', ['locale' => $locale]);
+        $urls[] = route('faq', ['locale' => $locale]);
+        $urls[] = route('privacy', ['locale' => $locale]);
+        $urls[] = route('terms', ['locale' => $locale]);
+        $urls[] = route('shipping', ['locale' => $locale]);
+        $urls[] = route('refund', ['locale' => $locale]);
+
+        // Education routes
+        $urls[] = route('education.back-pain', ['locale' => $locale]);
+        $urls[] = route('education.sciatica', ['locale' => $locale]);
+        $urls[] = route('education.posture', ['locale' => $locale]);
+        $urls[] = route('education.neck-pain', ['locale' => $locale]);
+        $urls[] = route('education.mobility', ['locale' => $locale]);
+        $urls[] = route('education.recovery', ['locale' => $locale]);
+
+        // Dynamic Products from Supabase
+        if (\App\Support\SupabaseDb::available()) {
+            $products = \App\Models\Supabase\Product::where('status', 'active')->get();
+            foreach ($products as $product) {
+                $urls[] = route('products.show', ['locale' => $locale, 'slug' => $product->handle]);
+            }
+
+            // Dynamic Landing Pages
+            $landingPages = \App\Models\Supabase\LandingPage::where('locale', $locale)->published()->get();
+            foreach ($landingPages as $page) {
+                $urls[] = route('landing.show', ['locale' => $locale, 'slug' => $page->slug]);
+            }
+        }
+
         return response()
-            ->view('sitemap.locale', compact('locale'))
+            ->view('sitemap.locale', compact('urls', 'locale'))
             ->header('Content-Type', 'application/xml');
     }
 }

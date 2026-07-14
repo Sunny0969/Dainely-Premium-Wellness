@@ -22,4 +22,20 @@ class RecommendationRule extends Model
     protected $casts = [
         'score' => 'float',
     ];
+
+    /**
+     * Get the source item that triggers this rule.
+     */
+    public function sourceItem(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    /**
+     * Get the recommended item.
+     */
+    public function recommendedItem(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    {
+        return $this->morphTo();
+    }
 }

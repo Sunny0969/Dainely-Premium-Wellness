@@ -43,4 +43,30 @@ class Product extends Model
     {
         return $this->morphMany(PageBlock::class, 'blockable');
     }
+
+    /**
+     * Boot the model and attach event listeners for indexing.
+     */
+    protected static function booted()
+    {
+        static::saved(function ($product) {
+            if ($product->status !== 'active') {
+                app(\App\Services\SearchService::class)->deindex(self::class, $product->id);
+            } else {
+                foreach ($product->productContents as $content) {
+                    app(\App\Services\SearchService::class)->index(
+                        self::class,
+                        $product->id,
+                        $content->locale,
+                        $product->title,
+                        $content->overview . ' ' . $content->benefits . ' ' . $content->how_it_works . ' ' . $content->seo_description
+                    );
+                }
+            }
+        });
+
+        static::deleted(function ($product) {
+            app(\App\Services\SearchService::class)->deindex(self::class, $product->id);
+        });
+    }
 }

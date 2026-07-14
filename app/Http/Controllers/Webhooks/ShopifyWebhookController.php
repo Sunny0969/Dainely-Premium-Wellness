@@ -45,19 +45,13 @@ class ShopifyWebhookController extends Controller
         } else {
             try {
                 $this->handleNonProductTopics($topic, $payload);
-                $log->update([
-                    'status'       => 'processed',
-                    'processed_at' => now(),
-                ]);
+                $log->markProcessed();
             } catch (\Throwable $e) {
                 Log::error('Shopify webhook processing failed', [
                     'topic' => $topic,
                     'error' => $e->getMessage(),
                 ]);
-                $log->update([
-                    'status' => 'failed',
-                    'error'  => $e->getMessage(),
-                ]);
+                $log->markFailedWithRetry($e->getMessage());
             }
         }
 

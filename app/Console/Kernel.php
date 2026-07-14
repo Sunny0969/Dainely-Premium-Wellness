@@ -13,6 +13,9 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('reviews:warm-cache')->hourly();
+
+        // Phase 2 §8 — Retry failed Shopify webhooks every 5 minutes
+        $schedule->job(new \App\Jobs\RetryFailedWebhooksJob())->everyFiveMinutes();
     }
 
     /**

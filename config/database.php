@@ -91,6 +91,9 @@ return [
             'prefix_indexes' => true,
             'search_path'    => 'public',
             'sslmode'        => env('DB_SUPABASE_SSLMODE', 'require'),
+            'options'        => [
+                \PDO::ATTR_TIMEOUT => 3, // 3 seconds connection timeout
+            ],
         ],
 
         'sqlsrv' => [

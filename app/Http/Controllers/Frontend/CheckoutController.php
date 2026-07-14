@@ -52,6 +52,12 @@ class CheckoutController extends Controller
         if (config('shopify.native_checkout', true) && ! $useSquareFallback) {
             $result = $this->shopifyCheckout->createCheckout($rawItems);
 
+            // Log begin checkout event for Shopify native checkout
+            app(\App\Services\AnalyticsService::class)->logEvent('begin_checkout', [
+                'checkout_type' => 'shopify_native',
+                'item_count'    => count($rawItems),
+            ]);
+
             if ($result['success'] && ! empty($result['web_url'])) {
                 CheckoutCart::clear();
 
@@ -74,6 +80,12 @@ class CheckoutController extends Controller
             }
             // Fall through to temporary Square checkout UI below.
         }
+
+        // Log begin checkout event for Square fallback
+        app(\App\Services\AnalyticsService::class)->logEvent('begin_checkout', [
+            'checkout_type' => 'square_fallback',
+            'item_count'    => count($rawItems),
+        ]);
 
         // ── TEMPORARY Square fallback UI (not primary payment path) ──────────
         $items         = $this->totals->itemsForDisplay($rawItems, $locale);
@@ -463,6 +475,25 @@ class CheckoutController extends Controller
                 'shipping_method'      => $shippingMethod,
             ],
         ]);
+
+        // Log purchase analytics event & activity log
+        app(\App\Services\AnalyticsService::class)->logEvent('purchase', [
+            'order_ref'     => $orderRef,
+            'amount_cents'  => $amountCents,
+            'currency'      => $displayCurrency,
+            'item_count'    => count($items),
+        ]);
+
+        app(\App\Services\AnalyticsService::class)->logActivity(
+            'purchase',
+            null,
+            null,
+            [
+                'order_ref'    => $orderRef,
+                'amount_cents' => $amountCents,
+                'currency'     => $displayCurrency,
+            ]
+        );
 
         CheckoutCart::clear();
 

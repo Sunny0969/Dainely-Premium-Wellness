@@ -436,8 +436,8 @@ class ReviewService
 
                     $requests[] = $pool->as($key)
                         ->withOptions(['verify' => $this->verifySsl])
-                        ->timeout(8)
-                        ->connectTimeout(5)
+                        ->timeout(20)
+                        ->connectTimeout(15)
                         ->get('https://judge.me/api/v1/reviews', $params);
                 }
 
@@ -454,8 +454,10 @@ class ReviewService
         foreach ($targets as $key => $target) {
             $response = $responses[$key] ?? null;
 
-            if ($response === null || ! $response->successful()) {
-                if ($response !== null) {
+            if ($response === null || !($response instanceof \Illuminate\Http\Client\Response) || ! $response->successful()) {
+                if ($response instanceof \Throwable) {
+                    Log::warning("Judge.me parallel pool exception for key {$key}: " . $response->getMessage());
+                } elseif ($response !== null && ($response instanceof \Illuminate\Http\Client\Response)) {
                     Log::warning("Judge.me API HTTP {$response->status()} for pool key {$key}");
                 }
                 continue;

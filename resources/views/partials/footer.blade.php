@@ -48,6 +48,7 @@
           <li><a href="{{ route('shipping', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.shipping_policy') }}</a></li>
           <li><a href="{{ route('refund', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.refund_policy') }}</a></li>
           <li><a href="{{ route('privacy', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.privacy_policy') }}</a></li>
+          <li><a href="/admin/dashboard" class="text-navy-300 hover:text-white text-sm transition-colors">Admin Portal</a></li>
         </ul>
       </div>
 

@@ -52,21 +52,16 @@ class SyncProductJob implements ShouldQueue
                 $this->upsertProduct();
             }
 
-            $log?->update([
-                'status'       => 'processed',
-                'processed_at' => now(),
-                'error'        => null,
-            ]);
+            $log?->markProcessed();
         } catch (Throwable $e) {
             Log::error('SyncProductJob failed', [
                 'topic' => $this->topic,
                 'message' => $e->getMessage(),
             ]);
 
-            $log?->update([
-                'status' => 'failed',
-                'error'  => $e->getMessage(),
-            ]);
+            if ($log) {
+                $log->markFailedWithRetry($e->getMessage());
+            }
 
             throw $e;
         }

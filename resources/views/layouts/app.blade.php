@@ -27,8 +27,25 @@
   {{-- SEO Meta --}}
   <title>@yield('title', 'Dainely — Premium Wellness for Back Pain & Sciatica Relief')</title>
   <meta name="description" content="@yield('meta_description', 'Clinically developed wellness solutions for back pain, sciatica, and posture. Trusted by thousands worldwide.')">
-  @yield('meta_canonical')
-  @yield('meta_hreflang')
+  @if (View::hasSection('meta_canonical'))
+    @yield('meta_canonical')
+  @else
+    <link rel="canonical" href="{{ request()->url() }}">
+  @endif
+  
+  {{-- Automatic Hreflang Tag Generator for Multilingual SEO --}}
+  @php
+    $supportedLocales = ['en', 'fr', 'de'];
+    $currentRouteName = Route::currentRouteName();
+    $currentRouteParams = Route::current() ? Route::current()->parameters() : [];
+  @endphp
+  @if($currentRouteName)
+    @foreach($supportedLocales as $lang)
+      <link rel="alternate" hreflang="{{ $lang }}" href="{{ route($currentRouteName, array_merge($currentRouteParams, ['locale' => $lang])) }}">
+    @endforeach
+    <link rel="alternate" hreflang="x-default" href="{{ route($currentRouteName, array_merge($currentRouteParams, ['locale' => 'en'])) }}">
+  @endif
+
   @yield('meta_schema')
 
   {{-- Open Graph --}}
