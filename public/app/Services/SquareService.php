@@ -1,0 +1,298 @@
+<?php
+
+namespace App\Services;
+
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+
+class SquareService
+{
+    protected string $accessToken;
+
+    protected string $locationId;
+
+    protected string $applicationId;
+
+    protected string $environment;
+
+    protected string $apiBase;
+
+    protected bool $verifySsl;
+
+    public function __construct()
+    {
+        $this->accessToken   = (string) config('square.access_token', '');
+        $this->locationId    = (string) config('square.location_id', '');
+        $this->applicationId = (string) config('square.application_id', '');
+        $this->environment   = (string) config('square.environment', 'sandbox');
+        $this->verifySsl     = (bool) config('square.verify_ssl', true);
+        $this->apiBase       = $this->environment === 'production'
+            ? 'https://connect.squareup.com/v2'
+            : 'https://connect.squareupsandbox.com/v2';
+    }
+
+    public function getApplicationId(): string
+    {
+        return $this->applicationId;
+    }
+
+    public function getEnvironment(): string
+    {
+        return $this->environment;
+    }
+
+    public function getLocationId(): string
+    {
+        if ($this->locationId !== '') {
+            return $this->locationId;
+        }
+
+        return $this->resolveLocationId();
+    }
+
+    public function isConfigured(): bool
+    {
+        return $this->applicationId !== ''
+            && $this->accessToken !== ''
+            && $this->getLocationId() !== '';
+    }
+
+    public function getChargeCurrency(): string
+    {
+        return strtoupper((string) config('square.charge_currency', 'USD'));
+    }
+
+    /**
+     * Capture a card payment. Amount must be in the merchant charge currency (USD) minor units.
+     */
+    public function createPayment(string $sourceId, int $amountCents, string $orderRef, ?string $currency = null): array
+    {
+        if (empty($this->accessToken)) {
+            Log::error('Square createPayment aborted — SQUARE_ACCESS_TOKEN is missing', [
+                'order_ref' => $orderRef,
+            ]);
+
+            return [
+                'success' => false,
+                'errors'  => [[
+                    'detail' => 'Payment gateway is not configured. Please contact support.',
+                ]],
+            ];
+        }
+
+        $locationId = $this->getLocationId();
+        if ($locationId === '') {
+            return [
+                'success' => false,
+                'errors'  => [['detail' => 'Square Location ID is not configured. Add SQUARE_LOCATION_ID to .env.']],
+            ];
+        }
+
+        $chargeCurrency = $this->getChargeCurrency();
+        $requestedCurrency = $currency !== null ? strtoupper($currency) : null;
+        if ($requestedCurrency !== null && $requestedCurrency !== $chargeCurrency) {
+            Log::warning('Square currency mismatch — using configured charge currency', [
+                'requested'  => $requestedCurrency,
+                'configured' => $chargeCurrency,
+                'order_ref'  => $orderRef,
+                'amount'     => $amountCents,
+            ]);
+        }
+
+        try {
+            $response = $this->httpClient()->post($this->apiBase . '/payments', [
+                'source_id'       => $sourceId,
+                'idempotency_key' => Str::uuid()->toString(),
+                'amount_money'    => ['amount' => $amountCents, 'currency' => $chargeCurrency],
+                'location_id'     => $locationId,
+                'reference_id'    => $orderRef,
+                'note'            => 'Dainely order: ' . $orderRef,
+            ]);
+
+            $body = $response->json();
+
+            if ($response->successful() && isset($body['payment']['id'])) {
+                Log::info('Square payment captured via API', [
+                    'payment_id'  => $body['payment']['id'],
+                    'status'      => $body['payment']['status'] ?? null,
+                    'order_ref'   => $orderRef,
+                    'amount'      => $amountCents,
+                    'currency'    => $chargeCurrency,
+                    'environment' => $this->environment,
+                    'location_id' => $locationId,
+                ]);
+
+                return [
+                    'success'    => true,
+                    'payment_id' => $body['payment']['id'],
+                    'status'     => $body['payment']['status'],
+                ];
+            }
+
+            Log::error('Square payment failed', ['response' => $body]);
+
+            return [
+                'success' => false,
+                'errors'  => $body['errors'] ?? [['detail' => 'Payment declined. Please try a different card.']],
+            ];
+        } catch (\Exception $e) {
+            Log::error('Square payment exception: ' . $e->getMessage());
+
+            return [
+                'success' => false,
+                'errors'  => [['detail' => 'Payment service temporarily unavailable. Please try again.']],
+            ];
+        }
+    }
+
+    public function validateWebhookSignature(string $body, string $signature, string $url): bool
+    {
+        $sigKey = config('square.webhook_signature_key', '');
+        if (empty($sigKey)) {
+            return true;
+        }
+
+        return hash_equals(
+            base64_encode(hash_hmac('sha256', $url . $body, $sigKey, true)),
+            $signature
+        );
+    }
+
+    public function refundPayment(string $paymentId, int $amountCents, string $reason = ''): array
+    {
+        if (empty($this->accessToken)) {
+            return [
+                'success' => false,
+                'errors'  => [['detail' => 'Square access token is not configured.']],
+            ];
+        }
+
+        try {
+            $response = $this->httpClient()->post($this->apiBase . '/refunds', [
+                'idempotency_key' => Str::uuid()->toString(),
+                'payment_id'      => $paymentId,
+                'amount_money'    => ['amount' => $amountCents, 'currency' => 'USD'],
+                'reason'          => $reason ?: 'Customer refund',
+            ]);
+            $body = $response->json();
+
+            return [
+                'success'   => $response->successful(),
+                'refund_id' => $body['refund']['id'] ?? null,
+                'errors'    => $body['errors'] ?? [],
+            ];
+        } catch (\Exception $e) {
+            return ['success' => false, 'errors' => [['detail' => $e->getMessage()]]];
+        }
+    }
+
+    protected function resolveLocationId(): string
+    {
+        if ($this->accessToken === '') {
+            return '';
+        }
+
+        try {
+            $response = $this->httpClient()->get($this->apiBase . '/locations');
+            if (! $response->successful()) {
+                Log::warning('Square: could not fetch locations', [
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+
+                return '';
+            }
+
+            $locations = $response->json('locations') ?? [];
+            foreach ($locations as $location) {
+                if (($location['status'] ?? '') === 'ACTIVE' && ! empty($location['id'])) {
+                    $this->locationId = (string) $location['id'];
+
+                    return $this->locationId;
+                }
+            }
+
+            if (! empty($locations[0]['id'])) {
+                $this->locationId = (string) $locations[0]['id'];
+
+                return $this->locationId;
+            }
+        } catch (\Exception $e) {
+            Log::warning('Square: location lookup failed — ' . $e->getMessage());
+        }
+
+        return '';
+    }
+
+    /**
+     * List recent payments for the configured location (audit / sandbox verification).
+     *
+     * @return array{success: bool, payments: array<int, array<string, mixed>>, error: ?string}
+     */
+    public function listRecentPayments(int $limit = 10): array
+    {
+        if (empty($this->accessToken)) {
+            return [
+                'success'  => false,
+                'payments' => [],
+                'error'    => 'SQUARE_ACCESS_TOKEN is missing.',
+            ];
+        }
+
+        $locationId = $this->getLocationId();
+        if ($locationId === '') {
+            return [
+                'success'  => false,
+                'payments' => [],
+                'error'    => 'SQUARE_LOCATION_ID is missing.',
+            ];
+        }
+
+        try {
+            $response = $this->httpClient()->get($this->apiBase . '/payments', [
+                'location_id' => $locationId,
+                'sort_order'  => 'DESC',
+                'limit'       => max(1, min($limit, 100)),
+            ]);
+
+            if (! $response->successful()) {
+                $body = $response->json();
+
+                return [
+                    'success'  => false,
+                    'payments' => [],
+                    'error'    => $body['errors'][0]['detail'] ?? ('HTTP ' . $response->status()),
+                ];
+            }
+
+            return [
+                'success'  => true,
+                'payments' => $response->json('payments') ?? [],
+                'error'    => null,
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success'  => false,
+                'payments' => [],
+                'error'    => $e->getMessage(),
+            ];
+        }
+    }
+
+    protected function httpClient(): PendingRequest
+    {
+        $client = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->accessToken,
+            'Content-Type'  => 'application/json',
+            'Square-Version'=> '2024-10-17',
+        ]);
+
+        if (! $this->verifySsl) {
+            $client = $client->withoutVerifying();
+        }
+
+        return $client;
+    }
+}

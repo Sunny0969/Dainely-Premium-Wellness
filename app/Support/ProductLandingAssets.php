@@ -5,6 +5,69 @@ namespace App\Support;
 class ProductLandingAssets
 {
     /**
+     * Normalize Shopify product image URLs for galleries / cart.
+     *
+     * @param  array<int, mixed>  $images  Shopify `images` array or list of URL strings
+     * @return list<string>
+     */
+    public static function shopifyImageUrls(array $images, ?string $mainImg = null): array
+    {
+        $urls = [];
+
+        foreach ($images as $img) {
+            if (is_string($img) && trim($img) !== '') {
+                $urls[] = trim($img);
+                continue;
+            }
+
+            if (is_array($img)) {
+                $src = $img['src'] ?? $img['url'] ?? null;
+                if (is_string($src) && trim($src) !== '') {
+                    $urls[] = trim($src);
+                }
+            }
+        }
+
+        if ($mainImg && trim($mainImg) !== '' && ! in_array($mainImg, $urls, true)) {
+            array_unshift($urls, trim($mainImg));
+        }
+
+        return array_values(array_unique($urls));
+    }
+
+    /**
+     * Request a resized Shopify CDN derivative (reduces bytes; host remains Shopify CDN).
+     */
+    public static function cdnSized(?string $url, int $width = 800): string
+    {
+        $url = trim((string) $url);
+        if ($url === '') {
+            return '';
+        }
+
+        if (str_starts_with($url, '//')) {
+            $url = 'https:'.$url;
+        }
+
+        if (! preg_match('#^https?://#i', $url)) {
+            return $url;
+        }
+
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        if ($host === '' || (! str_contains($host, 'shopify') && ! str_contains($host, 'myshopify'))) {
+            return $url;
+        }
+
+        if (preg_match('/[?&]width=\d+/i', $url)) {
+            return $url;
+        }
+
+        $sep = str_contains($url, '?') ? '&' : '?';
+
+        return $url.$sep.'width='.max(40, min(2000, $width));
+    }
+
+    /**
      * @param  array<int, array<string, mixed>>  $variants
      * @return array<int, array<string, mixed>>
      */
@@ -22,6 +85,10 @@ class ProductLandingAssets
     }
 
     /**
+     * Product hero gallery always uses Shopify CDN images.
+     * Lifestyle / science sections keep local assets for marketing copy only.
+     *
+     * @param  list<string>  $shopifyImageUrls
      * @return array{
      *   galleryImages?: array<int, string>,
      *   lifestyleImages?: array<int, string>,
@@ -44,14 +111,13 @@ class ProductLandingAssets
         string $cartAddUrl,
         string $checkoutUrl,
         string $langPrefix,
+        array $shopifyImageUrls = [],
     ): array {
-        $shopifyImages = collect($variants)->isNotEmpty()
-            ? null
-            : null;
+        $gallery = self::shopifyImageUrls($shopifyImageUrls, $mainImg);
 
         $defaults = [
-            'galleryImages'   => $mainImg ? [$mainImg] : [],
-            'lifestyleImages' => ['recovery-edu.png', 'lifestyle-desk-professional.png', 'lifestyle-everyday-movement.png'],
+            'galleryImages'   => $gallery,
+            'lifestyleImages' => ['recovery-edu.webp', 'lifestyle-everyday-movement.webp', 'lifestyle-travel-commute.png'],
             'scienceImage'    => 'spine-anatomy.png',
             'showSizeGuide'   => false,
             'sizeGuideHref'   => '#size-guide',
@@ -71,14 +137,11 @@ class ProductLandingAssets
             ],
         ];
 
+        // Per-product marketing sections only — never override galleryImages (Shopify).
         $map = [
             'products_belt' => [
-                'galleryImages'   => array_filter([
-                    $mainImg ?: asset('images/dainely-belt-product.png'),
-                    asset('images/lifestyle-desk-professional.png'),
-                    asset('images/lifestyle-everyday-movement.png'),
-                ]),
-                'lifestyleImages' => ['lifestyle-desk-professional.png', 'lifestyle-everyday-movement.png', 'lifestyle-travel-commute.png'],
+                // Order: At the Standing Desk → During Daily Movement → Commute & Travel
+                'lifestyleImages' => ['back-pain-edu.webp', 'man-sitting.jpg', 'women-walking.jpg'],
                 'scienceImage'    => 'spine-anatomy.png',
                 'showSizeGuide'   => true,
                 'purchaseOptions' => [
@@ -86,75 +149,79 @@ class ProductLandingAssets
                 ],
             ],
             'products_ball' => [
-                'lifestyleImages' => ['neck-pain-edu.png', 'posture-edu.png', 'recovery-edu.png'],
+                'lifestyleImages' => ['neck-pain-edu.png', 'posture-edu.png', 'recovery-edu.webp'],
                 'scienceImage'    => 'neck-pain-edu.png',
                 'price'           => $price ?: 39.95,
                 'compareAt'       => $compareAt ?: 59.95,
                 'purchaseOptions' => array_merge($defaults['purchaseOptions'], ['requiresOption' => false, 'options' => []]),
             ],
             'products_neck' => [
-                'lifestyleImages' => ['neck-pain-edu.png', 'posture-edu.png', 'recovery-edu.png'],
+                'lifestyleImages' => ['neck-pain-edu.png', 'posture-edu.png', 'recovery-edu.webp'],
                 'scienceImage'    => 'neck-pain-edu.png',
             ],
             'products_patches' => [
-                'lifestyleImages' => ['back-pain-edu.png', 'lifestyle-desk-professional.png', 'recovery-edu.png'],
-                'scienceImage'    => 'back-pain-edu.png',
+                // Order matches lifestyle_cards: Active Movement → At Your Desk → Overnight Healing
+                // Use Shopify CDN (always on server); local lifestyle webp files are missing on production.
+                'lifestyleImages' => [
+                    $gallery[0] ?? 'lifestyle-everyday-movement.webp',
+                    'back-pain-edu.webp',
+                    $gallery[1] ?? ($gallery[0] ?? 'recovery-edu.webp'),
+                ],
+                'scienceImage' => $gallery[0] ?? 'lifestyle-everyday-movement.webp',
             ],
             'products_jacket' => [
-                'lifestyleImages' => ['recovery-edu.png', 'lifestyle-travel-commute.png', 'lifestyle-everyday-movement.png'],
-                'scienceImage'    => 'recovery-edu.png',
+                'lifestyleImages' => ['recovery-edu.webp', 'lifestyle-travel-commute.png', 'lifestyle-everyday-movement.webp'],
+                'scienceImage'    => 'recovery-edu.webp',
             ],
             'products_fm' => [
-                'galleryImages'   => array_filter([
-                    $mainImg ?: asset('images/foot-massager-main.png'),
-                    asset('images/foot-massager-lifestyle.png'),
-                    asset('images/foot-reflexology-chart.png'),
-                    asset('images/recovery-edu.png'),
-                ]),
-                'lifestyleImages' => ['foot-massager-lifestyle.png', 'lifestyle-desk-professional.png', 'recovery-edu.png'],
+                'lifestyleImages' => ['foot-massager-lifestyle.png', 'lifestyle-everyday-movement.webp', 'recovery-edu.webp'],
                 'scienceImage'    => 'foot-reflexology-chart.png',
                 'price'           => $price ?: 49.95,
                 'compareAt'       => $compareAt ?: 79.95,
             ],
             'products_knee' => [
-                'lifestyleImages' => ['knee-brace-main.png', 'knee-brace-lifestyle.png', 'recovery-edu.png'],
-                'scienceImage'    => 'knee-brace-main.png',
+                // Order matches lifestyle_cards: Workouts → Walking → Sitting-to-Standing
+                'lifestyleImages' => [
+                    'Workouts-and-Athletics.webp',
+                    'Stairs-and-Daily-Walking.webp',
+                    'Sitting-to-Standing.webp',
+                ],
+                'scienceImage'    => 'Built-for-Everyday-Comfort.webp',
             ],
             'products_percussion' => [
-                'lifestyleImages' => ['massager-main.png', 'massager-lifestyle.png', 'recovery-edu.png'],
+                'lifestyleImages' => ['massager-main.png', 'massager-lifestyle.png', 'recovery-edu.webp'],
                 'scienceImage'    => 'massager-main.png',
             ],
             'products_shoulder' => [
-                'lifestyleImages' => ['shoulder-brace-main.png', 'shoulder-brace-lifestyle.png', 'recovery-edu.png'],
+                'lifestyleImages' => ['shoulder-brace-main.png', 'shoulder-brace-lifestyle.png', 'recovery-edu.webp'],
                 'scienceImage'    => 'shoulder-brace-main.png',
             ],
             'products_neck_stretcher' => [
-                'lifestyleImages' => ['neck-stretcher-main.png', 'neck-stretcher-lifestyle.png', 'recovery-edu.png'],
+                'lifestyleImages' => ['neck-stretcher-main.png', 'neck-stretcher-lifestyle.png', 'recovery-edu.webp'],
                 'scienceImage'    => 'neck-stretcher-main.png',
             ],
             'products_back_stretcher' => [
-                'lifestyleImages' => ['back-stretcher-main.png', 'back-pain-edu.png', 'recovery-edu.png'],
+                'lifestyleImages' => ['back-stretcher-main.png', 'lifestyle-everyday-movement.webp', 'recovery-edu.webp'],
                 'scienceImage'    => 'back-stretcher-main.png',
             ],
             'products_relaxaleg' => [
-                'lifestyleImages' => ['relaxaleg-main.png', 'relaxaleg-lifestyle.png', 'recovery-edu.png'],
+                'lifestyleImages' => ['relaxaleg-main.png', 'relaxaleg-lifestyle.png', 'recovery-edu.webp'],
                 'scienceImage'    => 'relaxaleg-main.png',
             ],
             'products_tourmaline' => [
-                'lifestyleImages' => ['tourmaline-belt-main.png', 'lifestyle-desk-professional.png', 'recovery-edu.png'],
+                'lifestyleImages' => ['tourmaline-belt-main.png', 'lifestyle-everyday-movement.webp', 'recovery-edu.webp'],
                 'scienceImage'    => 'tourmaline-belt-main.png',
             ],
             'products_dmede' => [
-                'galleryImages'   => [asset('images/daily-relief-system.png')],
-                'lifestyleImages' => ['daily-relief-system.png', 'lifestyle-desk-professional.png', 'recovery-edu.png'],
-                'scienceImage'    => 'daily-relief-system.png',
+                'lifestyleImages' => ['daily-relief-system1.png', 'lifestyle-everyday-movement.webp', 'recovery-edu.webp'],
+                'scienceImage'    => 'daily-relief-system1.png',
             ],
             'products_cushion' => [
-                'lifestyleImages' => ['cushion-main.png', 'lifestyle-desk-professional.png', 'recovery-edu.png'],
+                'lifestyleImages' => ['cushion-main.png', 'lifestyle-everyday-movement.webp', 'recovery-edu.webp'],
                 'scienceImage'    => 'cushion-main.png',
             ],
             'products_coffee' => [
-                'lifestyleImages' => ['mushroom-coffee-main.png', 'lifestyle-desk-professional.png', 'recovery-edu.png'],
+                'lifestyleImages' => ['mushroom-coffee-main.png', 'lifestyle-everyday-movement.webp', 'recovery-edu.webp'],
                 'scienceImage'    => 'mushroom-coffee-main.png',
             ],
         ];
@@ -163,6 +230,10 @@ class ProductLandingAssets
             return $defaults;
         }
 
-        return array_replace_recursive($defaults, $map[$langKey]);
+        $merged = array_replace_recursive($defaults, $map[$langKey]);
+        // Hard guarantee: product gallery is always Shopify (never local overrides).
+        $merged['galleryImages'] = $gallery;
+
+        return $merged;
     }
 }

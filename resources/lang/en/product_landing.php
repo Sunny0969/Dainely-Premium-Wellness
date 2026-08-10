@@ -1,10 +1,14 @@
 <?php
 
 return array (
+  'cms_specs_title' => 'Specifications',
+  'cms_care_title' => 'Care & Maintenance',
+  'cms_how_title' => 'How It Works',
+  'cms_who_title' => 'Who Is It For',
   'products_belt' => 
   array (
     'seo_title' => 'Dainely Belt — Premium Lower Back Stabilization',
-    'seo_desc' => 'Premium everyday lower back stabilization designed for modern movement and long daily routines. Free shipping on orders over $75.',
+    'seo_desc' => 'Premium everyday lower back stabilization designed for modern movement and long daily routines. Free shipping on orders over $29.99.',
     'product_name' => 'Dainely Belt',
     'badge_best_seller' => 'Best Seller',
     'badge_clinical' => 'Clinically Endorsed',
@@ -39,7 +43,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -192,7 +196,7 @@ return array (
       array (
         0 => 'faq8',
         1 => 'When will my order ship?',
-        2 => 'Orders ship within 1–2 business days. Standard shipping is 5–8 business days. Free shipping on all orders over $75.',
+        2 => 'Orders ship within 1–2 business days. Standard shipping is 5–8 business days. Free shipping on all orders over $29.99.',
       ),
     ),
     'cta_eyebrow' => 'Ready to Start',
@@ -242,7 +246,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -427,7 +431,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -580,7 +584,7 @@ return array (
     'seo_desc' => 'Soothe tight lower back muscles and relieve lumbar soreness with 8-hour active herbal warming patches.',
     'product_name' => 'Back Pain Relief Patches',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Tested',
+    'badge_clinical' => 'Premium Botanical Formula',
     'eyebrow' => 'Transdermal Lumbar Relief',
     'hero_headline' => 'Soothing, fast-acting heat that lasts up to 8 hours.',
     'verified_reviews' => ':count verified reviews',
@@ -612,7 +616,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -644,8 +648,31 @@ return array (
       ),
     ),
     'lifestyle_eyebrow' => 'Lumbar Comfort on the Move',
-    'lifestyle_title' => 'Relieve back stiffness, wherever you are.',
-    'lifestyle_copy' => 'Whether you are working at an office desk, standing on your feet all day, or recovering from muscle fatigue, lower back aches can limit your mobility. Dainely™ Back Pain Relief Patches provide localized, long-lasting warmth to help you stay active and pain-free.',
+    'lifestyle_title' => 'Targeted comfort wherever your day takes you.',
+    'lifestyle_copy' => 'Dainely™ Back Pain Relief Patches provide convenient, targeted topical comfort with a lightweight design that fits easily into your daily routine — helping you stay comfortable while doing the things you enjoy.',
+    'botanical_title' => 'Botanical Ingredients',
+    'botanical_intro' => 'Dainely® Back Pain Relief Patches contain a carefully selected blend of traditional botanical ingredients that have been used for generations in wellness practices. These ingredients are combined into a convenient topical patch designed for localized comfort.',
+    'botanical_items' => 
+    array (
+      0 => 'Frankincense',
+      1 => 'Myrrh',
+      2 => 'Curcuma Root',
+      3 => 'Chuanxiong Rhizome',
+      4 => 'Angelica pubescens',
+      5 => 'Lycopodium Herb',
+      6 => 'Caulis Lonicerae',
+    ),
+    'botanical_note' => 'Ingredients are used as part of the product\'s proprietary botanical formulation.',
+    'safety_title' => 'Important Information',
+    'safety_items' => 
+    array (
+      0 => 'For external use only.',
+      1 => 'Apply only to clean, dry skin.',
+      2 => 'Do not apply to broken or irritated skin.',
+      3 => 'Discontinue use if irritation occurs.',
+      4 => 'Keep out of reach of children.',
+      5 => 'Consult your healthcare professional if pregnant, nursing, or under medical care before use.',
+    ),
     'lifestyle_cards' => 
     array (
       0 => 
@@ -750,11 +777,20 @@ return array (
         2 => 'Yes. The self-heating action is safe for overnight wear and will help you sleep comfortably without waking up from lower back aches.',
       ),
     ),
-    'cta_eyebrow' => 'Immediate Lumbar Relief',
-    'cta_title' => 'Soothe spasms. Keep moving without back soreness.',
-    'cta_copy' => 'Designed for daily movement, physical recovery, and desk strain relief.',
+    'cta_eyebrow' => '',
+    'cta_title' => 'Why Customers Love It?',
+    'cta_copy' => '',
+    'cta_love_points' => 
+    array (
+      0 => 'Thin, comfortable patch',
+      1 => 'Easy to apply',
+      2 => 'No messy creams or gels',
+      3 => 'Convenient for work, travel and home',
+      4 => 'Lightweight and discreet under clothing',
+      5 => 'Designed for everyday wellness routines',
+    ),
     'cta_button' => 'Add to Cart — Free Shipping',
-    'cta_guarantee' => '✓ 30-Day Pain Relief Guarantee',
+    'cta_guarantee' => '✓ 30-Day Money-Back Guarantee',
     'doctor_name' => 'Dr. M. Reinholt',
     'doctor_title' => 'Physiotherapy Consultant',
     'doctor_quote' => 'Localized warming patches provide safe, targeted relief for lumbar fatigue.',
@@ -797,7 +833,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -982,7 +1018,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -1021,68 +1057,68 @@ return array (
       0 => 
       array (
         0 => 'Workouts & Athletics',
-        1 => 'Safeguards your meniscus and patellar ligaments during sports, runs, and gym exercises.',
+        1 => 'Comfortable support during sports, runs, and light exercise.',
       ),
       1 => 
       array (
         0 => 'Stairs & Daily Walking',
-        1 => 'Absorbs kinetic impact forces to reduce grinding cartilage pain during daily routines.',
+        1 => 'A secure fit for everyday walking, stairs, and daily routines.',
       ),
       2 => 
       array (
-        0 => 'Seated Joint Recovery',
-        1 => 'Keeps blood flow active around the joint caps to prevent stiffness when rising from chairs.',
+        0 => 'Sitting to Standing',
+        1 => 'Designed to stay comfortable when rising from a chair and moving through your day.',
       ),
     ),
-    'how_eyebrow' => 'Tri-Shield Stabilization',
-    'how_title' => 'How it protects your knee from loading shock',
-    'how_copy' => 'Three mechanical support systems working together to stabilize and decompress your knee joint.',
+    'how_eyebrow' => 'Everyday Knee Support',
+    'how_title' => 'Designed for Comfortable Everyday Knee Support',
+    'how_copy' => 'A lightweight design that combines adjustable compression, breathable materials, and personalized support to help you stay comfortable throughout your day.',
     'how_steps' => 
     array (
       0 => 
       array (
         0 => '01',
-        1 => 'Patellar Alignment Ring',
-        2 => 'The thick silicone gel pad cradles the kneecap. This holds the patella securely in its natural track, avoiding grinding friction.',
+        1 => 'Personalized Compression',
+        2 => 'Adjust the wrap to achieve the level of compression that feels most comfortable for your daily activities, helping provide a secure and customized fit.',
       ),
       1 => 
       array (
         0 => '02',
-        1 => 'Flexible Side Springs',
-        2 => 'Metal spring stabilizers located on both sides absorb joint compression forces when bending, reducing muscle strain.',
+        1 => 'Precision Comfort Pad',
+        2 => 'The removable comfort pad can be positioned for either the left or right leg, delivering localized support and allowing you to personalize the fit to your preference.',
       ),
       2 => 
       array (
         0 => '03',
-        1 => 'Graduated Knit Compression',
-        2 => 'Graduated medical compression stimulates local tissue blood flow. This helps drain accumulated fluid and relieves inflammation.',
+        1 => 'Stable Yet Flexible Design',
+        2 => 'The ergonomic wrap helps keep the brace comfortably in place while allowing natural movement during walking, working, travel, and everyday activities.',
       ),
     ),
-    'science_eyebrow' => '',
-    'science_title' => '',
+    'science_eyebrow' => 'Feature Highlights',
+    'science_title' => 'Built for everyday comfort',
     'science_p1' => '',
     'science_p2' => '',
     'stats' => 
     array (
       0 => 
       array (
-        0 => '3D Weave',
-        1 => 'High-density knit contouring perfectly to your leg shape',
+        0 => 'Adjustable Compression',
+        1 => 'Customize the level of support for a secure, comfortable fit throughout the day.',
       ),
       1 => 
       array (
-        0 => '94% Success',
-        1 => 'Of users reported reduced joint swelling and grinding',
+        0 => 'Breathable Fabric',
+        1 => 'Soft, lightweight materials promote lasting comfort during everyday wear.',
       ),
       2 => 
       array (
-        0 => '2 Side Springs',
-        1 => 'Flexible stabilizers absorb load forces during bending',
+        0 => 'Dual-Side Fit',
+        1 => 'Designed for both the left and right leg with an adjustable positioning system.',
       ),
       3 => 
       array (
-        0 => 'Silicon Ring',
-        1 => 'Cradles the patella to lock joint tracking',
+        0 => 'Precision Comfort Pad',
+        1 => 'A removable comfort pad provides localized pressure and a personalized fit.',
       ),
     ),
     'faq_eyebrow' => 'Frequently Asked Questions',
@@ -1125,9 +1161,9 @@ return array (
     'cta_copy' => 'Designed for daily walking, sports workouts, arthritis comfort, and cartilage protection.',
     'cta_button' => 'Add to Cart — Free Shipping',
     'cta_guarantee' => '✓ 30-Day Pain Relief Guarantee',
-    'doctor_name' => 'Dr. M. Reinholt',
-    'doctor_title' => 'Physiotherapy Consultant',
-    'doctor_quote' => 'Side stabilizers reduce the compression weight on the patella and meniscus regions, preventing bone-on-bone pain.',
+    'doctor_name' => 'Expert Design Insight',
+    'doctor_title' => '',
+    'doctor_quote' => 'The most effective everyday knee supports are designed to balance comfort, stability, and freedom of movement. A secure fit, adjustable compression, and breathable materials help encourage consistent daily wear.',
   ),
   'products_percussion' => 
   array (
@@ -1167,7 +1203,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -1352,7 +1388,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -1537,7 +1573,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -1722,7 +1758,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -1907,7 +1943,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -2078,7 +2114,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -2229,9 +2265,8 @@ return array (
     'select_option' => 'Select Option',
     'add_to_cart' => 'Add to Cart — Free Shipping',
     'order_now' => 'Order Now',
-    'guarantee_title' => '30-Day Pain Relief Guarantee',
-    'guarantee_desc' => 'Test the DMEDE System during your daily work and relaxation routines. Not completely right? Full refund, hassle-free.',
-    'micro_secure' => 'Secure checkout',
+    'guarantee_title' => '30-Day Comfort Guarantee',
+    'guarantee_desc' => 'Try the Dainely™ Daily Support & Recovery System™ at home for 30 days. Wear it during your everyday activities and routines. If it\'s not the right fit for you, simply contact us within 30 days for a full refund.<br><br>No pressure. No complicated process.<br><br>See our Return & Refund Policy for eligibility and complete terms.',   'micro_secure' => 'Secure checkout',
     'micro_shipping' => 'Fast shipping',
     'micro_trusted' => 'Trusted by thousands',
     'trust_strip' => 
@@ -2244,7 +2279,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -2277,32 +2312,32 @@ return array (
     ),
     'lifestyle_eyebrow' => 'Support that moves with you',
     'lifestyle_title' => 'Fits effortlessly into your standard routine',
-    'lifestyle_copy' => 'Braces shouldn\'t restrict you to the sidelines. The DMEDE™ System stabilizes your lumbar region while allowing natural movement — making it the ideal partner for long work hours, standing shifts, and everyday movement.',
+    'lifestyle_copy' => 'Braces shouldn\'t restrict you to the sidelines. The Dainely™ Daily Support & Recovery System stabilizes your lumbar region while allowing natural movement — making it the ideal partner for long work hours, standing shifts, and everyday movement.',
     'lifestyle_cards' => 
     array (
     ),
-    'how_eyebrow' => 'Complete Back Protocol',
-    'how_title' => 'How the Daily Support & Recovery System works',
-    'how_copy' => 'Three integrated components working together to support your lower back and accelerate joint recovery.',
+    'how_eyebrow' => 'How the Daily Support & Recovery System™ Works',
+    'how_title' => 'Three Simple Elements. One Complete Daily Support Approach.',
+    'how_copy' => 'Your body works hard every day from sitting and standing to walking, lifting, traveling, and enjoying the activities you love. The Daily Support & Recovery System™ combines wearable support, personalized fit, and guided movement routines to help you build better daily habits for an active lifestyle.',
     'how_steps' => 
     array (
       0 => 
       array (
         0 => '01',
-        1 => 'SI Joint Decompression',
-        2 => 'The structured compression belt wraps around the hip bones, taking mechanical stress off the Sacroiliac (SI) joint to reduce chronic inflammation.',
+        1 => 'Targeted Everyday Support',
+        2 => 'Designed to Support Your Core and Pelvic Area. The Dainely™ Support Belt provides lightweight, structured support around the midsection to help you feel more stable and supported during everyday movement. Whether you are working around the house, traveling, walking, or spending time on your feet, the adjustable design moves with you.<br><br>Supports:<br>✓ Everyday mobility<br>✓ Movement confidence<br>✓ Comfortable positioning during activities',
       ),
       1 => 
       array (
         0 => '02',
-        1 => 'Sizing Extender Versatility',
-        2 => 'The included extender pad attaches seamlessly to the main belt, allowing you to widen the support surface or adapt the belt to changing waist sizes.',
+        1 => 'Personalized Comfort Fit',
+        2 => 'Adjust Support Around Your Body. Bodies change over time — and your support system should adapt with you. The included Custom Fit Extender attaches easily to provide additional adjustability, helping create a comfortable fit for different body shapes, clothing layers, and daily needs.<br><br>Designed for:<br>✓ More flexible sizing<br>✓ Personalized comfort<br>✓ Long-lasting everyday use',
       ),
       2 => 
       array (
         0 => '03',
-        1 => 'Guided Mobility Routines',
-        2 => 'A specialized digital exercise protocol containing simple 5-minute movements to release tight hip flexors and decompress compressed vertebrae.',
+        1 => 'Daily Movement Routines',
+        2 => 'Simple Habits That Fit Your Lifestyle. The included Daily Recovery Routines provide easy-to-follow movement guidance designed around everyday activities. These short routines help you:<br>✓ Move after long periods of sitting<br>✓ Maintain flexibility habits<br>✓ Prepare your body for daily activities<br>✓ Build consistency over time<br><br>No complicated workouts. No gym required. Just simple daily movements.',
       ),
     ),
     'science_eyebrow' => '',
@@ -2313,23 +2348,23 @@ return array (
     array (
       0 => 
       array (
-        0 => 'SI Joint Target',
-        1 => 'Stabilizes the pelvic girdle to unload gravity stress',
+        0 => 'Everyday Support Zone',
+        1 => 'Designed to provide comfortable support around your core and pelvic area during daily activities.',
       ),
       1 => 
       array (
-        0 => 'Sizing Extender',
-        1 => 'Included to adapt support to any waist shape',
+        0 => 'Custom Fit Flexibility',
+        1 => 'Included extender helps personalize your fit for different body shapes, clothing choices, and comfort preferences.',
       ),
       2 => 
       array (
-        0 => '94% User Relief',
-        1 => 'Reported reduced lower back aching in 3 weeks',
+        0 => 'Built for Daily Consistency',
+        1 => 'Designed to support everyday wellness habits through wearable support and guided movement routines.',
       ),
       3 => 
       array (
-        0 => 'Digital Library',
-        1 => 'Lifetime guided movements to reverse sitting fatigue',
+        0 => 'Guided Movement Library',
+        1 => 'Access simple routines designed to complement your active lifestyle and help you stay consistent with daily movement.',
       ),
     ),
     'faq_eyebrow' => 'Frequently Asked Questions',
@@ -2367,15 +2402,21 @@ return array (
         2 => 'Upon order confirmation, you will receive a digital link and a QR code in your package to access our guided recovery routine videos and PDFs, showing you simple movement resets.',
       ),
     ),
-    'cta_eyebrow' => 'Complete Back Wellness Protocol',
-    'cta_title' => 'Stabilize your spine. Decompress your lumbar.',
-    'cta_copy' => 'A complete three-in-one daily support system designed to align posture, unload SI joint pressure, and accelerate core recovery.',
+    'cta_eyebrow' => 'Complete Daily Mobility System',
+    'cta_title' => 'Support Your Movement. Maintain Your Momentum.',
+    'cta_copy' => '',
+    'cta_love_points' => 
+    array (
+      0 => 'Wearable Everyday Support — A lightweight adjustable belt designed to provide comfortable support during your daily activities',
+      1 => 'Personalized Fit — An included extender system designed to adapt to your body and comfort preferences',
+      2 => 'Guided Movement Routines — Simple daily exercises designed to complement your lifestyle and encourage consistent mobility habits',
+      3 => 'Because staying active is not about doing more. It is about supporting the body that helps you do what you love',
+    ),
     'cta_button' => 'Add to Cart — Free Shipping',
     'cta_guarantee' => '✓ 30-Day Pain Relief Guarantee',
     'doctor_name' => 'Dr. M. Reinholt',
     'doctor_title' => 'Physiotherapy Consultant',
-    'doctor_quote' => 'Targeted pelvic compression stabilizes the lower lumbar region, allowing overworked spinal muscles to recover and restoring posture awareness.',
-  ),
+    'doctor_quote' => 'Targeted pelvic compression stabilizes the lower lumbar region, allowing overworked spinal muscles to recover and restoring posture awareness.',),
   'products_cushion' => 
   array (
     'seo_title' => 'ErgoCushion® Seat Cushion — Premium Tailbone & Sciatica Relief',
@@ -2410,7 +2451,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (
@@ -2576,7 +2617,7 @@ return array (
       1 => 
       array (
         0 => 'Free Ship',
-        1 => 'Over $75',
+        1 => 'Over $29.99',
       ),
       2 => 
       array (

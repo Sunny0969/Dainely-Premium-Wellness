@@ -1,3 +1,4 @@
 *
 !public/
 !.gitignore
+!site_settings.json

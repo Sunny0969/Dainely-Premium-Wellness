@@ -1,10 +1,14 @@
 <?php
 
 return array (
+  'cms_specs_title' => 'Caractéristiques',
+  'cms_care_title' => 'Entretien',
+  'cms_how_title' => 'Comment ça marche',
+  'cms_who_title' => 'Pour qui',
   'products_belt' => 
   array (
     'seo_title' => 'Dainely Belt — Stabilisation haut de gamme du bas du dos',
-    'seo_desc' => 'Stabilisation quotidienne haut de gamme du bas du dos conçue pour les mouvements modernes et les longues routines quotidiennes. Livraison gratuite pour les commandes de plus de 75 $ .',
+    'seo_desc' => 'Stabilisation quotidienne haut de gamme du bas du dos conçue pour les mouvements modernes et les longues routines quotidiennes. Livraison gratuite pour les commandes de plus de 29,99 $ .',
     'product_name' => 'Dainely Belt',
     'badge_best_seller' => 'Meilleure Vendeur',
     'badge_clinical' => 'Développé cliniquement',
@@ -39,7 +43,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -192,7 +196,7 @@ return array (
       array (
         0 => 'faq8',
         1 => 'Quand est-ce que ma commande sera expédiée?',
-        2 => 'Les commandes sont expédiées sous 1 à 2 jours ouvrables. L\'expédition standard est de 5 à 8 jours ouvrables. Livraison gratuite sur toutes les commandes de plus de 75 $ .',
+        2 => 'Les commandes sont expédiées sous 1 à 2 jours ouvrables. L\'expédition standard est de 5 à 8 jours ouvrables. Livraison gratuite sur toutes les commandes de plus de 29,99 $ .',
       ),
     ),
     'cta_eyebrow' => 'Prêt à démarrer',
@@ -242,7 +246,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -427,7 +431,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -580,7 +584,7 @@ return array (
     'seo_desc' => 'Apaisez les muscles du bas du dos tendus et soulagez les douleurs lombaires avec des patchs de réchauffement actifs à base de plantes pendant 8 heures.',
     'product_name' => 'Taches de soulagement des maux de dos',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Cliniquement testé. ',
+    'badge_clinical' => 'Formule botanique premium',
     'eyebrow' => 'Soulagement lombaire transdermique',
     'hero_headline' => 'Chaleur apaisante à action rapide qui dure jusqu\'à 8 heures.',
     'verified_reviews' => ':count commentaires vérifiés',
@@ -612,7 +616,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -646,6 +650,29 @@ return array (
     'lifestyle_eyebrow' => 'Confort lombaire en mouvement',
     'lifestyle_title' => 'Soulagez la raideur du dos, où que vous soyez.',
     'lifestyle_copy' => 'Que vous travailliez à un bureau, que vous soyez debout toute la journée ou que vous vous remettiez de la fatigue musculaire, les douleurs lombaires peuvent limiter votre mobilité. Les patchs Dainely™ pour soulager les maux de dos offrent une chaleur localisée et durable pour vous aider à rester actif et sans douleur.',
+    'botanical_title' => 'Ingrédients botaniques',
+    'botanical_intro' => 'Les patchs Dainely® pour soulager les maux de dos contiennent un mélange soigneusement sélectionné d’ingrédients botaniques traditionnels utilisés depuis des générations dans les pratiques de bien-être. Ces ingrédients sont combinés dans un patch topique pratique conçu pour un confort localisé.',
+    'botanical_items' => 
+    array (
+      0 => 'Encens (Frankincense)',
+      1 => 'Myrrhe',
+      2 => 'Racine de curcuma',
+      3 => 'Rhizome de Chuanxiong',
+      4 => 'Angelica pubescens',
+      5 => 'Herbe de Lycopodium',
+      6 => 'Caulis Lonicerae',
+    ),
+    'botanical_note' => 'Les ingrédients font partie de la formulation botanique exclusive du produit.',
+    'safety_title' => 'Informations importantes',
+    'safety_items' => 
+    array (
+      0 => 'Pour usage externe uniquement.',
+      1 => 'Appliquer uniquement sur une peau propre et sèche.',
+      2 => 'Ne pas appliquer sur une peau abîmée ou irritée.',
+      3 => 'Arrêter l’utilisation en cas d’irritation.',
+      4 => 'Tenir hors de portée des enfants.',
+      5 => 'Consultez un professionnel de santé si vous êtes enceinte, allaitante ou sous traitement médical avant utilisation.',
+    ),
     'lifestyle_cards' => 
     array (
       0 => 
@@ -750,11 +777,20 @@ return array (
         2 => 'Yes. The self-heating action is safe for overnight wear and will help you sleep comfortably without waking up from lower back aches.',
       ),
     ),
-    'cta_eyebrow' => 'Immediate Lumbar Relief',
-    'cta_title' => 'Soothe spasms. Keep moving without back soreness.',
-    'cta_copy' => 'Designed for daily movement, physical recovery, and desk strain relief.',
+    'cta_eyebrow' => '',
+    'cta_title' => 'Pourquoi les clients l’adorent ?',
+    'cta_copy' => '',
+    'cta_love_points' => 
+    array (
+      0 => 'Patch fin et confortable',
+      1 => 'Facile à appliquer',
+      2 => 'Sans crèmes ni gels salissants',
+      3 => 'Pratique au travail, en voyage et à la maison',
+      4 => 'Léger et discret sous les vêtements',
+      5 => 'Conçu pour les routines bien-être du quotidien',
+    ),
     'cta_button' => 'Ajouter au panier — Livraison gratuite',
-    'cta_guarantee' => '✓ Garantie de soulagement de la douleur de 30 jours',
+    'cta_guarantee' => '✓ Garantie satisfait ou remboursé 30 jours',
     'doctor_name' => 'Dr M. Reinholt',
     'doctor_title' => 'Consultant en physiothérapie',
     'doctor_quote' => 'Localized warming patches provide safe, targeted relief for lumbar fatigue.',
@@ -797,7 +833,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -946,189 +982,190 @@ return array (
   ),
   'products_knee' => 
   array (
-    'seo_title' => 'Dainely™ Knee Brace — Premium Joint Compression & Patella Gel Support',
-    'seo_desc' => 'Stabilize knee joints, relieve meniscus and patella pressure, and walk without pain with the ergonomic Dainely™ Knee Brace.',
-    'product_name' => 'Dainely™ Knee Brace',
-    'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Clinically Approved',
-    'eyebrow' => 'Ergonomic Patella & Joint Support',
-    'hero_headline' => 'Decompress knee joint pressure. Walk & run pain-free.',
-    'verified_reviews' => ':count commentaires vérifiés',
-    'in_stock' => 'En stock',
-    'description' => 'Grinding knee joints, meniscus strain, and patella instability can make daily walks and simple tasks agonizing. The Dainely™ Knee Brace features an anatomically shaped silicone gel patella shield surrounded by dual flexible side springs. This absorbs joint loading shocks and prevents painful knee misalignment during activity.',
-    'benefits' => 
-    array (
-      0 => 'Anatomical gel pad cushions and locks patella tracking in place',
-      1 => 'Flexible lateral springs absorb impact forces when bending or loading',
-      2 => 'Medical-grade 3D elastic knit applies targeted, breathable compression',
-      3 => 'Double silicone wavy strips prevent sliding and rolling during movement',
-      4 => 'Helps recover from meniscus tears, arthritis swelling, and patellar strains',
-    ),
-    'select_option' => 'Choisir la Taille',
-    'add_to_cart' => 'Ajouter au panier — Livraison gratuite',
-    'order_now' => 'Get Your Knee Brace',
-    'guarantee_title' => '30-Day Satisfaction Guarantee',
-    'guarantee_desc' => 'Walk, jog, and climb stairs with total knee support, or get your money back. Risk-free purchase.',
-    'micro_secure' => 'Paiement sécurisé',
-    'micro_shipping' => 'Expédition rapide',
-    'micro_trusted' => 'Des milliers de clients nous font confiance',
-    'trust_strip' => 
-    array (
-      0 => 
-      array (
-        0 => '30 J',
-        1 => 'Garantie',
-      ),
-      1 => 
-      array (
-        0 => 'Livraison gratuite',
-        1 => 'plus de 75',
-      ),
-      2 => 
-      array (
-        0 => 'Secure',
-        1 => 'Paiement',
-      ),
-    ),
-    'authority' => 
-    array (
-      0 => 
-      array (
-        0 => 'Contoured Patella Gel Pad',
-        1 => 'Surrounds the kneecap to lock joint tracking and prevent dislocation.',
-      ),
-      1 => 
-      array (
-        0 => 'Lateral Spring Stabilizers',
-        1 => 'Side stabilizers absorb kinetic joint load during squats and bends.',
-      ),
-      2 => 
-      array (
-        0 => 'Medical-Grade 3D Elastic Knit',
-        1 => 'Applies graduated pressure to decrease inflammation and joint swelling.',
-      ),
-      3 => 
-      array (
-        0 => 'Wavy Non-Slip Silicone Strips',
-        1 => 'Double-layered grip ensures the brace stays in place during active sports.',
-      ),
-    ),
-    'lifestyle_eyebrow' => 'Ergonomic Joint Protection',
-    'lifestyle_title' => 'Relieve joint friction, wherever you move.',
-    'lifestyle_copy' => 'Athletic activities, climbing stairs, or standing for long intervals can put immense loading stress on your knees. The Dainely™ Knee Brace provides steady structural support to keep you moving smoothly and pain-free.',
-    'lifestyle_cards' => 
-    array (
-      0 => 
-      array (
-        0 => 'Workouts & Athletics',
-        1 => 'Safeguards your meniscus and patellar ligaments during sports, runs, and gym exercises.',
-      ),
-      1 => 
-      array (
-        0 => 'Stairs & Daily Walking',
-        1 => 'Absorbs kinetic impact forces to reduce grinding cartilage pain during daily routines.',
-      ),
-      2 => 
-      array (
-        0 => 'Seated Joint Recovery',
-        1 => 'Keeps blood flow active around the joint caps to prevent stiffness when rising from chairs.',
-      ),
-    ),
-    'how_eyebrow' => 'Tri-Shield Stabilization',
-    'how_title' => 'How it protects your knee from loading shock',
-    'how_copy' => 'Three mechanical support systems working together to stabilize and decompress your knee joint.',
-    'how_steps' => 
-    array (
-      0 => 
-      array (
-        0 => '01',
-        1 => 'Patellar Alignment Ring',
-        2 => 'The thick silicone gel pad cradles the kneecap. This holds the patella securely in its natural track, avoiding grinding friction.',
-      ),
-      1 => 
-      array (
-        0 => '02',
-        1 => 'Flexible Side Springs',
-        2 => 'Metal spring stabilizers located on both sides absorb joint compression forces when bending, reducing muscle strain.',
-      ),
-      2 => 
-      array (
-        0 => '03',
-        1 => 'Graduated Knit Compression',
-        2 => 'Graduated medical compression stimulates local tissue blood flow. This helps drain accumulated fluid and relieves inflammation.',
-      ),
-    ),
-    'science_eyebrow' => '',
-    'science_title' => '',
-    'science_p1' => '',
-    'science_p2' => '',
-    'stats' => 
-    array (
-      0 => 
-      array (
-        0 => '3D Weave',
-        1 => 'High-density knit contouring perfectly to your leg shape',
-      ),
-      1 => 
-      array (
-        0 => '94% Success',
-        1 => 'Of users reported reduced joint swelling and grinding',
-      ),
-      2 => 
-      array (
-        0 => '2 Side Springs',
-        1 => 'Flexible stabilizers absorb load forces during bending',
-      ),
-      3 => 
-      array (
-        0 => 'Silicon Ring',
-        1 => 'Cradles the patella to lock joint tracking',
-      ),
-    ),
-    'faq_eyebrow' => 'Foire aux questions',
-    'faq_title' => 'FAQ',
-    'faqs' => 
-    array (
-      0 => 
-      array (
-        0 => 'kb_faq1',
-        1 => 'How do I choose the correct size for my knee brace?',
-        2 => 'Measure the circumference of your thigh 5 inches (13cm) above the center of your kneecap. Compare your measurement with our size chart options during selection. If you are between sizes, we recommend sizing up for comfortable daily wear.',
-      ),
-      1 => 
-      array (
-        0 => 'kb_faq2',
-        1 => 'Can I wear the Knee Brace under regular trousers?',
-        2 => 'Yes! The premium 3D knit fabric is lightweight and low-profile. It fits comfortably under loose trousers, sweatpants, or jeans without limiting your movement.',
-      ),
-      2 => 
-      array (
-        0 => 'kb_faq3',
-        1 => 'Will the brace slip down during running or workouts?',
-        2 => 'No. The top cuff of the brace features double-layered wavy silicone strips that hold firmly onto your skin, keeping it securely in place even during intense physical exercise.',
-      ),
-      3 => 
-      array (
-        0 => 'kb_faq4',
-        1 => 'How do I wash and maintain the brace?',
-        2 => 'We recommend hand washing with cold water and mild soap. Let the brace air dry in a flat position. Do not machine wash or tumble dry to preserve the lateral springs and patellar gel ring.',
-      ),
-      4 => 
-      array (
-        0 => 'kb_faq5',
-        1 => 'How long should I wear it daily?',
-        2 => 'You can wear it throughout workouts, daily walks, or long standing shifts. Start by wearing it for 2-3 hours and gradually increase as your knee joints adapt.',
-      ),
-    ),
-    'cta_eyebrow' => 'Immediate Joint Relief',
-    'cta_title' => 'Protect your knees. Enjoy painless, active mobility.',
-    'cta_copy' => 'Designed for daily walking, sports workouts, arthritis comfort, and cartilage protection.',
-    'cta_button' => 'Ajouter au panier — Livraison gratuite',
-    'cta_guarantee' => '✓ Garantie de soulagement de la douleur de 30 jours',
-    'doctor_name' => 'Dr M. Reinholt',
-    'doctor_title' => 'Consultant en physiothérapie',
-    'doctor_quote' => 'Side stabilizers reduce the compression weight on the patella and meniscus regions, preventing bone-on-bone pain.',
+  'seo_title' => 'Dainely™ Knee Brace — Compression articulaire premium & support rotulien en gel',
+  'seo_desc' => 'Stabilisez le genou, soulagez la pression sur le ménisque et la rotule, et marchez sans douleur avec la genouillère ergonomique Dainely™.',
+  'product_name' => 'Dainely™ Knee Brace',
+  'badge_best_seller' => 'Best-seller',
+  'badge_clinical' => 'Recommandé cliniquement',
+  'eyebrow' => 'Support ergonomique rotule & articulation',
+  'hero_headline' => 'Décompressez la pression articulaire du genou. Marchez et courez sans douleur.',
+  'verified_reviews' => ':count avis vérifiés',
+  'in_stock' => '✓ En stock',
+  'description' => 'Frottements articulaires, tension du ménisque et instabilité de la rotule peuvent rendre la marche quotidienne douloureuse. La Dainely™ Knee Brace combine un bouclier rotulien en gel de silicone anatomique et des ressorts latéraux flexibles pour absorber les chocs et prévenir les désalignements douloureux.',
+  'benefits' => 
+  array (
+    0 => 'Coussinet gel anatomique qui guide et stabilise la rotule',
+    1 => 'Ressorts latéraux flexibles qui absorbent les impacts à la flexion',
+    2 => 'Tricot élastique 3D médical pour une compression respirante ciblée',
+    3 => 'Doubles bandes ondulées en silicone anti-glissement',
+    4 => 'Aide à la récupération après lésions du ménisque, arthrite et tensions rotuliennes',
   ),
+  'select_option' => 'Choisir une option',
+  'add_to_cart' => 'Ajouter au panier — Livraison gratuite',
+  'order_now' => 'Commander maintenant',
+  'guarantee_title' => 'Garantie soulagement de la douleur 30 jours',
+  'guarantee_desc' => 'Marchez, joggez et montez les escaliers avec un soutien total du genou, ou remboursé. Achat sans risque.',
+  'micro_secure' => 'Paiement sécurisé',
+  'micro_shipping' => 'Livraison rapide',
+  'micro_trusted' => 'Approuvé par des milliers de clients',
+  'trust_strip' => 
+  array (
+    0 => 
+    array (
+      0 => '30 jours',
+      1 => 'Garantie',
+    ),
+    1 => 
+    array (
+      0 => 'Livraison',
+      1 => 'Offerte dès $29.99',
+    ),
+    2 => 
+    array (
+      0 => 'Paiement',
+      1 => 'Sécurisé',
+    ),
+  ),
+  'authority' => 
+  array (
+    0 => 
+    array (
+      0 => 'Coussinet gel rotulien contouré',
+      1 => 'Entoure la rotule pour guider l’articulation et prévenir les luxations.',
+    ),
+    1 => 
+    array (
+      0 => 'Stabilisateurs à ressorts latéraux',
+      1 => 'Absorbent la charge articulaire pendant les flexions et squats.',
+    ),
+    2 => 
+    array (
+      0 => 'Tricot élastique 3D médical',
+      1 => 'Applique une pression graduée pour réduire inflammation et gonflement.',
+    ),
+    3 => 
+    array (
+      0 => 'Bandes silicone anti-glisse',
+      1 => 'Double grip pour garder la genouillère en place pendant le sport.',
+    ),
+  ),
+  'lifestyle_eyebrow' => 'Protection articulaire ergonomique',
+  'lifestyle_title' => 'Soulagez le frottement articulaire, où que vous alliez.',
+  'lifestyle_copy' => 'Le sport, les escaliers ou rester debout longtemps sollicitent fortement vos genoux. La Dainely™ Knee Brace offre un soutien structurel stable pour bouger en douceur et sans douleur.',
+  'lifestyle_cards' => 
+  array (
+    0 => 
+    array (
+      0 => 'Entraînement & sport',
+      1 => 'Soutien confortable pendant le sport, la course et l’exercice léger.',
+    ),
+    1 => 
+    array (
+      0 => 'Escaliers & marche',
+      1 => 'Un maintien sûr pour la marche, les escaliers et le quotidien.',
+    ),
+    2 => 
+    array (
+      0 => 'Assis à debout',
+      1 => 'Conçue pour rester confortable quand vous vous levez et avancez dans votre journée.',
+    ),
+  ),
+  'how_eyebrow' => 'Soutien quotidien du genou',
+  'how_title' => 'Conçue pour un soutien confortable du genou au quotidien',
+  'how_copy' => 'Un design léger qui combine compression réglable, matériaux respirants et soutien personnalisé pour rester à l’aise toute la journée.',
+  'how_steps' => 
+  array (
+    0 => 
+    array (
+      0 => '01',
+      1 => 'Compression personnalisée',
+      2 => 'Ajustez l’enveloppement au niveau de compression le plus confortable pour vos activités quotidiennes — pour un maintien sûr et sur mesure.',
+    ),
+    1 => 
+    array (
+      0 => '02',
+      1 => 'Coussinet de précision',
+      2 => 'Le coussinet amovible se positionne pour la jambe gauche ou droite, offrant un soutien localisé selon vos préférences.',
+    ),
+    2 => 
+    array (
+      0 => '03',
+      1 => 'Stable et flexible',
+      2 => 'L’enveloppement ergonomique reste en place tout en permettant un mouvement naturel pour marcher, travailler, voyager et vivre au quotidien.',
+    ),
+  ),
+  'science_eyebrow' => 'Points forts',
+  'science_title' => 'Conçue pour le confort quotidien',
+  'science_p1' => '',
+  'science_p2' => '',
+  'stats' => 
+  array (
+    0 => 
+    array (
+      0 => 'Compression réglable',
+      1 => 'Personnalisez le niveau de soutien pour un maintien confortable toute la journée.',
+    ),
+    1 => 
+    array (
+      0 => 'Tissu respirant',
+      1 => 'Matériaux doux et légers pour un confort durable au quotidien.',
+    ),
+    2 => 
+    array (
+      0 => 'Ajustement bilatéral',
+      1 => 'Conçue pour la jambe gauche et droite avec système de positionnement réglable.',
+    ),
+    3 => 
+    array (
+      0 => 'Coussinet de précision',
+      1 => 'Un coussinet amovible pour une pression localisée et un ajustement personnalisé.',
+    ),
+  ),
+  'faq_eyebrow' => 'Foire aux questions',
+  'faq_title' => 'FAQ',
+  'faqs' => 
+  array (
+    0 => 
+    array (
+      0 => 'kb_faq1',
+      1 => 'Comment choisir la bonne taille de genouillère ?',
+      2 => 'Mesurez le tour de cuisse 5 pouces (13 cm) au-dessus du centre de la rotule. Comparez avec notre tableau des tailles. Entre deux tailles, choisissez la plus grande pour un port quotidien confortable.',
+    ),
+    1 => 
+    array (
+      0 => 'kb_faq2',
+      1 => 'Puis-je porter la genouillère sous un pantalon classique ?',
+      2 => 'Oui ! Le tricot 3D premium est léger et discret. Il se glisse confortablement sous un pantalon ample, un jogging ou un jean sans limiter vos mouvements.',
+    ),
+    2 => 
+    array (
+      0 => 'kb_faq3',
+      1 => 'La genouillère glisse-t-elle pendant la course ou l’entraînement ?',
+      2 => 'Non. Le haut de la genouillère a des bandes silicone ondulées doubles qui adhèrent à la peau, même pendant un effort intense.',
+    ),
+    3 => 
+    array (
+      0 => 'kb_faq4',
+      1 => 'Comment laver et entretenir la genouillère ?',
+      2 => 'Lavez à la main à l’eau froide avec un savon doux. Laissez sécher à plat à l’air libre. Évitez le lave-linge et le sèche-linge pour préserver les ressorts et l’anneau en gel.',
+    ),
+    4 => 
+    array (
+      0 => 'kb_faq5',
+      1 => 'Combien de temps dois-je la porter chaque jour ?',
+      2 => 'Vous pouvez la porter pendant l’entraînement, la marche ou de longues périodes debout. Commencez par 2–3 heures, puis augmentez progressivement.',
+    ),
+  ),
+  'cta_eyebrow' => 'Soulagement articulaire immédiat',
+  'cta_title' => 'Protégez vos genoux. Profitez d’une mobilité active sans douleur.',
+  'cta_copy' => 'Conçue pour la marche quotidienne, le sport, le confort arthritique et la protection du cartilage.',
+  'cta_button' => 'Ajouter au panier — Livraison gratuite',
+  'cta_guarantee' => '✓ Garantie soulagement de la douleur 30 jours',
+  'doctor_name' => 'Conseil d’experts',
+  'doctor_title' => '',
+  'doctor_quote' => 'Les meilleurs supports de genou du quotidien équilibrent confort, stabilité et liberté de mouvement. Un maintien sûr, une compression réglable et des matières respirantes encouragent un port régulier.',
+),
+
   'products_percussion' => 
   array (
     'seo_title' => 'Dainely™ Percussion Massager — Professional Deep Tissue Recovery',
@@ -1136,11 +1173,11 @@ return array (
     'product_name' => 'Dainely™ Massager',
     'badge_best_seller' => 'Meilleure Vendeur',
     'badge_clinical' => 'Clinically Approved',
-    'eyebrow' => 'Professional Deep Tissue Percussion',
-    'hero_headline' => 'Dissolve deep muscle knots. Speed up recovery in minutes.',
-    'verified_reviews' => ':count commentaires vérifiés',
-    'in_stock' => 'En stock',
-    'description' => 'Desk sitting posture tension, heavy athletic workouts, and daily stress build up tight trigger point knots in your muscles, restricting your natural mobility. The Dainely™ Percussion Massager fires rapid high-frequency pulses that penetrate 12mm deep into target tissue, melting away muscle stiffness and flushing out lactic acid.',
+    'eyebrow' => 'Percussion professionnelle en profondeur',
+    'hero_headline' => 'Dissolvez les nœuds musculaires profonds. Accélérez la récupération en quelques minutes.',
+    'verified_reviews' => ':count avis vérifiés',
+    'in_stock' => '✓ En stock',
+    'description' => 'La posture assise, les entraînements intenses et le stress quotidien créent des nœuds de points trigger qui limitent votre mobilité. Le Dainely™ Percussion Massager envoie des impulsions haute fréquence jusqu’à 12 mm de profondeur pour fondre la raideur musculaire et éliminer l’acide lactique.',
     'benefits' => 
     array (
       0 => '12mm amplitude deep tissue penetration for serious knot release',
@@ -1151,9 +1188,9 @@ return array (
     ),
     'select_option' => 'Choisir une option',
     'add_to_cart' => 'Ajouter au panier — Livraison gratuite',
-    'order_now' => 'Get Your Dainely Massager',
-    'guarantee_title' => '30-Day Comfort Guarantee',
-    'guarantee_desc' => 'Melt away muscle tension and pain in the comfort of your home, or get a full refund. Safe and secure purchase.',
+    'order_now' => 'Obtenir mon Dainely Massager',
+    'guarantee_title' => 'Garantie confort 30 jours',
+    'guarantee_desc' => 'Faites fondre tensions et douleurs chez vous, ou obtenez un remboursement complet. Achat sécurisé.',
     'micro_secure' => 'Paiement sécurisé',
     'micro_shipping' => 'Expédition rapide',
     'micro_trusted' => 'Des milliers de clients nous font confiance',
@@ -1167,7 +1204,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -1198,9 +1235,9 @@ return array (
         1 => 'Rechargeable lithium system yields up to 6 hours of continuous use.',
       ),
     ),
-    'lifestyle_eyebrow' => 'Targeted Fascia Recovery',
-    'lifestyle_title' => 'Dissolve deep muscle soreness, on demand.',
-    'lifestyle_copy' => 'Whether you are recovering from heavy athletic training, dealing with desk posture strain, or feeling general muscle fatigue, percussive therapy provides targeted muscle release to keep you active.',
+    'lifestyle_eyebrow' => 'Récupération fasciale ciblée',
+    'lifestyle_title' => 'Dissolvez les courbatures profondes, à la demande.',
+    'lifestyle_copy' => 'Que vous récupériez d’un entraînement intense, de tensions de bureau ou d’une fatigue musculaire générale, la thérapie par percussion libère les muscles pour rester actif.',
     'lifestyle_cards' => 
     array (
       0 => 
@@ -1277,42 +1314,42 @@ return array (
       0 => 
       array (
         0 => 'm_faq1',
-        1 => 'How does percussive therapy work?',
-        2 => 'Percussive therapy delivers rapid, concentrated pulses of pressure deep into your muscle tissues. This action desensitizes the surrounding area, releases muscle tension, and promotes increased blood flow, which accelerates overall recovery.',
+        1 => 'Comment fonctionne la thérapie par percussion ?',
+        2 => 'La thérapie par percussion envoie des impulsions rapides et concentrées en profondeur dans les tissus musculaires. Cela désensibilise la zone, relâche les tensions et stimule la circulation sanguine pour accélérer la récupération.',
       ),
       1 => 
       array (
         0 => 'm_faq2',
-        1 => 'Which massage head attachment should I use?',
-        2 => 'Use the Round head for large muscle groups (quads, glutes); the Bullet head for pinpoint trigger points and deep joints; the Fork head for spine, neck, and Achilles; the Flat head for general full-body muscle relaxation.',
+        1 => 'Quelle tête de massage dois-je utiliser ?',
+        2 => 'Utilisez la tête ronde pour les grands groupes musculaires (quadriceps, fessiers) ; la tête pointe pour les points de déclenchement et les articulations ; la tête fourche pour la colonne, le cou et le tendon d’Achille ; la tête plate pour une relaxation musculaire générale.',
       ),
       2 => 
       array (
         0 => 'm_faq3',
-        1 => 'How many speed levels are available?',
-        2 => 'The Dainely™ Percussion Massager features 30 smart speed levels ranging from a light, soothing massage (1800 RPM) up to deep percussive physical recovery settings (3200 RPM). You can adjust speed levels via the back LCD touchscreen.',
+        1 => 'Combien de niveaux de vitesse sont disponibles ?',
+        2 => 'Le masseur à percussion Dainely™ propose 30 niveaux de vitesse, d’un massage doux (1800 tr/min) jusqu’à une récupération percussive profonde (3200 tr/min). Vous pouvez régler la vitesse via l’écran tactile LCD à l’arrière.',
       ),
       3 => 
       array (
         0 => 'm_faq4',
-        1 => 'How long does the rechargeable battery last?',
-        2 => 'Equipped with a high-capacity 2400mAh rechargeable lithium battery, the massage gun operates for up to 6 hours on low speed or 3-4 hours on high percussive settings.',
+        1 => 'Quelle est l’autonomie de la batterie rechargeable ?',
+        2 => 'Avec une batterie lithium rechargeable de 2400 mAh, le pistolet de massage fonctionne jusqu’à 6 heures en vitesse basse, ou 3 à 4 heures en réglages percussifs élevés.',
       ),
       4 => 
       array (
         0 => 'm_faq5',
-        1 => 'Is it quiet enough to use at the gym or office?',
-        2 => 'Yes! Our Quiet-Glide brushless motor keeps noise levels under 45 decibels, which is quieter than a normal office conversation. You can use it anywhere without causing disruption.',
+        1 => 'Est-il assez silencieux pour le gymnase ou le bureau ?',
+        2 => 'Oui ! Notre moteur brushless Quiet-Glide reste sous 45 décibels — plus silencieux qu’une conversation de bureau. Vous pouvez l’utiliser partout sans déranger.',
       ),
     ),
     'cta_eyebrow' => 'Soulagement musculaire immédiat',
-    'cta_title' => 'Dissolve tension knots. Move with full structural mobility.',
-    'cta_copy' => 'Designed for physical workouts, office posture relief, and general body recovery.',
+    'cta_title' => 'Dissolvez les nœuds de tension. Bougez avec une mobilité complète.',
+    'cta_copy' => 'Conçu pour l’entraînement, la posture de bureau et la récupération du corps.',
     'cta_button' => 'Ajouter au panier — Livraison gratuite',
-    'cta_guarantee' => '✓ Garantie de soulagement de la douleur de 30 jours',
+    'cta_guarantee' => '✓ Garantie soulagement de la douleur 30 jours',
     'doctor_name' => 'Dr M. Reinholt',
     'doctor_title' => 'Consultant en physiothérapie',
-    'doctor_quote' => 'Percussive massage speeds up myofascial release and tissue oxygenation, bypassing typical post-exercise stiffness.',
+    'doctor_quote' => 'Le massage percussif accélère la libération myofasciale et l’oxygénation des tissus, en contournant la raideur typique après l’effort.',
   ),
   'products_shoulder' => 
   array (
@@ -1352,7 +1389,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -1537,7 +1574,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -1722,7 +1759,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -1907,7 +1944,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -2078,7 +2115,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -2244,7 +2281,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -2277,7 +2314,7 @@ return array (
     ),
     'lifestyle_eyebrow' => 'Support that moves with you',
     'lifestyle_title' => 'Fits effortlessly into your standard routine',
-    'lifestyle_copy' => 'Braces shouldn\'t restrict you to the sidelines. The DMEDE™ System stabilizes your lumbar region while allowing natural movement — making it the ideal partner for long work hours, standing shifts, and everyday movement.',
+    'lifestyle_copy' => 'Braces shouldn\'t restrict you to the sidelines. The Dainely™ Daily Support & Recovery System stabilizes your lumbar region while allowing natural movement — making it the ideal partner for long work hours, standing shifts, and everyday movement.',
     'lifestyle_cards' => 
     array (
     ),
@@ -2410,7 +2447,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -2576,7 +2613,7 @@ return array (
       1 => 
       array (
         0 => 'Livraison gratuite',
-        1 => 'plus de 75',
+        1 => 'plus de 29,99',
       ),
       2 => 
       array (
@@ -2709,7 +2746,7 @@ return array (
     'doctor_quote' => 'Blending L-theanine containing Arabica coffee with adaptogenic mushrooms slows down caffeine metabolization, providing sustained focus.',
   ),
   'size_guide_eyebrow' => 'Perfect Fit',
-  'size_guide_title' => 'Choose Your Size',
+  'size_guide_title' => 'Choisissez votre taille',
   'size_guide_col_size' => 'Size',
   'size_guide_col_waist' => 'Waist Circumference',
   'size_guide_col_for' => 'Recommended For',

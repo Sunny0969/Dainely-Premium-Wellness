@@ -136,12 +136,10 @@ class ReviewService
         'dainely-tourmaline-belt' => 'dainely™-tourmaline-belt',
         'tourmaline-belt'         => 'dainely™-tourmaline-belt',
 
-        // ── DMEDE Daily Comfort System ───────────────────────────
-        'dainely-daily-comfort-system' => [
-            'dainely-daily-comfort-system',
-            'dmede-daily-support',
-            'dmede-daily-support-recovery-system',
-        ],
+        // ── DMEDE Daily Comfort System (shares belt review pool) ─
+        'dainely-daily-comfort-system'        => 'dainely-comfort-belt',
+        'dmede-daily-support'                 => 'dainely-daily-comfort-system',
+        'dmede-daily-support-recovery-system' => 'dainely-daily-comfort-system',
 
         // ── ErgoCushion ──────────────────────────────────────────
         'cushion' => [
@@ -389,8 +387,126 @@ class ReviewService
     {
         $handles = $this->getHandleGroup($canonical);
         $allReviews = $this->fetchReviewsInParallel($handles);
+        $apiTotals = config('judgeme.use_count_api', true)
+            ? $this->fetchGroupReviewTotals($handles)
+            : null;
 
-        return $this->buildReviewResult($allReviews, $limit);
+        return $this->buildReviewResult($allReviews, $limit, $apiTotals);
+    }
+
+    /**
+     * Sum Judge.me /reviews/count for every unique product_id in the handle group.
+     * Falls back to shop-wide all_reviews_count when no product IDs are mapped.
+     *
+     * @param  list<string>  $handles
+     * @return array{total_count:int, average_rating:?float}
+     */
+    protected function fetchGroupReviewTotals(array $handles): array
+    {
+        $productIds = [];
+        foreach ($handles as $handle) {
+            $id = self::$handleToJudgemeId[$handle] ?? null;
+            if ($id !== null) {
+                $productIds[$id] = true;
+            }
+        }
+        $productIds = array_keys($productIds);
+
+        $total = 0;
+        if ($productIds !== []) {
+            try {
+                $responses = Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($productIds) {
+                    $reqs = [];
+                    foreach ($productIds as $id) {
+                        $reqs[] = $pool->as('c_'.$id)
+                            ->withOptions(['verify' => $this->verifySsl])
+                            ->timeout(8)
+                            ->connectTimeout(15)
+                            ->get('https://judge.me/api/v1/reviews/count', [
+                                'api_token' => $this->apiToken,
+                                'shop_domain' => $this->shopDomain,
+                                'product_id' => $id,
+                            ]);
+                    }
+
+                    return $reqs;
+                });
+            } catch (\Throwable $e) {
+                Log::warning('Judge.me count pool failed: '.$e->getMessage());
+                $responses = [];
+            }
+
+            foreach ($productIds as $id) {
+                $response = $responses['c_'.$id] ?? null;
+                if ($response instanceof \Illuminate\Http\Client\Response && $response->successful()) {
+                    $total += (int) ($response->json('count') ?? 0);
+                }
+            }
+        }
+
+        $shop = $this->fetchShopWideTotals();
+
+        if ($total < 1 && config('judgeme.use_shop_totals_fallback', true)) {
+            $total = (int) ($shop['total_count'] ?? 0);
+        }
+
+        return [
+            'total_count' => $total,
+            'average_rating' => $shop['average_rating'] ?? null,
+        ];
+    }
+
+    /**
+     * Shop-wide Judge.me totals (cached separately — used for avg + empty-group fallback).
+     *
+     * @return array{total_count:int, average_rating:float}
+     */
+    public function fetchShopWideTotals(): array
+    {
+        return Cache::remember('judgeme_shop_totals', $this->cacheTtl, function () {
+            $default = ['total_count' => 0, 'average_rating' => 4.8];
+
+            if ($this->apiToken === '') {
+                return $default;
+            }
+
+            try {
+                $countRes = Http::withOptions(['verify' => $this->verifySsl])
+                    ->timeout(8)
+                    ->get('https://judge.me/api/v1/widgets/all_reviews_count', [
+                        'api_token' => $this->apiToken,
+                        'shop_domain' => $this->shopDomain,
+                    ]);
+                $ratingRes = Http::withOptions(['verify' => $this->verifySsl])
+                    ->timeout(8)
+                    ->get('https://judge.me/api/v1/widgets/all_reviews_rating', [
+                        'api_token' => $this->apiToken,
+                        'shop_domain' => $this->shopDomain,
+                    ]);
+
+                $count = (int) ($countRes->json('all_reviews_count') ?? 0);
+                if ($count < 1 && $countRes->successful() === false) {
+                    $alt = Http::withOptions(['verify' => $this->verifySsl])
+                        ->timeout(8)
+                        ->get('https://judge.me/api/v1/reviews/count', [
+                            'api_token' => $this->apiToken,
+                            'shop_domain' => $this->shopDomain,
+                        ]);
+                    $count = (int) ($alt->json('count') ?? 0);
+                }
+
+                $rating = (float) ($ratingRes->json('all_reviews_rating') ?? 4.8);
+
+                return [
+                    'total_count' => $count,
+                    'average_rating' => $rating > 0 ? round($rating, 1) : 4.8,
+                ];
+            } catch (\Throwable $e) {
+                Log::warning('Judge.me shop totals failed: '.$e->getMessage());
+
+                return $default;
+            }
+        });
     }
 
     /**
@@ -436,7 +552,7 @@ class ReviewService
 
                     $requests[] = $pool->as($key)
                         ->withOptions(['verify' => $this->verifySsl])
-                        ->timeout(20)
+                        ->timeout(8)
                         ->connectTimeout(15)
                         ->get('https://judge.me/api/v1/reviews', $params);
                 }
@@ -486,9 +602,10 @@ class ReviewService
      * Deduplicate, sort, and map raw reviews into the cached result shape.
      *
      * @param  list<array<string, mixed>>  $allReviews
+     * @param  array{total_count:int, average_rating:?float}|null  $apiTotals
      * @return array{reviews: array, total_count: int, average_rating: float, rating_breakdown: array}
      */
-    protected function buildReviewResult(array $allReviews, int $limit): array
+    protected function buildReviewResult(array $allReviews, int $limit, ?array $apiTotals = null): array
     {
         $uniqueById = [];
         foreach ($allReviews as $review) {
@@ -553,8 +670,8 @@ class ReviewService
             return strtotime($b['created_at']) <=> strtotime($a['created_at']);
         });
 
-        // Calculate stats from the full review set
-        $totalCount = count($reviews);
+        // Breakdown from the downloaded sample (page-1 samples; may be << real total)
+        $sampleCount = count($reviews);
         $ratingBreakdown = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
         $sumRating = 0;
 
@@ -564,7 +681,16 @@ class ReviewService
             $sumRating += $rating;
         }
 
-        $averageRating = $totalCount > 0 ? round($sumRating / $totalCount, 1) : 0;
+        $sampleAverage = $sampleCount > 0 ? round($sumRating / $sampleCount, 1) : 0;
+
+        // Prefer authoritative Judge.me count API (10K+) over sample size (~dozens–hundreds).
+        $apiCount = (int) ($apiTotals['total_count'] ?? 0);
+        $totalCount = $apiCount > $sampleCount ? $apiCount : $sampleCount;
+
+        $apiAverage = isset($apiTotals['average_rating']) ? (float) $apiTotals['average_rating'] : 0.0;
+        $averageRating = $sampleCount > 0
+            ? $sampleAverage
+            : ($apiAverage > 0 ? round($apiAverage, 1) : 0);
 
         // Limit to requested number for display
         $displayReviews = array_slice($reviews, 0, $limit);

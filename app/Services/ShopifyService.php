@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Log;
 
 class ShopifyService
 {
+    public const CATALOG_CACHE_KEY = 'shopify_products_catalog_v1';
+
     protected string $domain;
     protected string $token;
     protected string $apiVersion;
@@ -96,9 +98,10 @@ class ShopifyService
         ];
     }
 
-    protected function httpClient(array $extraHeaders = []): \Illuminate\Http\Client\PendingRequest
+    protected function httpClient(array $extraHeaders = [], int $timeoutSeconds = 12): \Illuminate\Http\Client\PendingRequest
     {
-        $client = Http::timeout(30)
+        $client = Http::timeout(max(3, $timeoutSeconds))
+            ->connectTimeout(5)
             ->acceptJson()
             ->withHeaders(array_merge(['User-Agent' => 'Dainely-Wellness/1.0'], $extraHeaders));
 
@@ -107,6 +110,20 @@ class ShopifyService
         }
 
         return $client;
+    }
+
+    /**
+     * Drop catalog + header caches (and optional single-product handle cache).
+     */
+    public function forgetCatalogCaches(?string $handle = null): void
+    {
+        Cache::forget(self::CATALOG_CACHE_KEY);
+        Cache::forget('header_shopify_products_v2');
+        Cache::forget('featured_shopify_product_v1');
+
+        if (is_string($handle) && trim($handle) !== '') {
+            Cache::forget('shopify_product_handle_'.md5(trim($handle)));
+        }
     }
 
     /**
@@ -122,7 +139,7 @@ class ShopifyService
         }
 
         try {
-            $response = $this->httpClient($this->headersForToken($token))
+            $response = $this->httpClient($this->headersForToken($token), 25)
                 ->post($this->apiBase . '/graphql.json', [
                     'query'     => $query,
                     'variables' => $variables,
@@ -311,6 +328,51 @@ class ShopifyService
     }
 
     public function fetchProducts(int $limit = 50): array
+    {
+        $limit = max(1, min($limit, 250));
+        $ttl = (int) config('storefront.shopify_cache_ttl', config('shopify.product_cache_ttl', 900));
+        $localFirst = filter_var(config('shopify.storefront_local_first', true), FILTER_VALIDATE_BOOLEAN);
+
+        // One shared catalog cache — home/header/listing all reuse it.
+        // Prefer webhook-warmed local data; hit Shopify only on cold start.
+        $cached = Cache::get(self::CATALOG_CACHE_KEY);
+        if ((! is_array($cached) || ($cached['success'] ?? false) !== true) && $localFirst) {
+            $cached = app(LocalShopifyCatalog::class)->catalogPayload();
+        }
+
+        if (! is_array($cached) || ($cached['success'] ?? false) !== true) {
+            $cached = $this->fetchProductsLive(50);
+            if (($cached['success'] ?? false) === true) {
+                Cache::put(self::CATALOG_CACHE_KEY, $cached, $ttl);
+                if ($localFirst && ! empty($cached['products']) && is_array($cached['products'])) {
+                    app(LocalShopifyCatalog::class)->seedFromLiveCatalog($cached['products']);
+                }
+            }
+        }
+
+        if (($cached['success'] ?? false) !== true) {
+            return is_array($cached) ? $cached : $this->fetchProductsLive($limit);
+        }
+
+        $products = is_array($cached['products'] ?? null) ? $cached['products'] : [];
+
+        if ($limit > 50 && ! $localFirst) {
+            return $this->fetchProductsLive($limit);
+        }
+
+        if ($limit < count($products)) {
+            $cached['products'] = array_slice($products, 0, $limit);
+        }
+
+        return $cached;
+    }
+
+    /**
+     * Uncached Shopify catalog fetch.
+     *
+     * @return array{success: bool, products: array, error: ?string, status?: int, source: ?string}
+     */
+    protected function fetchProductsLive(int $limit): array
     {
         $limit = max(1, min($limit, 250));
 
@@ -648,9 +710,10 @@ class ShopifyService
     /**
      * Fetch a single product by Shopify handle from Admin API.
      *
+     * @param  bool  $fresh  When true, bypass cache (cart/checkout stock & price).
      * @return array{success: bool, product: ?array, error: ?string}
      */
-    public function fetchProductByHandle(string $handle, ?string $accessToken = null): array
+    public function fetchProductByHandle(string $handle, ?string $accessToken = null, bool $fresh = false): array
     {
         $handle = trim($handle);
         if ($handle === '') {
@@ -658,17 +721,42 @@ class ShopifyService
         }
 
         $cacheKey = 'shopify_product_handle_'.md5($handle);
-        $ttl      = (int) config('shopify.product_cache_ttl', 900);
+        $ttl      = (int) config('storefront.shopify_cache_ttl', config('shopify.product_cache_ttl', 900));
+        $localFirst = filter_var(config('shopify.storefront_local_first', true), FILTER_VALIDATE_BOOLEAN);
 
-        $cached = Cache::get($cacheKey);
-        if (is_array($cached) && ($cached['success'] ?? false) && ! empty($cached['product'])) {
-            return $cached;
+        if (! $fresh) {
+            $cached = Cache::get($cacheKey);
+            if (is_array($cached) && ($cached['success'] ?? false) && ! empty($cached['product'])) {
+                return $cached;
+            }
         }
 
+        // Prefer live Shopify so Admin image/title updates appear after cache expiry.
+        // Local webhook catalog is only a fallback when Shopify is unreachable.
         $result = $this->fetchProductByHandleLive($handle, $accessToken);
 
         if ($result['success'] ?? false) {
             Cache::put($cacheKey, $result, $ttl);
+            if ($localFirst && is_array($result['product'] ?? null)) {
+                app(LocalShopifyCatalog::class)->rememberWebhookProduct($result['product']);
+            }
+
+            return $result;
+        }
+
+        if ($localFirst) {
+            $local = app(LocalShopifyCatalog::class)->productByHandle($handle);
+            if (is_array($local) && ! empty($local['handle'])) {
+                $fallback = [
+                    'success' => true,
+                    'product' => $local,
+                    'error'   => null,
+                    'source'  => 'local_webhook_sync',
+                ];
+                Cache::put($cacheKey, $fallback, $ttl);
+
+                return $fallback;
+            }
         }
 
         return $result;
@@ -1008,14 +1096,14 @@ class ShopifyService
 
         if ($productId === '' || $productId === 'dainely-belt') {
             $handle = ProductSlugResolver::resolveHandle('dainely-belt');
-            $result = $this->fetchProductByHandle($handle);
+            $result = $this->fetchProductByHandle($handle, null, false);
             $product = $result['product'] ?? null;
         } elseif (ctype_digit($productId)) {
             $result = $this->fetchProductById($productId);
             $product = $result['product'] ?? null;
         } else {
             $handle = ProductSlugResolver::resolveHandle($productId);
-            $result = $this->fetchProductByHandle($handle);
+            $result = $this->fetchProductByHandle($handle, null, false);
             $product = $result['product'] ?? null;
         }
 
@@ -1038,11 +1126,21 @@ class ShopifyService
 
     public function estimateShippingUsd(float $subtotal, string $method = 'standard'): float
     {
-        if ($subtotal >= 75) {
-            return 0.0;
-        }
+        $threshold = app(CurrencyService::class)->freeShippingThresholdUsd();
+        $ttl = max(60, (int) config('shopify.shipping_cache_ttl', 1800));
+        $cacheKey = 'shipping_rate_'.md5(json_encode([
+            round($subtotal, 2),
+            $method,
+            $threshold,
+        ]));
 
-        return $method === 'express' ? 24.99 : 9.99;
+        return (float) Cache::remember($cacheKey, $ttl, function () use ($subtotal, $method, $threshold) {
+            if ($subtotal >= $threshold) {
+                return 0.0;
+            }
+
+            return $method === 'express' ? 24.99 : 9.99;
+        });
     }
 
     /**
@@ -1625,7 +1723,7 @@ GQL;
     protected function submitOrderPayload(string $token, array $payload, string $orderRef): array
     {
         try {
-            $response = $this->httpClient($this->headersForToken($token))
+            $response = $this->httpClient($this->headersForToken($token), 25)
                 ->post($this->apiBase . '/orders.json', $payload);
 
             if ($response->successful()) {

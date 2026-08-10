@@ -39,4 +39,6 @@ if ($LASTEXITCODE -ne 0) { exit 1 }
 Write-Host "`n[4/4] Done" -ForegroundColor Green
 Write-Host "  Verify: https://dev.dainelylab.com/build/$js"
 Write-Host "  Checkout: hard refresh Ctrl+Shift+R"
-Write-Host "  Square error gone if server .env synced + config cache cleared`n"
+Write-Host "  On server SSH after upload:" -ForegroundColor Cyan
+Write-Host "    php artisan optimize:production"
+Write-Host "  Square error gone if server .env synced + config cache rebuilt`n"

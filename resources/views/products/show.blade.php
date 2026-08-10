@@ -95,27 +95,29 @@
     'isMushroomCoffee'  => $isMushroomCoffee,
   ]);
   $productLangPrefix = \App\Support\ProductLandingLang::translationPrefix($productLangKey);
-  $galleryUrls = array_values(array_filter(array_map(
-      fn ($img) => is_array($img) ? ($img['src'] ?? '') : (string) $img,
-      $images
-  )));
-  if ($mainImg && empty($galleryUrls)) {
-      $galleryUrls = [$mainImg];
-  }
-
+  // Product gallery / cart / OG — Shopify CDN only (no local product photo overrides)
+  $galleryUrls = \App\Support\ProductLandingAssets::shopifyImageUrls(
+      is_array($images) ? $images : [],
+      is_string($mainImg) ? $mainImg : null
+  );
+  $shopifyMainImg = $galleryUrls[0] ?? null;
+  // Keep $mainImg as Shopify primary so legacy schema / sticky bar stay consistent
+  $mainImg = $shopifyMainImg;
 
   $mappedVariants = \App\Support\ProductLandingAssets::mapVariantsForCart($variants);
-  $cartTitle = $productLangPrefix ? __($productLangPrefix . '.product_name') : $title;
+  $cartTitle = $productLangPrefix
+    ? \App\Support\ProductLandingLang::line($productLangPrefix, 'product_name')
+    : $title;
   $cartSubtitle = $productLangPrefix
-      ? __($productLangPrefix . '.eyebrow')
-      : (\Illuminate\Support\Str::limit($plainDesc, 100) ?: __('home.premium_subtitle'));
+    ? \App\Support\ProductLandingLang::line($productLangPrefix, 'eyebrow')
+    : (\Illuminate\Support\Str::limit($plainDesc, 100) ?: __('home.premium_subtitle'));
 
   $cartProduct = [
     'id'              => (string) ($product['id'] ?? $handle),
     'handle'          => $handle,
     'title'           => $cartTitle,
     'subtitle'        => $cartSubtitle,
-    'image'           => $isDmedeSystem ? asset('images/daily-relief-system.png') : ($mainImg ?: asset('images/dainely-belt-product.png')),
+    'image'           => $shopifyMainImg ?: '',
     'price'           => (float) ($price ?? 0),
     'compare_at_price'=> $compareAt ? (float) $compareAt : null,
     'variants'        => $mappedVariants,
@@ -127,18 +129,36 @@
 @endphp
 
 @php
+  // Defaults: Shopify title + description
   $seoTitle = $title . ' — ' . config('app.name');
   $seoDesc = \Illuminate\Support\Str::limit($plainDesc, 160) ?: 'View product details.';
 
+  // Premium landing copy (lang files) when no CMS overlay
   if ($productLangPrefix) {
-    $seoTitle = __($productLangPrefix . '.seo_title');
-    $seoDesc = __($productLangPrefix . '.seo_desc');
+    $seoTitle = \App\Support\ProductLandingLang::line($productLangPrefix, 'seo_title');
+    $seoDesc = \App\Support\ProductLandingLang::line($productLangPrefix, 'seo_desc');
+  }
+
+  // Admin Product Overlay wins when filled; empty fields keep defaults above
+  $cmsSeoTitle = trim((string) ($product['seo_title'] ?? ''));
+  $cmsSeoDesc = trim((string) ($product['seo_description'] ?? ''));
+  $cmsCanonical = trim((string) ($product['canonical_url'] ?? ($product['localized_content']['canonical_url'] ?? '')));
+  if ($cmsSeoTitle !== '') {
+    $seoTitle = $cmsSeoTitle;
+  }
+  if ($cmsSeoDesc !== '') {
+    $seoDesc = $cmsSeoDesc;
   }
 @endphp
 
 @section('title', $seoTitle)
 @section('meta_description', $seoDesc)
-@section('og_image', $isDmedeSystem ? asset('images/daily-relief-system.png') : ($mainImg ?? asset('images/dainely-belt-product.png')))
+@section('og_image', $shopifyMainImg ?? '')
+@if($cmsCanonical !== '')
+@section('meta_canonical')
+<link rel="canonical" href="{{ $cmsCanonical }}">
+@endsection
+@endif
 
 @if($isDainelyBelt)
 @section('meta_schema')
@@ -147,7 +167,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Dainely Belt",
-  "image": "{{ asset('images/dainely-belt-product.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Premium everyday lower back stabilization designed for modern movement and long daily routines.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -172,7 +192,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Dainely™ Ball Massager",
-  "image": "{{ $mainImg ?? asset('images/dainely-belt-product.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Eliminate neck and shoulder pain in 10 minutes a day with the Dainely™ Ball Massager.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -197,7 +217,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Neck Cloud™️",
-  "image": "{{ $mainImg ?? asset('images/dainely-belt-product.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Eliminate neck pain, tension headaches, and stiffness in just 10 minutes a day.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -222,7 +242,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Back Pain Relief Patches",
-  "image": "{{ $mainImg ?? asset('images/dainely-belt-product.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Soothe tight lower back muscles and relieve lumbar soreness with 8-hour active herbal warming patches.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -247,7 +267,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Dainely™ Unisex Heated Jacket",
-  "image": "{{ $mainImg ?? asset('images/dainely-belt-product.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Stay warm in any weather with the Dainely™ Unisex Heated Jacket. Features smart carbon fiber heating elements.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -272,7 +292,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Dainely™ Foot Massager",
-  "image": "{{ $mainImg ?? asset('images/dainely-belt-product.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Alleviate foot neuropathy, swelling, and chronic aches in just 15 minutes a day.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -297,7 +317,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Dainely™ Knee Brace",
-  "image": "{{ $mainImg ?? asset('images/dainely-belt-product.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Stabilize knee joints, relieve meniscus and patella pressure, and walk without pain.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -322,7 +342,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Dainely™ Massager",
-  "image": "{{ $mainImg ?? asset('images/dainely-belt-product.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Professional deep tissue percussion massager designed for muscle stiffness, soreness, and quick recovery.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -347,7 +367,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Dainely™ Shoulder Brace",
-  "image": "{{ $mainImg ?? asset('images/dainely-belt-product.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Premium shoulder compression sleeve with adjustable straps for rotator cuff support, AC joint stability, and pain relief.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -372,7 +392,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Dainely™ Neck Stretcher",
-  "image": "{{ $mainImg ?? asset('images/neck-stretcher-main.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Ergonomic cervical traction device designed to restore natural neck posture, relieve tension headaches, and decompress spinal discs.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -397,7 +417,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Dainely™ Orthopedic Back Stretcher",
-  "image": "{{ $mainImg ?? asset('images/back-stretcher-main.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Ergonomic multi-level lumbar support device designed to decompress the spine, relieve lower back pain, and improve overall posture.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -422,7 +442,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Dainely™ RelaxaLeg™ System",
-  "image": "{{ $mainImg ?? asset('images/dainely-belt-product.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Premium pneumatic air compression leg massager wraps with soothing carbon heat therapy designed for restless leg syndrome, edema, and heavy, tired legs.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -447,7 +467,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Dainely™ Tourmaline Belt",
-  "image": "{{ $mainImg ?? asset('images/dainely-belt-product.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Premium self-heating magnetic therapy support wrap designed to decompress the spine, relieve lower back stiffness, and improve lumbar posture.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -472,7 +492,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "DMEDE™ Daily Support & Recovery System",
-  "image": "{{ asset('images/daily-relief-system.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Align your posture, stabilize your SI joint, and accelerate recovery with the DMEDE™ Daily Support & Recovery System.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -497,7 +517,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "ErgoCushion® - Pressure Relief Seat Cushion",
-  "image": "{{ $mainImg ?? asset('images/dainely-belt-product.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Premium orthopedic memory foam seat cushion designed to decompress the tailbone, relieve sciatica, and align seated posture.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -522,7 +542,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Functional Mushroom Coffee",
-  "image": "{{ $mainImg ?? asset('images/dainely-belt-product.png') }}",
+  "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Morning ritual reimagined. 6 powerful adaptogenic mushrooms blended with premium Arabica coffee for sustained clear mind and focus.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
@@ -552,7 +572,7 @@
   $landingAssets = \App\Support\ProductLandingAssets::forProduct(
     $productLangKey,
     $handle,
-    $mainImg,
+    $shopifyMainImg,
     $variants,
     $requiresOption,
     (float) ($price ?? 0),
@@ -560,6 +580,7 @@
     $cartAddUrl,
     $checkoutUrl,
     $productLangPrefix,
+    $galleryUrls,
   );
 @endphp
 @include('partials.product-landing-premium', [
@@ -570,7 +591,7 @@
   'requiresOption'   => $landingAssets['purchaseOptions']['requiresOption'] ?? $requiresOption,
   'variants'         => $landingAssets['purchaseOptions']['options'] ?? $variants,
   'handle'           => $handle,
-  'mainImg'          => $mainImg,
+  'mainImg'          => $shopifyMainImg,
   'price'            => $landingAssets['price'] ?? $price,
   'compareAt'        => $landingAssets['compareAt'] ?? $compareAt,
   'reviewStats'      => $reviewStats,
@@ -584,6 +605,19 @@
   'sizeGuideHref'    => $landingAssets['sizeGuideHref'] ?? '#size-guide',
   'productTitle'     => $title,
   'faqItems'         => $faqItems ?? collect(),
+  'cmsFaqs'          => $faqs ?? collect(),
+  // Resolved FAQs are already locale-correct (CMS or auto-translated).
+  'preferCmsFaqs'    => ($faqs ?? collect())->isNotEmpty(),
+  'pageBlocks'       => $pageBlocks ?? collect(),
+  'relatedLinks'     => $relatedLinks ?? collect(),
+  'breadcrumbs'      => $breadcrumbs ?? [],
+  'cmsOverview'      => $product['localized_content']['overview'] ?? null,
+  'cmsBenefits'      => $product['localized_content']['benefits'] ?? null,
+  'cmsHowItWorks'    => $product['localized_content']['how_it_works'] ?? null,
+  'cmsWhoIsItFor'    => $product['localized_content']['who_is_it_for'] ?? null,
+  'cmsSpecifications'=> $product['localized_content']['specifications'] ?? null,
+  'cmsCare'          => $product['localized_content']['care'] ?? null,
+  'cmsSeoTitle'      => $product['seo_title'] ?? null,
 ])
 
 @else
@@ -591,6 +625,8 @@
 <div x-data="productPurchase({{ $requiresOption ? 'true' : 'false' }}, @js($cartProduct), @js($cartAddUrl), @js($checkoutUrl))">
 
 {{-- Breadcrumb --}}
+@include('components.breadcrumbs', ['items' => $breadcrumbs ?? []])
+@if(empty($breadcrumbs))
 <div class="bg-slate-50 border-b border-slate-100">
   <div class="container-site py-3">
     <nav class="flex items-center gap-2 text-sm text-slate-500" aria-label="Breadcrumb">
@@ -602,9 +638,10 @@
     </nav>
   </div>
 </div>
+@endif
 
 {{-- Standard product hero --}}
-<section class="section bg-white product-landing" aria-label="Product detail">
+<section class="bg-white pt-4 sm:pt-5 pb-12 md:pb-16 product-landing" aria-label="Product detail">
   <div class="container-site">
     <div class="grid lg:grid-cols-2 gap-8 lg:gap-20 items-start">
 
@@ -643,7 +680,10 @@
         </div>
         @endif
         <div class="grid grid-cols-3 gap-3 mt-6 p-4 bg-slate-50 rounded-2xl">
-          @foreach([['30-Day', 'Guarantee', 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'sage'], ['Free Ship', 'Over $75', 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', 'navy'], ['Secure', 'Payment', 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z', 'gold']] as [$label, $sub, $path, $c])
+          @php
+            $freeShipBadge = 'Over ' . $fmt($currencySvc->freeShippingThresholdUsd());
+          @endphp
+          @foreach([['30-Day', 'Guarantee', 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'sage'], ['Free Ship', $freeShipBadge, 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', 'navy'], ['Secure', 'Payment', 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z', 'gold']] as [$label, $sub, $path, $c])
           <div class="text-center">
             <div class="w-8 h-8 bg-{{ $c }}-100 rounded-lg flex items-center justify-center mx-auto mb-1.5">
               <svg class="w-4 h-4 text-{{ $c }}-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $path }}"/></svg>
@@ -659,12 +699,18 @@
       <div class="min-w-0">
         @if($vendor)<p class="eyebrow mb-3 break-anywhere">{{ $vendor }}</p>@endif
         <h1 class="font-display font-bold text-navy-950 mb-4 text-2xl sm:text-3xl lg:text-4xl leading-tight break-anywhere">{{ $title }}</h1>
-        <div class="flex flex-wrap items-center gap-x-2 gap-y-2 mb-6">
+        <div
+          class="flex flex-wrap items-center gap-x-2 gap-y-2 mb-6"
+          x-data="productReviewHeader(@js([
+            'average_rating' => (float) ($reviewStats['average_rating'] ?? 0),
+            'total_reviews' => (int) ($reviewStats['total_reviews'] ?? 0),
+          ]), @js(__('products.verified_reviews', ['count' => ':count'])))"
+        >
           <div class="flex gap-0.5 shrink-0">
             @for($i=0;$i<5;$i++)<svg class="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>@endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm shrink-0">{{ $reviewStats['average_rating'] ?? '4.8' }}</span>
-          <a href="#reviews" class="text-slate-500 text-xs sm:text-sm hover:text-navy-700 underline underline-offset-2 break-anywhere">{{ __('products.verified_reviews', ['count' => number_format($reviewStats['total_reviews'] ?? 0)]) }}</a>
+          <span class="text-navy-800 font-bold text-sm shrink-0" x-text="average > 0 ? average : '—'">{{ ($reviewStats['average_rating'] ?? 0) > 0 ? $reviewStats['average_rating'] : '—' }}</span>
+          <a href="#reviews" class="text-slate-500 text-xs sm:text-sm hover:text-navy-700 underline underline-offset-2 break-anywhere" x-text="label">{{ __('products.verified_reviews', ['count' => number_format($reviewStats['total_reviews'] ?? 0)]) }}</a>
           <span class="text-slate-300 hidden sm:inline">|</span>
           <span class="text-emerald-600 text-xs sm:text-sm font-semibold shrink-0">{{ __('products.in_stock') }}</span>
         </div>
@@ -685,7 +731,7 @@
         </div>
         @endif
         @if($plainDesc)
-        <div class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 prose prose-slate max-w-none break-anywhere">{!! $desc !!}</div>
+        <div class="cms-richtext text-slate-600 text-sm sm:text-base mb-6 break-anywhere">{!! \App\Support\CmsHtml::normalize($desc) !!}</div>
         @endif
         @include('partials.product-purchase', [
           'cartAddUrl'    => $cartAddUrl,
@@ -772,8 +818,8 @@
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </span>
           </summary>
-          <div class="mt-3 text-slate-600 text-sm leading-relaxed prose prose-slate max-w-none">
-            {!! nl2br(e($faq->answer)) !!}
+          <div class="mt-3 text-slate-600 text-sm leading-relaxed cms-richtext prose prose-slate max-w-none">
+            {!! \App\Support\CmsHtml::normalize($faq->answer) !!}
           </div>
         </details>
       @endforeach
@@ -819,6 +865,24 @@
 
 </div>{{-- /x-data productPurchase --}}
 
+@php
+  $cmsPageBlocks = collect($pageBlocks ?? [])
+      ->filter(fn ($b) => (bool) ($b->visible ?? true))
+      ->sortBy(fn ($b) => (int) ($b->sort_order ?? 0))
+      ->values();
+@endphp
+@foreach($cmsPageBlocks as $block)
+  @includeIf('components.blocks.' . ($block->block_type ?? ''), [
+      'title'   => $block->title,
+      'content' => $block->content,
+  ])
+@endforeach
+
+@include('components.related-content', [
+  'title' => __('Related Resources'),
+  'links' => $relatedLinks ?? [],
+])
+
 @push('scripts')
 <script>
   (function() {
@@ -834,6 +898,13 @@
 </script>
 @endpush
 
+@endif
+
+@if(!empty($productLangPrefix))
+  @include('components.related-content', [
+    'title' => __('Related Resources'),
+    'links' => $relatedLinks ?? [],
+  ])
 @endif
 
 @endsection

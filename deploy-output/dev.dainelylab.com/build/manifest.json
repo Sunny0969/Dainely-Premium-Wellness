@@ -1,13 +1,20 @@
 {
+  "_vendor-alpine-BYBzmu1z.js": {
+    "file": "assets/vendor-alpine-BYBzmu1z.js",
+    "name": "vendor-alpine"
+  },
   "resources/css/app.css": {
-    "file": "assets/app-m4ENQgeR.css",
+    "file": "assets/app-DtIA6jGm.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-C_r_3Y_v.js",
+    "file": "assets/app-C235BMo9.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_vendor-alpine-BYBzmu1z.js"
+    ]
   }
 }
