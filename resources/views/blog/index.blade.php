@@ -4,6 +4,10 @@
 @section('og_image', asset('images/blog-hero-back-pain.jpg'))
 
 @section('content')
+@php
+  $featuredArticle = $articles[0] ?? null;
+  $latestArticles = $featuredArticle ? array_slice($articles, 1) : ($articles ?? []);
+@endphp
 
 {{-- HERO --}}
 <section class="relative overflow-hidden bg-gradient-to-br from-navy-900 to-navy-800 text-white py-20" aria-label="Blog hero">
@@ -32,14 +36,15 @@
 </section>
 
 {{-- FEATURED ARTICLE --}}
+@if($featuredArticle)
 <section class="section bg-white" aria-label="Featured article">
   <div class="container-site">
     <div class="card overflow-hidden group">
       <div class="grid lg:grid-cols-[1.5fr_1fr] gap-0">
         <div class="relative overflow-hidden max-h-96 lg:max-h-full">
           <img
-            src="{{ asset('images/blog-hero-back-pain.jpg') }}"
-            alt="The Root Cause of Chronic Back Pain"
+            src="{{ asset('images/' . $featuredArticle['image']) }}"
+            alt="{{ $featuredArticle['title'] }}"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="eager"
             width="760" height="480"
@@ -51,46 +56,40 @@
         </div>
         <div class="p-8 lg:p-12 flex flex-col justify-center">
           <div class="flex items-center gap-2 mb-4">
-            <span class="trust-badge bg-sage-50 border-sage-200 text-sage-700 text-xs">Back Pain</span>
-            <span class="text-slate-400 text-xs">8 min read</span>
+            <span class="trust-badge bg-sage-50 border-sage-200 text-sage-700 text-xs">{{ $featuredArticle['category'] }}</span>
+            <span class="text-slate-400 text-xs">{{ $featuredArticle['readtime'] }}</span>
           </div>
-          <h2 class="font-display font-bold text-navy-900 text-2xl lg:text-3xl mb-4 leading-tight">The Root Cause of Chronic Back Pain Most Doctors Miss</h2>
-          <p class="text-slate-600 text-sm leading-relaxed mb-6">Over 80% of adults experience significant back pain at some point in their lives. Yet most treatments address only the symptoms — not the underlying biomechanical dysfunctions that keep pain coming back. Our physiotherapy consultants explain the real root causes and what actually works.</p>
+          <h2 class="font-display font-bold text-navy-900 text-2xl lg:text-3xl mb-4 leading-tight">{{ $featuredArticle['title'] }}</h2>
+          <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ $featuredArticle['excerpt'] }}</p>
           <div class="flex items-center gap-4 mb-6">
-            <img src="{{ asset('images/trust-doctor.png') }}" alt="Dr. M. Reinholt" class="w-10 h-10 rounded-full object-cover">
+            <img src="{{ asset('images/trust-doctor.png') }}" alt="{{ $featuredArticle['author'] }}" class="w-10 h-10 rounded-full object-cover">
             <div>
-              <p class="text-slate-800 font-semibold text-sm">Dr. M. Reinholt</p>
-              <p class="text-slate-400 text-xs">Physiotherapy Consultant · May 15, 2025</p>
+              <p class="text-slate-800 font-semibold text-sm">{{ $featuredArticle['author'] }}</p>
+              <p class="text-slate-400 text-xs">{{ $featuredArticle['date'] }}</p>
             </div>
           </div>
-          <a href="#" class="btn-primary self-start">Read Article</a>
+          <a href="{{ route('blog.show', ['locale' => $locale, 'slug' => $featuredArticle['slug']]) }}" class="btn-primary self-start">Read Article</a>
         </div>
       </div>
     </div>
   </div>
 </section>
+@endif
 
 {{-- ARTICLE GRID --}}
 <section class="section bg-section-alt" aria-label="All articles">
   <div class="container-site">
     <div class="flex items-center justify-between mb-10">
       <h2 class="heading-section">Latest Articles</h2>
-      <span class="text-slate-400 text-sm">Showing 6 of 24 articles</span>
+      <span class="text-slate-400 text-sm">Showing {{ count($latestArticles) }} of {{ count($articles) }} articles</span>
     </div>
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-      @foreach([
-        ['The Science of Sciatica: Why Your Leg Hurts When Your Back Is the Problem', 'sciatica-edu.png', 'Sciatica', 'Dr. S. Laroche', '6 min read', 'Sciatica is notoriously misunderstood. Many patients treat their leg pain without addressing the spinal compression triggering it. Here is what the research actually shows.'],
-        ['5 Posture Mistakes That Are Silently Destroying Your Spine', 'posture-edu.png', 'Posture', 'Dr. A. Müller', '5 min read', 'Poor posture is not just about how you look — it causes structural changes to your spine over time. These are the five most damaging habits our biomechanics team has identified.'],
-        ['How Lumbar Decompression Belts Work: The Biomechanics Explained', 'dainely-belt-product.png', 'Product Guide', 'Dr. M. Reinholt', '7 min read', 'Not all back braces work the same way. This deep dive explains exactly how decompression belts differ from compression braces and why it matters for your recovery.'],
-        ['Neck Pain & Upper Back Tension: The Hidden Spinal Connection', 'neck-pain-edu.png', 'Neck Pain', 'Dr. S. Laroche', '4 min read', 'Neck pain and lower back pain are often treated separately — but our spine is one connected structure. Understanding this changes everything about how to treat both.'],
-        ['The 4-Week Back Pain Recovery Protocol: A Step-by-Step Guide', 'mobility-edu.png', 'Recovery', 'Dr. M. Reinholt', '10 min read', 'A systematic four-week protocol combining decompression therapy, targeted stretching, and postural retraining — developed by our clinical team for consistent results.'],
-        ['Sciatica vs. Piriformis Syndrome: How to Tell the Difference', 'spine-anatomy.png', 'Sciatica', 'Dr. A. Müller', '6 min read', 'Both conditions cause leg pain, but they require different treatments. Misdiagnosis is common. Here is how to identify which condition you likely have.'],
-      ] as [$title, $img, $category, $author, $readtime, $excerpt])
+      @foreach($latestArticles as $article)
       <article class="card overflow-hidden group animate-on-scroll">
         <div class="overflow-hidden">
           <img
-            src="{{ asset('images/' . $img) }}"
-            alt="{{ $title }}"
+            src="{{ asset('images/' . $article['image']) }}"
+            alt="{{ $article['title'] }}"
             class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
             width="440" height="192"
@@ -98,17 +97,17 @@
         </div>
         <div class="p-6">
           <div class="flex items-center gap-2 mb-3">
-            <span class="trust-badge text-[10px] bg-navy-50 border-navy-100 text-navy-600">{{ $category }}</span>
-            <span class="text-slate-400 text-xs">{{ $readtime }}</span>
+            <span class="trust-badge text-[10px] bg-navy-50 border-navy-100 text-navy-600">{{ $article['category'] }}</span>
+            <span class="text-slate-400 text-xs">{{ $article['readtime'] }}</span>
           </div>
-          <h3 class="font-display font-bold text-navy-900 text-lg mb-3 leading-snug group-hover:text-navy-700 transition-colors">{{ $title }}</h3>
-          <p class="text-slate-500 text-sm leading-relaxed mb-4 line-clamp-3">{{ $excerpt }}</p>
+          <h3 class="font-display font-bold text-navy-900 text-lg mb-3 leading-snug group-hover:text-navy-700 transition-colors">{{ $article['title'] }}</h3>
+          <p class="text-slate-500 text-sm leading-relaxed mb-4 line-clamp-3">{{ $article['excerpt'] }}</p>
           <div class="flex items-center justify-between pt-3 border-t border-slate-100">
             <div class="flex items-center gap-2">
-              <img src="{{ asset('images/trust-doctor.png') }}" alt="{{ $author }}" class="w-7 h-7 rounded-full object-cover">
-              <span class="text-slate-600 text-xs font-medium">{{ $author }}</span>
+              <img src="{{ asset('images/trust-doctor.png') }}" alt="{{ $article['author'] }}" class="w-7 h-7 rounded-full object-cover">
+              <span class="text-slate-600 text-xs font-medium">{{ $article['author'] }}</span>
             </div>
-            <a href="#" class="text-navy-600 text-sm font-semibold hover:text-navy-800 transition-colors">Read →</a>
+            <a href="{{ route('blog.show', ['locale' => $locale, 'slug' => $article['slug']]) }}" class="text-navy-600 text-sm font-semibold hover:text-navy-800 transition-colors">Read →</a>
           </div>
         </div>
       </article>

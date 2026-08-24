@@ -27,7 +27,7 @@
   $scienceImage = $scienceImage ?? 'spine-anatomy.png';
   $scienceSrc = str_starts_with((string) $scienceImage, 'http')
       ? \App\Support\ProductLandingAssets::cdnSized($scienceImage, 900)
-      : asset('images/'.$scienceImage);
+      : (file_exists(public_path('images/'.$scienceImage)) ? asset('images/'.$scienceImage) : $mainImg);
   $displayPrice = $price ?? 0;
   $displayCompare = $compareAt ?? null;
   $landingList = fn (string $field): array => \App\Support\ProductLandingLang::landingList($langKey, $field);
@@ -78,7 +78,7 @@
           <img
             src="{{ $galleryImages[0] }}"
             alt="{{ $t('product_name') }}"
-            class="w-full h-full object-cover transition-all duration-500"
+            class="w-full h-full object-contain transition-all duration-500"
             loading="eager"
             fetchpriority="high"
             decoding="async"
@@ -102,7 +102,7 @@
         <div class="grid grid-cols-4 gap-2" x-show="images.length > 1">
           <template x-for="(img, i) in images" :key="i">
             <button type="button" @click="setActive(i)" :class="active === i ? 'ring-2 ring-navy-600 ring-offset-2' : 'ring-1 ring-slate-200 hover:ring-navy-400'" class="rounded-xl overflow-hidden aspect-square focus:outline-none transition-all">
-              <img :src="thumbs[i] || img" alt="" class="w-full h-full object-cover" loading="lazy" decoding="async" width="120" height="120">
+              <img :src="thumbs[i] || img" alt="" class="w-full h-full object-contain" loading="lazy" decoding="async" width="120" height="120">
             </button>
           </template>
         </div>
@@ -124,7 +124,7 @@
       <div class="min-w-0">
         <p class="text-xs sm:text-sm font-bold uppercase tracking-widest text-navy-500 mb-3 break-anywhere">{{ $t('eyebrow') }}</p>
         <h1 class="font-display font-bold text-navy-950 mb-4 text-3xl sm:text-4xl lg:text-5xl leading-tight break-anywhere">
-          {{ $t('hero_headline') }}
+          {!! $t('hero_headline') !!}
         </h1>
 
         <div
@@ -256,53 +256,99 @@
 </section>
 @endif
 
-{{-- ── 3. LIFESTYLE POSITIONING ──────────────────────────────── --}}
-<section class="section bg-stone-50" aria-label="Lifestyle">
-  <div class="container-site">
-    <div class="max-w-2xl mb-12">
-      <p class="eyebrow mb-3">{{ $t('lifestyle_eyebrow') }}</p>
-      <h2 class="heading-section text-stone-900 mb-4">{{ $t('lifestyle_title') }}</h2>
-      <p class="text-body text-stone-600">{{ $t('lifestyle_copy') }}</p>
-    </div>
-    <div class="grid md:grid-cols-3 gap-5">
-      @foreach($landingList('lifestyle_cards') as $index => [$cap, $sub])
-      @php $img = $lifestyleImages[$index] ?? 'recovery-edu.webp'; @endphp
-      <figure class="group">
-        <div class="overflow-hidden rounded-2xl aspect-[4/5] bg-stone-100 mb-3">
-          <img src="{{ str_starts_with($img, 'http') ? $img : asset('images/' . $img) }}" alt="{{ $cap }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" decoding="async" width="400" height="500">
+@if($langKey === 'products_cushion')
+  {{-- Custom Combined Seating Comfort & Design Elements Section --}}
+  <section class="section bg-stone-50 border-b border-stone-100" aria-label="Supportive Comfort">
+    <div class="container-site">
+      <div class="grid lg:grid-cols-12 gap-12 items-center">
+        <div class="lg:col-span-5">
+          <p class="eyebrow mb-3">{{ $t('lifestyle_eyebrow') }}</p>
+          <h2 class="font-display font-bold text-stone-900 mb-5 text-3xl sm:text-4xl leading-tight">{{ $t('lifestyle_title') }}</h2>
+          <p class="text-body text-stone-600 leading-relaxed text-sm sm:text-base">{!! $t('lifestyle_copy') !!}</p>
         </div>
-        <figcaption>
-          <p class="font-semibold text-stone-800 text-sm mb-0.5">{{ $cap }}</p>
-          <p class="text-stone-500 text-xs">{{ $sub }}</p>
-        </figcaption>
-      </figure>
-      @endforeach
-    </div>
-  </div>
-</section>
-
-{{-- ── 4. HOW IT WORKS ───────────────────────────────────────── --}}
-<section class="section bg-white" aria-label="How it works">
-  <div class="container-site">
-    <div class="text-center mb-14">
-      <p class="eyebrow mb-3">{{ $t('how_eyebrow') }}</p>
-      <h2 class="heading-section mb-4">{{ $t('how_title') }}</h2>
-      <p class="text-lead max-w-xl mx-auto">{{ $t('how_copy') }}</p>
-    </div>
-    <div class="grid md:grid-cols-3 gap-8">
-      @foreach($landingList('how_steps') as [$num, $title, $desc])
-      @php $stepColors = ['navy', 'gold', 'sage']; $color = $stepColors[(int) $num - 1] ?? 'navy'; @endphp
-      <div class="card p-8 text-center">
-        <div class="w-16 h-16 bg-{{ $color }}-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
-          <span class="font-display font-bold text-2xl text-{{ $color }}-600">{{ $num }}</span>
+        <div class="lg:col-span-7">
+          <div class="space-y-6">
+            @foreach($landingList('how_steps') as $step)
+            @php 
+              $num = $step[0] ?? '';
+              $title = $step[1] ?? '';
+              $desc = $step[2] ?? '';
+              $stepColors = ['navy', 'gold', 'sage']; 
+              $color = $stepColors[(int) $num - 1] ?? 'navy'; 
+            @endphp
+            <div class="flex gap-5 bg-white p-6 rounded-2xl border border-stone-200/60 shadow-sm hover:shadow-md transition-shadow">
+              <div class="w-12 h-12 bg-{{ $color }}-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span class="font-display font-bold text-lg text-{{ $color }}-600">{{ $num }}</span>
+              </div>
+              <div>
+                <h3 class="font-semibold text-stone-900 text-base mb-1">{{ $title }}</h3>
+                <p class="text-stone-500 text-xs sm:text-sm leading-relaxed">{!! $desc !!}</p>
+              </div>
+            </div>
+            @endforeach
+          </div>
         </div>
-        <h3 class="heading-card mb-3">{{ $title }}</h3>
-        <p class="text-body text-sm">{{ $desc }}</p>
       </div>
-      @endforeach
     </div>
-  </div>
-</section>
+  </section>
+@else
+  {{-- ── 3. LIFESTYLE POSITIONING ──────────────────────────────── --}}
+  <section class="section bg-stone-50" aria-label="Lifestyle">
+    <div class="container-site">
+      <div class="max-w-2xl mb-12">
+        <p class="eyebrow mb-3">{{ $t('lifestyle_eyebrow') }}</p>
+        <h2 class="heading-section text-stone-900 mb-4">{{ $t('lifestyle_title') }}</h2>
+        <p class="text-body text-stone-600">{!! $t('lifestyle_copy') !!}</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-5">
+        @foreach($landingList('lifestyle_cards') as $index => [$cap, $sub])
+        @php $img = $lifestyleImages[$index] ?? 'recovery-edu.webp'; @endphp
+        <figure class="group">
+          <div class="overflow-hidden rounded-2xl aspect-[4/5] bg-stone-100 mb-3">
+            <img src="{{ str_starts_with($img, 'http') ? $img : asset('images/' . $img) }}" alt="{{ $cap }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" decoding="async" width="400" height="500">
+          </div>
+          <figcaption>
+            <p class="font-semibold text-stone-800 text-sm mb-0.5">{{ $cap }}</p>
+            <p class="text-stone-500 text-xs">{!! $sub !!}</p>
+          </figcaption>
+        </figure>
+        @endforeach
+      </div>
+    </div>
+  </section>
+
+  {{-- ── 4. HOW IT WORKS ───────────────────────────────────────── --}}
+  <section class="section bg-white" aria-label="How it works">
+    <div class="container-site">
+      <div class="text-center mb-14">
+        <p class="eyebrow mb-3">{{ $t('how_eyebrow') }}</p>
+        <h2 class="heading-section mb-4">{{ $t('how_title') }}</h2>
+        <p class="text-lead max-w-3xl mx-auto leading-relaxed">{!! $t('how_copy') !!}</p>
+      </div>
+      @php $howSteps = $landingList('how_steps'); @endphp
+      @if(!empty($howSteps))
+      <div class="grid md:grid-cols-3 gap-8">
+        @foreach($howSteps as $step)
+        @php 
+          $num = $step[0] ?? '';
+          $title = $step[1] ?? '';
+          $desc = $step[2] ?? '';
+          $stepColors = ['navy', 'gold', 'sage']; 
+          $color = $stepColors[(int) $num - 1] ?? 'navy'; 
+        @endphp
+        <div class="card p-8 text-center">
+          <div class="w-16 h-16 bg-{{ $color }}-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <span class="font-display font-bold text-2xl text-{{ $color }}-600">{{ $num }}</span>
+          </div>
+          <h3 class="heading-card mb-3">{{ $title }}</h3>
+          <p class="text-body text-sm">{!! $desc !!}</p>
+          </div>
+        @endforeach
+      </div>
+      @endif
+    </div>
+  </section>
+@endif
 
 {{-- ── 5. SCIENCE / AUTHORITY ────────────────────────────────── --}}
 <section class="section bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 text-white" aria-label="Educational authority">
@@ -317,7 +363,7 @@
           @foreach($landingList('stats') as [$stat, $label])
           <div class="bg-white/10 rounded-2xl p-5">
             <p class="font-display font-bold text-2xl text-gold-300 mb-1">{{ $stat }}</p>
-            <p class="text-navy-300 text-xs">{{ $label }}</p>
+            <p class="text-navy-300 text-xs">{!! $label !!}</p>
           </div>
           @endforeach
         </div>
@@ -331,18 +377,21 @@
             $doctorTitle = trim((string) $t('doctor_title'));
             $showDoctorPhoto = $doctorTitle !== '' && str_starts_with($doctorName, 'Dr');
           @endphp
-          <div class="flex items-center gap-2 mb-2">
-            @if($showDoctorPhoto)
-            <img src="{{ asset('images/trust-doctor.png') }}" alt="{{ $doctorName }}" class="w-10 h-10 rounded-full object-cover" loading="lazy" decoding="async" width="40" height="40">
-            @endif
-            <div>
-              <p class="text-navy-900 text-xs font-bold">{{ $doctorName }}</p>
-              @if($doctorTitle !== '')
-              <p class="text-slate-400 text-[10px]">{{ $doctorTitle }}</p>
-              @endif
+          @if($showDoctorPhoto)
+            <div class="flex items-center gap-2 mb-2">
+              <img src="{{ asset('images/trust-doctor.png') }}" alt="{{ $doctorName }}" class="w-10 h-10 rounded-full object-cover" loading="lazy" decoding="async" width="40" height="40">
+              <div>
+                <p class="text-navy-900 text-xs font-bold">{{ $doctorName }}</p>
+                <p class="text-slate-400 text-[10px]">{{ $doctorTitle }}</p>
+              </div>
             </div>
-          </div>
-          <p class="text-slate-700 text-xs italic">"{{ $t('doctor_quote') }}"</p>
+            <p class="text-slate-700 text-xs italic">"{{ $t('doctor_quote') }}"</p>
+          @else
+            <div>
+              <p class="text-navy-900 text-xs sm:text-sm font-bold mb-1.5">{{ $doctorName }}</p>
+              <p class="text-slate-600 text-[11px] sm:text-xs mb-0 leading-relaxed">{!! $t('doctor_quote') !!}</p>
+            </div>
+          @endif
         </div>
       </div>
     </div>
@@ -446,7 +495,7 @@
 <section class="section bg-gradient-to-b from-stone-50 to-white" aria-label="Final call to action">
   <div class="container-narrow text-center">
     <p class="eyebrow mb-4">{{ $t('cta_eyebrow') }}</p>
-    <h2 class="heading-section mb-4">{{ $t('cta_title') }}</h2>
+    <h2 class="heading-section mb-4">{!! $t('cta_title') !!}</h2>
     <p class="text-lead text-stone-600 mb-3">{{ $t('cta_copy') }}</p>
 
     <div class="mb-6">

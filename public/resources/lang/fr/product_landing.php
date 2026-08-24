@@ -11,7 +11,7 @@ return array (
     'seo_desc' => 'Stabilisation quotidienne haut de gamme du bas du dos conçue pour les mouvements modernes et les longues routines quotidiennes. Livraison gratuite pour les commandes de plus de 29,99 $ .',
     'product_name' => 'Dainely Belt',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Développé cliniquement',
+    'badge_clinical' => '',
     'eyebrow' => 'Stabilisation quotidienne Premium du bas du dos',
     'hero_headline' => 'Le soutien dont vous avez besoin. La liberté de continuer à bouger.',
     'verified_reviews' => ':count commentaires vérifiés',
@@ -214,7 +214,7 @@ return array (
     'seo_desc' => 'Éliminez les douleurs au cou et aux épaules en 10 minutes par jour avec le masseur à billes Dainely™. Thérapie ciblée par points de pression.',
     'product_name' => 'Masseur à billes Dainely™',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Approuvé cliniquement',
+    'badge_clinical' => '',
     'eyebrow' => 'Thérapie de déclenchement du point de pression',
     'hero_headline' => 'Éliminez les douleurs et les raideurs au cou en 10 minutes.',
     'verified_reviews' => ':count commentaires vérifiés',
@@ -399,7 +399,7 @@ return array (
     'seo_desc' => 'Éliminez les douleurs au cou, les céphalées de tension et la raideur en seulement 10 minutes par jour avec l\'ergonomique Neck Cloud™️.',
     'product_name' => 'Neck Cloud™️',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Approuvé cliniquement',
+    'badge_clinical' => '',
     'eyebrow' => 'décompression colonne cervicale',
     'hero_headline' => 'Éliminez les douleurs au cou et les céphalées de tension en 10 minutes.',
     'verified_reviews' => ':count commentaires vérifiés',
@@ -417,7 +417,7 @@ return array (
     'add_to_cart' => 'Ajouter au panier — Livraison gratuite',
     'order_now' => 'Obtenez le nuage de votre cou',
     'guarantee_title' => 'Garantie de soulagement de la douleur de 30 jours',
-    'guarantee_desc' => 'Ressentez la différence de tension au cou ou récupérez votre argent. Achat sans risque.',
+    'guarantee_desc' => '',
     'micro_secure' => 'Paiement sécurisé',
     'micro_shipping' => 'Expédition rapide',
     'micro_trusted' => 'Des milliers de clients nous font confiance',
@@ -483,28 +483,28 @@ return array (
         1 => 'Détendez-vous avant de vous coucher en étirant les muscles sous-occipitaux pour un sommeil plus profond.',
       ),
     ),
-    'how_eyebrow' => 'Récupération de la courbure cervicale',
-    'how_title' => 'Comment il décompresse la tension cervicale',
-    'how_copy' => 'Trois mécanismes combinés pour restaurer l\'alignement naturel de la courbe en C du cou.',
+    'how_eyebrow' => '',
+    'how_title' => 'Designed for Comfortable Support & Stretching',
+    'how_copy' => 'Start gently. Listen to your body. Never force a stretch.',
     'how_steps' => 
     array (
       0 => 
       array (
         0 => '01',
-        1 => 'Étirement de la traction cervicale',
-        2 => 'La conception profilée correspond à la courbure naturelle du cou, étirant en toute sécurité la colonne vertébrale et ouvrant des espaces vertébraux comprimés.',
+        1 => 'Contoured Neck Support',
+        2 => 'The shaped design provides a supportive surface for your neck during use.',
       ),
       1 => 
       array (
         0 => '02',
-        1 => 'Stimulation de l\'acupression',
-        2 => 'Les nœuds de massage spécialement surélevés s\'alignent parfaitement avec les points de déclenchement de tension sur le cou, favorisant la libération des nœuds musculaires.',
+        1 => 'Two Support Positions',
+        2 => 'Choose the position that feels most comfortable for your stretching routine.',
       ),
       2 => 
       array (
         0 => '03',
-        1 => 'Promouvoir une circulation fraîche',
-        2 => 'La décompression des muscles sous-occipitaux tendus améliore la microcirculation locale, apportant du sang oxygéné cicatrisant aux zones raides.',
+        1 => 'Firm, Supportive Foam',
+        2 => 'High-density memory foam provides a firm foundation for short, comfortable sessions.',
       ),
     ),
     'science_eyebrow' => '',
@@ -584,7 +584,7 @@ return array (
     'seo_desc' => 'Apaisez les muscles du bas du dos tendus et soulagez les douleurs lombaires avec des patchs de réchauffement actifs à base de plantes pendant 8 heures.',
     'product_name' => 'Taches de soulagement des maux de dos',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Cliniquement testé. ',
+    'badge_clinical' => '',
     'eyebrow' => 'Soulagement lombaire transdermique',
     'hero_headline' => 'Chaleur apaisante à action rapide qui dure jusqu\'à 8 heures.',
     'verified_reviews' => ':count commentaires vérifiés',
@@ -769,7 +769,7 @@ return array (
     'seo_desc' => 'Stay warm in any weather with the Dainely™ Unisex Heated Jacket. Features smart carbon fiber heating elements and rechargeable battery warmth.',
     'product_name' => 'Dainely™ Unisex Heated Jacket',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Clinically Approved',
+    'badge_clinical' => '',
     'eyebrow' => 'Therapeutic Active Warmth',
     'hero_headline' => 'Stay warm in any cold weather, instantly.',
     'verified_reviews' => ':count commentaires vérifiés',
@@ -954,7 +954,7 @@ return array (
   'seo_desc' => 'Stabilisez le genou, soulagez la pression sur le ménisque et la rotule, et marchez sans douleur avec la genouillère ergonomique Dainely™.',
   'product_name' => 'Dainely™ Knee Brace',
   'badge_best_seller' => 'Best-seller',
-  'badge_clinical' => 'Recommandé cliniquement',
+  'badge_clinical' => '',
   'eyebrow' => 'Support ergonomique rotule & articulation',
   'hero_headline' => 'Décompressez la pression articulaire du genou. Marchez et courez sans douleur.',
   'verified_reviews' => ':count avis vérifiés',
@@ -1140,7 +1140,7 @@ return array (
     'seo_desc' => 'Relieve muscle soreness, dissolve tight knots, and speed up recovery in minutes with the professional-grade Dainely™ Deep Tissue Percussion Massager.',
     'product_name' => 'Dainely™ Massager',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Clinically Approved',
+    'badge_clinical' => '',
     'eyebrow' => 'Percussion professionnelle en profondeur',
     'hero_headline' => 'Dissolvez les nœuds musculaires profonds. Accélérez la récupération en quelques minutes.',
     'verified_reviews' => ':count avis vérifiés',
@@ -1210,44 +1210,24 @@ return array (
     array (
       0 => 
       array (
-        0 => 'Post-Workout Relief',
-        1 => 'Flush out lactic acid buildup and speed up muscle tissue repair after heavy workouts.',
+        0 => 'Post-Activity Reset',
+        1 => '<span class="block font-bold text-stone-800 text-xs sm:text-sm mb-1">Unwind after an active day.</span>Walking, workouts, golf, pickleball and other activities can leave your muscles feeling worked. Use Dainely™ Massager on appropriate muscle areas with a comfortable setting as part of your post-activity relaxation routine.',
       ),
       1 => 
       array (
-        0 => 'Workspace Desk Tension',
-        1 => 'Instantly relieve shoulder knots and neck stiffness caused by long computer hours.',
+        0 => 'Desk-Day Relaxation',
+        1 => '<span class="block font-bold text-stone-800 text-xs sm:text-sm mb-1">Take a few minutes to reset.</span>After hours at a desk or computer, make targeted massage part of your evening or break-time routine. Use a comfortable intensity on appropriate muscle areas such as the shoulders and upper back while avoiding the neck, spine and other sensitive areas.',
       ),
       2 => 
       array (
-        0 => 'Deep Leg Relaxation',
-        1 => 'Release calf tightness and hamstring soreness to wind down comfortably in the evening.',
+        0 => 'Legs & Lower-Body Comfort ',
+        1 => '<span class="block font-bold text-stone-800 text-xs sm:text-sm mb-1">Give hardworking muscles some attention.</span>Whether you\'ve been walking, exercising, traveling or simply on your feet all day, Dainely™ Massager lets you customize your massage experience for larger lower-body muscle groups such as the thighs and calves.',
       ),
     ),
-    'how_eyebrow' => 'Percussive Micro-Vibration',
-    'how_title' => 'How it desensitizes tight muscle fibers',
-    'how_copy' => 'Three mechanical recovery phases to release muscle adhesions and promote healing.',
-    'how_steps' => 
-    array (
-      0 => 
-      array (
-        0 => '01',
-        1 => 'Specialized Muscle Target',
-        2 => 'Choose the correct attachment: Round head for large muscle groups, bullet head for deep trigger points, fork head for spine regions.',
-      ),
-      1 => 
-      array (
-        0 => '02',
-        1 => 'High-Amplitude Percussion',
-        2 => 'The Quiet-Glide brushless motor fires rapid pulses up to 3200 RPM, sending percussive waves 12mm deep to break up stiff fibers.',
-      ),
-      2 => 
-      array (
-        0 => '03',
-        1 => 'Promote Circulation & Drainage',
-        2 => 'Vigorous micro-vibration dilates local blood vessels, flushing away lactic acid, reducing stiffness, and restoring full mobility.',
-      ),
-    ),
+    'how_eyebrow' => 'PERSONALIZED PERCUSSION MASSAGE',
+    'how_title' => 'Make Every Massage Session Your Own',
+    'how_copy' => 'Choose the attachment that suits the area you\'re working on, start at a comfortable speed, and gradually adjust the intensity to your preference. Glide the device gently over the muscle rather than holding it in one place, giving you a simple, customizable way to incorporate percussion massage into your everyday routine.<br><br><span class="block max-w-2xl mx-auto text-xs text-red-600 bg-red-50 p-4 rounded-2xl border border-red-100 font-medium text-left leading-relaxed">⚠️ Use on appropriate soft-tissue areas only. Avoid direct application to the head, neck, spine, bones, joints, open wounds, irritated skin or injured areas.</span>',
+    'how_steps' => array(),
     'science_eyebrow' => '',
     'science_title' => '',
     'science_p1' => '',
@@ -1256,23 +1236,23 @@ return array (
     array (
       0 => 
       array (
-        0 => '12mm Depth',
-        1 => 'Percussive wave muscle penetration amplitude',
+        0 => '30 Adjustable Speeds',
+        1 => 'Choose the intensity that feels comfortable for you.',
       ),
       1 => 
       array (
-        0 => '3200 RPM',
-        1 => 'High-frequency brushless motor speed setting',
+        0 => '6 Interchangeable Attachments',
+        1 => 'Customize the contact and massage sensation for different muscle areas.',
       ),
       2 => 
       array (
-        0 => '6 Attachments',
-        1 => 'Specialized therapy nodes for customized recovery',
+        0 => 'Rechargeable & Portable',
+        1 => 'Use it at home, at the office, at the gym or while traveling.',
       ),
       3 => 
       array (
-        0 => '2400mAh',
-        1 => 'High-capacity lithium battery for long sessions',
+        0 => 'Designed for Comfort',
+        1 => 'Keep the device moving gently over soft muscle tissue and avoid direct application over the head, neck, spine, bones, joints or injured areas.',
       ),
     ),
     'faq_eyebrow' => 'Foire aux questions',
@@ -1325,9 +1305,9 @@ return array (
     'seo_desc' => 'Stabilize your shoulder, support rotator cuff and AC joint recovery, and relieve shoulder stiffness with the adjustable Dainely™ Shoulder Brace.',
     'product_name' => 'Dainely™ Shoulder Brace',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Clinically Approved',
-    'eyebrow' => 'Rotator Cuff & AC Joint Stability',
-    'hero_headline' => 'Stabilize your shoulder joint. Restore pain-free movement.',
+    'badge_clinical' => '',
+    'eyebrow' => 'Feel Supported. Keep Moving.',
+    'hero_headline' => 'Asjustabel shoulder and upper-arm support designed for comfortable movement during everyday activities and active routines.',
     'verified_reviews' => ':count commentaires vérifiés',
     'in_stock' => 'En stock',
     'description' => 'Rotator cuff strains, AC joint separations, labrum tears, and chronic frozen shoulder can turn daily reaches and workouts into a source of sharp pain. The Dainely™ Shoulder Brace provides professional-grade joint compression. Featuring an adjustable top pressure pad (perfect for ice/hot packs) and dual strap alignment controls, it stabilizes the humeral head to prevent subluxation and accelerate tendon recovery.',
@@ -1390,47 +1370,47 @@ return array (
     ),
     'lifestyle_eyebrow' => 'Ergonomic Joint Stabilization',
     'lifestyle_title' => 'Relieve joint friction, wherever you move.',
-    'lifestyle_copy' => 'Athletic exercises, heavy lifting, or repetitive household tasks can overstretch your shoulder tendons. The Dainely™ Shoulder Brace provides adjustable compression and alignment to keep your joint moving naturally and safely.',
+    'lifestyle_copy' => 'From workouts and recreational activities to gardening, driving, and everyday tasks, the Dainely™ Shoulder Brace provides adjustable support designed to help you feel secure and comfortable while you move.',
     'lifestyle_cards' => 
     array (
       0 => 
       array (
-        0 => 'Workouts & Lifting',
-        1 => 'Prevents joint instability, subluxations, and strains during athletic movements or gym exercises.',
+        0 => 'Workouts & Active Movement',
+        1 => 'Designed to provide adjustable shoulder support during workouts, recreational activities, and everyday movement.',
       ),
       1 => 
       array (
-        0 => 'Active Daily Living',
-        1 => 'Reduces pressure on AC joints during driving, gardening, and daily chores.',
+        0 => 'Everyday Activities',
+        1 => 'Comfortable, adjustable support for everyday activities such as driving, gardening, household tasks, and getting things done.',
       ),
       2 => 
       array (
-        0 => 'Overnight Healing & Sleep',
-        1 => 'Soothes throbbing joint aches before bed to sleep comfortably without morning stiffness.',
+        0 => 'Comfort When You Need It',
+        1 => 'A flexible, low-profile design that provides comfortable support during downtime, travel, or relaxed everyday activities.',
       ),
     ),
     'how_eyebrow' => 'Structural Joint Support',
-    'how_title' => 'How it protects your shoulder from loading strain',
+    'how_title' => 'How the Support System Works',
     'how_copy' => 'Three mechanical support systems working together to stabilize and compress your shoulder joint.',
     'how_steps' => 
     array (
       0 => 
       array (
         0 => '01',
-        1 => 'Rotator Cuff Compression',
-        2 => 'The high-elastic neoprene sleeve wraps around the upper arm, supporting subluxations and relieving tendon pressure.',
+        1 => ' Flexible Shoulder & Upper-Arm Sleeve',
+        2 => 'The flexible sleeve wraps comfortably around the shoulder and upper arm for close-fitting support during movement.',
       ),
       1 => 
       array (
         0 => '02',
-        1 => 'Cushioned Pressure Pad',
-        2 => 'The top pressure pocket applies direct compression onto the AC joint, keeping it aligned while letting you insert ice or hot packs.',
+        1 => 'Integrated Top Pocket',
+        2 => 'The built-in pocket provides space for a suitable cold or warm pack when desired.',
       ),
       2 => 
       array (
         0 => '03',
-        1 => 'graduated Chest Fastening',
-        2 => 'Dual hook & loop chest straps anchor the brace firmly to the body, distributing movement loading and preventing slipping.',
+        1 => 'Adjustable Chest & Arm Straps',
+        2 => 'Hook-and-loop straps allow you to customize the fit and help keep the brace comfortably positioned during activity.',
       ),
     ),
     'science_eyebrow' => '',
@@ -1446,8 +1426,8 @@ return array (
       ),
       1 => 
       array (
-        0 => '93% Relief',
-        1 => 'Of users reported reduced joint swelling and aching',
+        0 => 'Adjustable Fit',
+        1 => 'Chest and arm straps make it easy to customize the fit for your preferred level of support.',
       ),
       2 => 
       array (
@@ -1495,9 +1475,9 @@ return array (
         2 => 'Hand wash with mild soap in cold water. Let it air dry completely. Do not machine wash or dry clean to maintain neoprene flexibility and strap durability.',
       ),
     ),
-    'cta_eyebrow' => 'Immediate Shoulder Relief',
-    'cta_title' => 'Support your rotator cuff. Walk & exercise pain-free.',
-    'cta_copy' => 'Designed for athletic protection, rotator cuff recovery, AC joint stability, and daily wear comfort.',
+    'cta_eyebrow' => 'Adjustable Shoulder Support',
+    'cta_title' => 'Feel supported through workouts, everyday activities, and active routines.',
+    'cta_copy' => 'Designed for active routines, everyday support, adjustable compression, and comfortable movement.',
     'cta_button' => 'Ajouter au panier — Livraison gratuite',
     'cta_guarantee' => '✓ Garantie de soulagement de la douleur de 30 jours',
     'doctor_name' => 'Dr M. Reinholt',
@@ -1510,7 +1490,7 @@ return array (
     'seo_desc' => 'Restore natural cervical posture, relieve neck pain and tension headaches, and decompress spinal discs in 10 minutes a day with the Dainely™ Neck Stretcher.',
     'product_name' => 'Dainely™ Neck Stretcher',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Clinically Approved',
+    'badge_clinical' => '',
     'eyebrow' => 'Cervical Traction & Realignment',
     'hero_headline' => 'Restore your neck\'s natural curve. Relieve chronic tension in minutes.',
     'verified_reviews' => ':count commentaires vérifiés',
@@ -1695,7 +1675,7 @@ return array (
     'seo_desc' => 'Decompress your spine, restore the natural lumbar curve, and eliminate lower back stiffness and sciatica with the adjustable Dainely™ Back Stretcher.',
     'product_name' => 'Dainely™ Orthopedic Back Stretcher',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Orthopedic Approved',
+    'badge_clinical' => '',
     'eyebrow' => 'Multi-Level Spine Decompression',
     'hero_headline' => 'Decompress your spine. Restore natural lumbar alignment.',
     'verified_reviews' => ':count commentaires vérifiés',
@@ -1880,7 +1860,7 @@ return array (
     'seo_desc' => 'Boost leg circulation, ease heavy or achy leg soreness, and reduce swelling in just 10 minutes a day with the cordless Dainely™ RelaxaLeg™ System.',
     'product_name' => 'Dainely™ RelaxaLeg™ System',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Clinically Proven',
+    'badge_clinical' => '',
     'eyebrow' => 'Pneumatic Compression & Heat',
     'hero_headline' => 'Calm your restless legs. Melt away chronic swelling.',
     'verified_reviews' => ':count commentaires vérifiés',
@@ -2055,7 +2035,7 @@ return array (
     'seo_desc' => 'Alleviate lower back stiffness, support lumbar posture, and experience soothing deep-penetrating heat with the self-heating Dainely™ Tourmaline Belt.',
     'product_name' => 'Dainely™ Tourmaline Belt',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Self-Heating Therapy',
+    'badge_clinical' => '',
     'eyebrow' => '',
     'hero_headline' => 'Soothing warmth.',
     'verified_reviews' => ':count commentaires vérifiés',
@@ -2221,7 +2201,7 @@ return array (
     'seo_desc' => 'Align your posture, stabilize your SI joint, and accelerate recovery with the DMEDE™ Daily Support System. Includes Dainely Belt, extender, and guided movement routines.',
     'product_name' => 'DMEDE™ Daily Support & Recovery System',
     'badge_best_seller' => 'Best Value System',
-    'badge_clinical' => 'Complete Back Protocol',
+    'badge_clinical' => '',
     'eyebrow' => '',
     'hero_headline' => 'Everyday lumbar support.',
     'verified_reviews' => ':count commentaires vérifiés',
@@ -2387,7 +2367,7 @@ return array (
     'seo_desc' => 'Eliminate back pain, regain correct sitting posture, and relieve pressure on your tailbone with the orthopedic ErgoCushion® pressure relief seat cushion.',
     'product_name' => 'ErgoCushion® - Pressure Relief Seat Cushion',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => 'Orthopedic Approved',
+    'badge_clinical' => '',
     'eyebrow' => '',
     'hero_headline' => 'Regain your posture.',
     'verified_reviews' => ':count commentaires vérifiés',
@@ -2447,7 +2427,7 @@ return array (
       ),
     ),
     'lifestyle_eyebrow' => 'Ergonomic Seated Comfort',
-    'lifestyle_title' => 'Relief that fits any seat in your day',
+    'lifestyle_title' => 'Supportive Comfort for Everyday Seating',
     'lifestyle_copy' => 'Office chairs can be rigid, car seats can be unsupportive, and home chairs lack decompression arches. The ErgoCushion® transforms any seating surface into a balanced, body-conforming posture alignment grid.',
     'lifestyle_cards' => 
     array (
@@ -2485,12 +2465,12 @@ return array (
       0 => 
       array (
         0 => 'Coccyx Cutout',
-        1 => 'Unloads 100% of contact tailbone pressure',
+        1 => 'The rear U-shaped cutout creates additional space around the tailbone area and is designed to reduce direct contact with the seating surface.',
       ),
       1 => 
       array (
-        0 => '96% Posture Score',
-        1 => 'Of users reported improved spine alignment comfort',
+        0 => 'Contoured Ergonomic Design',
+        1 => 'Shaped to provide supportive cushioning around the hips and thighs.',
       ),
       2 => 
       array (
@@ -2499,8 +2479,8 @@ return array (
       ),
       3 => 
       array (
-        0 => 'Universal Seat Fit',
-        1 => 'Fits office chairs, car seats, and home stools',
+        0 => 'Designed for Many Everyday Seats',
+        1 => 'Suitable for many office chairs, desk chairs, dining chairs, home seating and compatible vehicle seats.',
       ),
     ),
     'faq_eyebrow' => 'Foire aux questions',
@@ -2553,7 +2533,7 @@ return array (
     'seo_desc' => 'Start your morning with DMEDE Functional Mushroom Coffee. 6 adaptogenic mushrooms combined with Arabica coffee for smooth energy without jitters or crashes.',
     'product_name' => 'Functional Mushroom Coffee',
     'badge_best_seller' => 'Meilleure Vendeur',
-    'badge_clinical' => '6 Adaptogens Blends',
+    'badge_clinical' => '',
     'eyebrow' => '',
     'hero_headline' => 'Sustained mental energy.',
     'verified_reviews' => ':count commentaires vérifiés',

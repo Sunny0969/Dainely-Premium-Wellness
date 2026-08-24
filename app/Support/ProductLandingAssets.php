@@ -156,16 +156,16 @@ class ProductLandingAssets
                 'purchaseOptions' => array_merge($defaults['purchaseOptions'], ['requiresOption' => false, 'options' => []]),
             ],
             'products_neck' => [
-                'lifestyleImages' => ['neck-pain-edu.png', 'posture-edu.png', 'recovery-edu.webp'],
-                'scienceImage'    => 'neck-pain-edu.png',
+                'lifestyleImages' => ['NeckCloud-At-Desk.jpg', 'NeckCloud-After-Commute.jpg', 'Evening-Decompression-Neck-Pain.jpg'],
+                'scienceImage'    => 'NeckCloud-Routine.jpg',
             ],
             'products_patches' => [
                 // Order matches lifestyle_cards: Active Movement → At Your Desk → Overnight Healing
                 // Use Shopify CDN (always on server); local lifestyle webp files are missing on production.
                 'lifestyleImages' => [
-                    $gallery[0] ?? 'lifestyle-everyday-movement.webp',
+                    'lifestyle-everyday-movement.webp',
                     'back-pain-edu.webp',
-                    $gallery[1] ?? ($gallery[0] ?? 'recovery-edu.webp'),
+                    'recovery-edu.webp',
                 ],
                 'scienceImage' => $gallery[0] ?? 'lifestyle-everyday-movement.webp',
             ],
@@ -189,16 +189,16 @@ class ProductLandingAssets
                 'scienceImage'    => 'Built-for-Everyday-Comfort.webp',
             ],
             'products_percussion' => [
-                'lifestyleImages' => ['massager-main.png', 'massager-lifestyle.png', 'recovery-edu.webp'],
-                'scienceImage'    => 'massager-main.png',
+                'lifestyleImages' => ['Massager-Unwind-after-an-active-day.jpg', 'Massager-Take-a-few-minutes-to-reset.jpg', 'Massager-Give-hardworking-muscles-some-attention.jpg'],
+                'scienceImage'    => 'Massager-Personalized-Percussion.jpg',
             ],
             'products_shoulder' => [
-                'lifestyleImages' => ['shoulder-brace-main.png', 'shoulder-brace-lifestyle.png', 'recovery-edu.webp'],
+                'lifestyleImages' => ['ShoulderBrace-Female-Workout.jpg', 'ShoulderBrace-Female-Gardening.jpg', 'ShoulderBrace-Female-Comfort-When-You-Need.jpg'],
                 'scienceImage'    => 'shoulder-brace-main.png',
             ],
             'products_neck_stretcher' => [
-                'lifestyleImages' => ['neck-stretcher-main.png', 'neck-stretcher-lifestyle.png', 'recovery-edu.webp'],
-                'scienceImage'    => 'neck-stretcher-main.png',
+                'lifestyleImages' => ['Desk-Screen-Fatigue-new.jpg', 'Post-Workout-Stretch-new.jpg', 'Bedtime-Tension-Melt-new.jpg'],
+                'scienceImage'    => 'Cervical-Spine-Recovery-new.jpg',
             ],
             'products_back_stretcher' => [
                 'lifestyleImages' => ['back-stretcher-main.png', 'lifestyle-everyday-movement.webp', 'recovery-edu.webp'],

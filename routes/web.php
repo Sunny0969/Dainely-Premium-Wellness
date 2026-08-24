@@ -12,7 +12,8 @@ use App\Http\Controllers\Frontend\SearchController;
 use App\Http\Controllers\Frontend\BundleController;
 use App\Http\Controllers\Frontend\LandingPageController;
 use App\Http\Controllers\HealthController;
-use App\Http\Controllers\RootLocaleRedirectController;
+use App\Services\GeoLocaleService;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Webhooks\SquareWebhookController;
 use App\Http\Controllers\Webhooks\ShopifyWebhookController;
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -43,7 +44,18 @@ Route::get('/health/supabase', [HealthController::class, 'supabase'])
     ->middleware('throttle:30,1');
 
 // Root redirect — geolocate first-time visitors (VPN / IP), then cookie/session
-Route::get('/', RootLocaleRedirectController::class);
+Route::get('/', function (Request $request) {
+    $supported = ['en', 'fr', 'de'];
+    $locale = $request->cookie('locale');
+
+    if (! is_string($locale) || ! in_array($locale, $supported, true)) {
+        $locale = app(GeoLocaleService::class)->detectLocaleFromRequest($request);
+    }
+
+    return redirect()
+        ->route('home', ['locale' => $locale])
+        ->withCookie(cookie('locale', $locale, 525600));
+});
 // Multilingual route group
 Route::prefix('{locale}')
     ->where(['locale' => 'en|fr|de'])
@@ -219,3 +231,59 @@ Route::prefix('dainely-admin-panel')->group(function () {
         Route::post('/shipping', [AdminShippingController::class, 'update']);
     });
 });
+
+Route::get('/clear-live-cache-now', function () {
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    return '<h1>Cache Cleared Successfully!</h1><p>Please go back and refresh your live website.</p>';
+});
+
+
+Route::get('/sync-shopify-now', function () {
+    \Illuminate\Support\Facades\Artisan::call('shopify:sync-catalog');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    return '<h1>Shopify Images Synced & Cache Cleared!</h1><p>Please go back and refresh your live website.</p>';
+});
+
+
+Route::get('/sync-shopify-debug', function () {
+    \Illuminate\Support\Facades\Artisan::call('shopify:sync-catalog');
+    $output = \Illuminate\Support\Facades\Artisan::output();
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    return '<pre>'.htmlentities($output).'</pre><h1>Done!</h1>';
+});
+
+
+Route::get('/sync-shopify-debug2', function () {
+    return response()->json([
+        'shop_domain' => config('shopify.shop_domain'),
+        'storefront_domain' => config('shopify.storefront_domain'),
+        'has_admin_token' => !empty(config('shopify.admin_access_token')),
+        'has_storefront_token' => !empty(config('shopify.storefront_access_token')),
+        'has_client_id' => !empty(config('shopify.client_id')),
+    ]);
+});
+
+
+
+Route::get("/sync-shopify-debug3", function () {
+    $shopify = app(\App\Services\ShopifyService::class);
+    $result = $shopify->fetchProductByHandle("brace", null, true);
+    return response()->json([
+        "success" => $result["success"] ?? false,
+        "error" => $result["error"] ?? null,
+        "image_count" => isset($result["product"]["images"]) ? count($result["product"]["images"]) : 0,
+        "product" => $result["product"] ?? null,
+    ]);
+});
+
+
+Route::get('/clear-brace-cache', function () {
+    \Illuminate\Support\Facades\Cache::forget('shopify_product_handle_e228d440076a08f51df1c7d2466f2ed6'); // md5('brace')
+    \Illuminate\Support\Facades\Cache::forget('shopify_product_handle_brace');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    return 'Cache cleared for brace! Now visit /en/products/brace';
+});
+

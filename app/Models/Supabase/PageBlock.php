@@ -23,10 +23,13 @@ class PageBlock extends Model
         'content',
         'sort_order',
         'visible',
+        'display_position',
+        'is_global',
     ];
 
     protected $casts = [
         'visible' => 'boolean',
+        'is_global' => 'boolean',
     ];
 
     public function blockable(): MorphTo

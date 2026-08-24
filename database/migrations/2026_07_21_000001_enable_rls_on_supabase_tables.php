@@ -46,6 +46,7 @@ return new class extends Migration
         'products',
         'product_translations',
         'pages',
+        'page_translations',
         'blog_categories',
         'blog_posts',
         'blog_post_translations',

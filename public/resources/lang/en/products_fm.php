@@ -6,7 +6,7 @@ return [
 
     'product_name'          => 'Dainely™ Foot Massager',
     'badge_best_seller'     => 'Best Seller',
-    'badge_clinical'        => 'Clinically Endorsed',
+    'badge_clinical' => '',
     'eyebrow'               => 'EMS Acupressure Reflexology',
     'hero_headline'         => 'Alleviate foot neuropathy & swelling in 15 minutes.',
     'verified_reviews'      => ':count verified reviews',

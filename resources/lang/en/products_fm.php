@@ -6,7 +6,7 @@ return [
 
     'product_name'          => 'Dainely™ Foot Massager',
     'badge_best_seller'     => 'Best Seller',
-    'badge_clinical'        => 'Clinically Endorsed',
+    'badge_clinical' => '',
     'eyebrow'               => 'EMS Acupressure Reflexology',
     'hero_headline'         => 'Alleviate foot neuropathy & swelling in 15 minutes.',
     'verified_reviews'      => ':count verified reviews',
@@ -25,7 +25,7 @@ return [
     'add_to_cart'   => 'Add to Cart — Free Shipping',
     'order_now'     => 'Get Your Foot Massager',
 
-    'guarantee_title' => '30-Day Pain Relief Guarantee',
+    'guarantee_title' => 'Try it for 30 days. If it isn\'t right for you, our money-back guarantee has you covered.',
     'guarantee_desc'  => 'Feel complete relief from neuropathy aches and swelling, or get a full refund. Safe and secure purchase.',
     'micro_secure'    => 'Secure checkout',
     'micro_shipping'  => 'Fast shipping',
@@ -91,7 +91,7 @@ return [
     'cta_title'   => 'Calm tingling nerves. Walk without throbbing foot pain.',
     'cta_copy'    => 'Designed for office sitting fatigue, standing work recovery, and chronic neuropathy relief.',
     'cta_button'  => 'Add to Cart — Free Shipping',
-    'cta_guarantee' => '✓ 30-Day Pain Relief Guarantee',
+    'cta_guarantee' => '✓ Try it for 30 days. If it isn\'t right for you, our money-back guarantee has you covered.',
 
     'doctor_name'   => 'Dr. M. Reinholt',
     'doctor_title'  => 'Physiotherapy Consultant',

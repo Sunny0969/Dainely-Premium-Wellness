@@ -12,7 +12,8 @@ use App\Http\Controllers\Frontend\SearchController;
 use App\Http\Controllers\Frontend\BundleController;
 use App\Http\Controllers\Frontend\LandingPageController;
 use App\Http\Controllers\HealthController;
-use App\Http\Controllers\RootLocaleRedirectController;
+use App\Services\GeoLocaleService;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Webhooks\SquareWebhookController;
 use App\Http\Controllers\Webhooks\ShopifyWebhookController;
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -43,7 +44,18 @@ Route::get('/health/supabase', [HealthController::class, 'supabase'])
     ->middleware('throttle:30,1');
 
 // Root redirect — geolocate first-time visitors (VPN / IP), then cookie/session
-Route::get('/', RootLocaleRedirectController::class);
+Route::get('/', function (Request $request) {
+    $supported = ['en', 'fr', 'de'];
+    $locale = $request->cookie('locale');
+
+    if (! is_string($locale) || ! in_array($locale, $supported, true)) {
+        $locale = app(GeoLocaleService::class)->detectLocaleFromRequest($request);
+    }
+
+    return redirect()
+        ->route('home', ['locale' => $locale])
+        ->withCookie(cookie('locale', $locale, 525600));
+});
 // Multilingual route group
 Route::prefix('{locale}')
     ->where(['locale' => 'en|fr|de'])

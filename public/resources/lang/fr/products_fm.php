@@ -6,7 +6,7 @@ return [
 
     'product_name'          => 'Masseur de pieds Dainely™',
     'badge_best_seller'     => 'Meilleure vente',
-    'badge_clinical'        => 'Approuvé cliniquement',
+    'badge_clinical' => '',
     'eyebrow'               => 'Réflexologie EMS et acupression',
     'hero_headline'         => 'Soulagez la neuropathie et les gonflements des pieds en 15 minutes.',
     'verified_reviews'      => ':count avis vérifiés',

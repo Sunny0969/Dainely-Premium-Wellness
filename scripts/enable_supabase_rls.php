@@ -11,7 +11,7 @@ $tables = [
     'dainely_products', 'product_content', 'faqs', 'landing_pages', 'page_blocks',
     'product_knowledge_signals', 'related_content', 'ai_schema_cache', 'product_bundles',
     'product_bundle_items', 'analytics_events', 'user_activity_log', 'search_index',
-    'webhook_logs', 'recommendation_rules', 'users', 'password_reset_tokens',
+    'webhook_logs', 'recommendation_rules', 'page_translations', 'users', 'password_reset_tokens',
     'personal_access_tokens', 'orders', 'order_items',
 ];
 

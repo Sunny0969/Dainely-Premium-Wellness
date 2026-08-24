@@ -343,7 +343,7 @@
   "@type": "Product",
   "name": "Dainely™ Massager",
   "image": "{{ $shopifyMainImg ?? '' }}",
-  "description": "Professional deep tissue percussion massager designed for muscle stiffness, soreness, and quick recovery.",
+  "description": "ADJUSTABLE PERCUSSION MASSAGE massager designed for muscle stiffness, soreness, and quick recovery.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
     "@type": "Offer",

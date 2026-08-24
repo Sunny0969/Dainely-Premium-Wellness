@@ -6,7 +6,7 @@ return [
 
     'product_name'          => 'Dainely™ Fußmassagegerät',
     'badge_best_seller'     => 'Bestseller',
-    'badge_clinical'        => 'Klinisch empfohlen',
+    'badge_clinical' => '',
     'eyebrow'               => 'EMS-Akupressur-Reflexzonenmassage',
     'hero_headline'         => 'Lindern Sie Fußneuropathie und Schwellungen in 15 Minuten.',
     'verified_reviews'      => ':count verifizierte Bewertungen',

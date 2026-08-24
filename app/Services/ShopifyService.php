@@ -753,7 +753,7 @@ class ShopifyService
                     'error'   => null,
                     'source'  => 'local_webhook_sync',
                 ];
-                Cache::put($cacheKey, $fallback, $ttl);
+                Cache::put($cacheKey, $fallback, 30);
 
                 return $fallback;
             }

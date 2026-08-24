@@ -11,7 +11,7 @@ return array (
     'seo_desc' => 'Premium everyday lower back stabilization designed for modern movement and long daily routines. Free shipping on orders over $29.99.',
     'product_name' => 'Dainely Belt',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
+    'badge_clinical' => '',
     'eyebrow' => 'Premium Everyday Lower Back Stabilization',
     'hero_headline' => 'The support you need. The freedom to keep moving.',
     'verified_reviews' => ':count verified reviews',
@@ -214,7 +214,7 @@ return array (
     'seo_desc' => 'Eliminate neck and shoulder pain in 10 minutes a day with the Dainely™ Ball Massager. Targeted pressure point therapy.',
     'product_name' => 'Dainely™ Ball Massager',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
+    'badge_clinical' => '',
     'eyebrow' => 'Pressure Point Trigger Therapy',
     'hero_headline' => 'Eliminate neck pain & stiffness in 10 minutes.',
     'verified_reviews' => ':count verified reviews',
@@ -232,7 +232,6 @@ return array (
     'add_to_cart' => 'Add to Cart — Free Shipping',
     'order_now' => 'Order Now',
     'guarantee_title' => '30-Day Pain Relief Guarantee',
-    'guarantee_desc' => 'Feel the difference in neck tension or get your money back. Risk-free purchase.',
     'micro_secure' => 'Secure checkout',
     'micro_shipping' => 'Fast shipping',
     'micro_trusted' => 'Trusted by thousands',
@@ -384,7 +383,7 @@ return array (
         2 => 'Yes! Placing the spheres at the base of your skull (suboccipital region) and applying steady pressure helps release the tight muscles that cause tension headaches.',
       ),
     ),
-    'cta_eyebrow' => 'Immediate Muscle Relief',
+    'cta_eyebrow' => 'Make Massage Part of Your Routine',
     'cta_title' => 'Roll away stiffness. Restore neck comfort.',
     'cta_copy' => 'Designed for office screen workers, long travel, and physical recovery.',
     'cta_button' => 'Add to Cart — Free Shipping',
@@ -399,9 +398,9 @@ return array (
     'seo_desc' => 'Eliminate neck pain, tension headaches, and stiffness in just 10 minutes a day with the ergonomic Neck Cloud™️.',
     'product_name' => 'Neck Cloud™️',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
-    'eyebrow' => 'Cervical Spine Decompression',
-    'hero_headline' => 'Eliminate neck pain & tension headaches in 10 minutes.',
+    'badge_clinical' => '',
+    'eyebrow' => 'A Simple Reset for Your Neck',
+    'hero_headline' => 'Comfortable Support & Gentle Stretching',
     'verified_reviews' => ':count verified reviews',
     'in_stock' => '✓ In Stock',
     'description' => 'Years of forward head posture, long hours at a laptop, or poor sleep alignment can leave your neck and shoulders in constant pain. The Neck Cloud™️ features a dense, supportive foam curve that uses gravity to gently pull the skull base away from the shoulders. Relieve suboccipital tension and restore natural cervical curvature.',
@@ -417,7 +416,7 @@ return array (
     'add_to_cart' => 'Add to Cart — Free Shipping',
     'order_now' => 'Order Now',
     'guarantee_title' => '30-Day Pain Relief Guarantee',
-    'guarantee_desc' => 'Feel the difference in neck tension or get your money back. Risk-free purchase.',
+    'guarantee_desc' => '',
     'micro_secure' => 'Secure checkout',
     'micro_shipping' => 'Fast shipping',
     'micro_trusted' => 'Trusted by thousands',
@@ -463,48 +462,48 @@ return array (
       ),
     ),
     'lifestyle_eyebrow' => 'Tension Relief on Demand',
-    'lifestyle_title' => 'Relieve tension, whenever, wherever.',
-    'lifestyle_copy' => 'Forward head posture forces your neck to bear up to 60 lbs of stress, resulting in chronic soreness, tension headaches, and poor posture. The Neck Cloud™️ acts as a daily release valve, restoring natural posture in just 10 minutes.',
+    'lifestyle_title' => 'A Simple Way to Unwind',
+    'lifestyle_copy' => 'Long days at a desk, screen time, travel and extended sitting can leave you wanting a moment to pause. Neck Cloud provides comfortable support and gentle stretching to help you make a few minutes of neck-focused relaxation part of your day.',
     'lifestyle_cards' => 
     array (
       0 => 
       array (
         0 => 'At Your Desk',
-        1 => 'Restore natural spine alignment after long hours facing a computer screen.',
+        1 => 'Take a short break and give your neck some comfortable support.',
       ),
       1 => 
       array (
         0 => 'After Long Commutes',
-        1 => 'Squeeze out stress and cervical compression built up during tense travel.',
+        1 => 'Unwind after extended periods of sitting or travel.',
       ),
       2 => 
       array (
-        0 => 'Evening Decompression',
-        1 => 'Wind down before bed by stretching suboccipital muscles for deeper sleep.',
+        0 => 'Evening Reset',
+        1 => 'Make a few quiet minutes of stretching and relaxation part of your evening routine.',
       ),
     ),
-    'how_eyebrow' => 'Cervical Curvature Recovery',
-    'how_title' => 'How it decompresses cervical tension',
-    'how_copy' => 'Three mechanisms combined to restore the neck\'s natural C-curve alignment.',
+    'how_eyebrow' => '',
+    'how_title' => 'Designed for Comfortable Support & Stretching',
+    'how_copy' => 'Start gently. Listen to your body. Never force a stretch.',
     'how_steps' => 
     array (
       0 => 
       array (
         0 => '01',
-        1 => 'Cervical Traction Stretch',
-        2 => 'The contoured design matches the natural neck curvature, safely stretching the spine and opening compressed vertebrae spaces.',
+        1 => 'Contoured Neck Support',
+        2 => 'The shaped design provides a supportive surface for your neck during use.',
       ),
       1 => 
       array (
         0 => '02',
-        1 => 'Acupressure Stimulation',
-        2 => 'Specially raised massage nodes align perfectly with tension trigger points on the neck, promoting muscle knot release.',
+        1 => 'Two Support Positions',
+        2 => 'Choose the position that feels most comfortable for your stretching routine.',
       ),
       2 => 
       array (
         0 => '03',
-        1 => 'Promote Fresh Circulation',
-        2 => 'Decompressing tight suboccipital muscles improves local microcirculation, bringing healing oxygenated blood to stiff areas.',
+        1 => 'Firm, Supportive Foam',
+        2 => 'High-density memory foam provides a firm foundation for short, comfortable sessions.',
       ),
     ),
     'science_eyebrow' => '',
@@ -569,14 +568,14 @@ return array (
         2 => 'Yes, you can wipe it down with a damp cloth and mild soap. Do not submerge it in water or wash it in a washing machine.',
       ),
     ),
-    'cta_eyebrow' => 'Immediate Posture Restoration',
-    'cta_title' => 'Restore natural spine alignment. Relieve neck tension.',
+    'cta_eyebrow' => 'Make Neck Support Part of Your Routine',
+    'cta_title' => 'Support Your Neck After Long Hours at a Screen.<br><span class="block text-lg sm:text-xl font-normal text-stone-600 mt-2">Comfortable Neck Support for Your Daily Routine.</span>',
     'cta_copy' => 'Designed for office desk workers, phone posture alignment, and suboccipital release.',
     'cta_button' => 'Add to Cart — Free Shipping',
     'cta_guarantee' => '✓ 30-Day Pain Relief Guarantee',
-    'doctor_name' => 'Dr. M. Reinholt',
-    'doctor_title' => 'Physiotherapy Consultant',
-    'doctor_quote' => 'Cervical traction restores the natural spine curvature safely.',
+    'doctor_name' => 'Designed for Comfort & Support',
+    'doctor_title' => '',
+    'doctor_quote' => 'A contoured shape and firm, supportive foam make it easy to add gentle neck stretching to your daily routine.<br><span class="block mt-2 text-[10px] text-sage-600 font-bold uppercase tracking-wider">Contoured Design • Two Support Positions • No-Tech Setup</span>',
   ),
   'products_patches' => 
   array (
@@ -584,7 +583,7 @@ return array (
     'seo_desc' => 'Soothe tight lower back muscles and relieve lumbar soreness with 8-hour active herbal warming patches.',
     'product_name' => 'Back Pain Relief Patches',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Tested',
+    'badge_clinical' => '',
     'eyebrow' => 'Transdermal Lumbar Relief',
     'hero_headline' => 'Soothing, fast-acting heat that lasts up to 8 hours.',
     'verified_reviews' => ':count verified reviews',
@@ -769,7 +768,7 @@ return array (
     'seo_desc' => 'Stay warm in any weather with the Dainely™ Unisex Heated Jacket. Features smart carbon fiber heating elements and rechargeable battery warmth.',
     'product_name' => 'Dainely™ Unisex Heated Jacket',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
+    'badge_clinical' => '',
     'eyebrow' => 'Therapeutic Active Warmth',
     'hero_headline' => 'Stay warm in any cold weather, instantly.',
     'verified_reviews' => ':count verified reviews',
@@ -954,7 +953,7 @@ return array (
     'seo_desc' => 'Stabilize knee joints, relieve meniscus and patella pressure, and walk without pain with the ergonomic Dainely™ Knee Brace.',
     'product_name' => 'Dainely™ Knee Brace',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
+    'badge_clinical' => '',
     'eyebrow' => 'Ergonomic Patella & Joint Support',
     'hero_headline' => 'Decompress knee joint pressure. Walk & run pain-free.',
     'verified_reviews' => ':count verified reviews',
@@ -1138,10 +1137,10 @@ return array (
     'seo_title' => 'Dainely™ Percussion Massager — Professional Deep Tissue Recovery',
     'seo_desc' => 'Relieve muscle soreness, dissolve tight knots, and speed up recovery in minutes with the professional-grade Dainely™ Deep Tissue Percussion Massager.',
     'product_name' => 'Dainely™ Massager',
-    'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
-    'eyebrow' => 'Professional Deep Tissue Percussion',
-    'hero_headline' => 'Dissolve deep muscle knots. Speed up recovery in minutes.',
+    'badge_best_seller' => '',
+    'badge_clinical' => '',
+    'eyebrow' => 'ADJUSTABLE PERCUSSION MASSAGE',
+    'hero_headline' => 'Targeted Percussion Massage for Everyday Muscle Comfort<br><span class="block text-lg sm:text-xl font-normal text-stone-500 mt-3 leading-relaxed">30 speeds. 6 attachments. A personalized massage experience for home, work, travel and post-activity routines</span>',
     'verified_reviews' => ':count verified reviews',
     'in_stock' => '✓ In Stock',
     'description' => 'Desk sitting posture tension, heavy athletic workouts, and daily stress build up tight trigger point knots in your muscles, restricting your natural mobility. The Dainely™ Percussion Massager fires rapid high-frequency pulses that penetrate 12mm deep into target tissue, melting away muscle stiffness and flushing out lactic acid.',
@@ -1157,10 +1156,10 @@ return array (
     'add_to_cart' => 'Add to Cart — Free Shipping',
     'order_now' => 'Order Now',
     'guarantee_title' => '30-Day Pain Relief Guarantee',
-    'guarantee_desc' => 'Melt away muscle tension and pain in the comfort of your home, or get a full refund. Safe and secure purchase.',
+    'guarantee_desc' => 'Enjoy a personalized percussion massage experience in the comfort of your home. Safe and secure purchase.',
     'micro_secure' => 'Secure checkout',
     'micro_shipping' => 'Fast shipping',
-    'micro_trusted' => 'Trusted by thousands',
+    'micro_trusted' => 'Loved by Dainely Customers',
     'trust_strip' => 
     array (
       0 => 
@@ -1202,51 +1201,31 @@ return array (
         1 => 'Rechargeable lithium system yields up to 6 hours of continuous use.',
       ),
     ),
-    'lifestyle_eyebrow' => 'Targeted Fascia Recovery',
-    'lifestyle_title' => 'Dissolve deep muscle soreness, on demand.',
-    'lifestyle_copy' => 'Whether you are recovering from heavy athletic training, dealing with desk posture strain, or feeling general muscle fatigue, percussive therapy provides targeted muscle release to keep you active.',
+    'lifestyle_eyebrow' => 'Everyday Muscle Care',
+    'lifestyle_title' => 'Targeted Massage for the Moments That Matter',
+    'lifestyle_copy' => 'From active days to long hours at your desk, Dainely™ Massager makes it easy to add personalized percussion massage to your everyday routine.',
     'lifestyle_cards' => 
     array (
       0 => 
       array (
-        0 => 'Post-Workout Relief',
-        1 => 'Flush out lactic acid buildup and speed up muscle tissue repair after heavy workouts.',
+        0 => 'Post-Activity Reset',
+        1 => '<span class="block font-bold text-stone-800 text-xs sm:text-sm mb-1">Unwind after an active day.</span>Walking, workouts, golf, pickleball and other activities can leave your muscles feeling worked. Use Dainely™ Massager on appropriate muscle areas with a comfortable setting as part of your post-activity relaxation routine.',
       ),
       1 => 
       array (
-        0 => 'Workspace Desk Tension',
-        1 => 'Instantly relieve shoulder knots and neck stiffness caused by long computer hours.',
+        0 => 'Desk-Day Relaxation',
+        1 => '<span class="block font-bold text-stone-800 text-xs sm:text-sm mb-1">Take a few minutes to reset.</span>After hours at a desk or computer, make targeted massage part of your evening or break-time routine. Use a comfortable intensity on appropriate muscle areas such as the shoulders and upper back while avoiding the neck, spine and other sensitive areas.',
       ),
       2 => 
       array (
-        0 => 'Deep Leg Relaxation',
-        1 => 'Release calf tightness and hamstring soreness to wind down comfortably in the evening.',
+        0 => 'Legs & Lower-Body Comfort ',
+        1 => '<span class="block font-bold text-stone-800 text-xs sm:text-sm mb-1">Give hardworking muscles some attention.</span>Whether you\'ve been walking, exercising, traveling or simply on your feet all day, Dainely™ Massager lets you customize your massage experience for larger lower-body muscle groups such as the thighs and calves.',
       ),
     ),
-    'how_eyebrow' => 'Percussive Micro-Vibration',
-    'how_title' => 'How it desensitizes tight muscle fibers',
-    'how_copy' => 'Three mechanical recovery phases to release muscle adhesions and promote healing.',
-    'how_steps' => 
-    array (
-      0 => 
-      array (
-        0 => '01',
-        1 => 'Specialized Muscle Target',
-        2 => 'Choose the correct attachment: Round head for large muscle groups, bullet head for deep trigger points, fork head for spine regions.',
-      ),
-      1 => 
-      array (
-        0 => '02',
-        1 => 'High-Amplitude Percussion',
-        2 => 'The Quiet-Glide brushless motor fires rapid pulses up to 3200 RPM, sending percussive waves 12mm deep to break up stiff fibers.',
-      ),
-      2 => 
-      array (
-        0 => '03',
-        1 => 'Promote Circulation & Drainage',
-        2 => 'Vigorous micro-vibration dilates local blood vessels, flushing away lactic acid, reducing stiffness, and restoring full mobility.',
-      ),
-    ),
+    'how_eyebrow' => 'PERSONALIZED PERCUSSION MASSAGE',
+    'how_title' => 'Make Every Massage Session Your Own',
+    'how_copy' => 'Choose the attachment that suits the area you\'re working on, start at a comfortable speed, and gradually adjust the intensity to your preference. Glide the device gently over the muscle rather than holding it in one place, giving you a simple, customizable way to incorporate percussion massage into your everyday routine.<br><br><span class="block max-w-2xl mx-auto text-xs text-red-600 bg-red-50 p-4 rounded-2xl border border-red-100 font-medium text-left leading-relaxed">⚠️ Use on appropriate soft-tissue areas only. Avoid direct application to the head, neck, spine, bones, joints, open wounds, irritated skin or injured areas.</span>',
+    'how_steps' => array(),
     'science_eyebrow' => '',
     'science_title' => '',
     'science_p1' => '',
@@ -1255,23 +1234,23 @@ return array (
     array (
       0 => 
       array (
-        0 => '12mm Depth',
-        1 => 'Percussive wave muscle penetration amplitude',
+        0 => '30 Adjustable Speeds',
+        1 => 'Choose the intensity that feels comfortable for you.',
       ),
       1 => 
       array (
-        0 => '3200 RPM',
-        1 => 'High-frequency brushless motor speed setting',
+        0 => '6 Interchangeable Attachments',
+        1 => 'Customize the contact and massage sensation for different muscle areas.',
       ),
       2 => 
       array (
-        0 => '6 Attachments',
-        1 => 'Specialized therapy nodes for customized recovery',
+        0 => 'Rechargeable & Portable',
+        1 => 'Use it at home, at the office, at the gym or while traveling.',
       ),
       3 => 
       array (
-        0 => '2400mAh',
-        1 => 'High-capacity lithium battery for long sessions',
+        0 => 'Designed for Comfort',
+        1 => 'Keep the device moving gently over soft muscle tissue and avoid direct application over the head, neck, spine, bones, joints or injured areas.',
       ),
     ),
     'faq_eyebrow' => 'Frequently Asked Questions',
@@ -1309,24 +1288,24 @@ return array (
         2 => 'Yes! Our Quiet-Glide brushless motor keeps noise levels under 45 decibels, which is quieter than a normal office conversation. You can use it anywhere without causing disruption.',
       ),
     ),
-    'cta_eyebrow' => 'Immediate Muscle Relief',
-    'cta_title' => 'Dissolve tension knots. Move with full structural mobility.',
-    'cta_copy' => 'Designed for physical workouts, office posture relief, and general body recovery.',
+    'cta_eyebrow' => 'Make Massage Part of Your Routine',
+    'cta_title' => 'Targeted percussion massage for everyday muscle comfort, relaxation and post-activity routines.',
+    'cta_copy' => 'Designed for active days, desk-day relaxation, and everyday muscle care',
     'cta_button' => 'Add to Cart — Free Shipping',
     'cta_guarantee' => '✓ 30-Day Pain Relief Guarantee',
-    'doctor_name' => 'Dr. M. Reinholt',
-    'doctor_title' => 'Physiotherapy Consultant',
-    'doctor_quote' => 'Percussive massage speeds up myofascial release and tissue oxygenation, bypassing typical post-exercise stiffness.',
+    'doctor_name' => 'Designed for a Simple, Comfortable Routine',
+    'doctor_title' => '',
+    'doctor_quote' => 'Adjustable intensity, interchangeable attachments and a rechargeable design make it easy to personalize your massage experience wherever your day takes you.',
   ),
   'products_shoulder' => 
   array (
     'seo_title' => 'Dainely™ Shoulder Brace — Premium Rotator Cuff & AC Joint Support',
     'seo_desc' => 'Stabilize your shoulder, support rotator cuff and AC joint recovery, and relieve shoulder stiffness with the adjustable Dainely™ Shoulder Brace.',
     'product_name' => 'Dainely™ Shoulder Brace',
-    'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
-    'eyebrow' => 'Rotator Cuff & AC Joint Stability',
-    'hero_headline' => 'Stabilize your shoulder joint. Restore pain-free movement.',
+    'badge_best_seller' => '',
+    'badge_clinical' => '',
+    'eyebrow' => 'Feel Supported. Keep Moving.',
+    'hero_headline' => 'Asjustabel shoulder and upper-arm support designed for comfortable movement during everyday activities and active routines.',
     'verified_reviews' => ':count verified reviews',
     'in_stock' => '✓ In Stock',
     'description' => 'Rotator cuff strains, AC joint separations, labrum tears, and chronic frozen shoulder can turn daily reaches and workouts into a source of sharp pain. The Dainely™ Shoulder Brace provides professional-grade joint compression. Featuring an adjustable top pressure pad (perfect for ice/hot packs) and dual strap alignment controls, it stabilizes the humeral head to prevent subluxation and accelerate tendon recovery.',
@@ -1342,10 +1321,10 @@ return array (
     'add_to_cart' => 'Add to Cart — Free Shipping',
     'order_now' => 'Order Now',
     'guarantee_title' => '30-Day Pain Relief Guarantee',
-    'guarantee_desc' => 'Enjoy active movement and pain-free shoulder stability, or get your money back. Risk-free purchase.',
+    'guarantee_desc' => '',
     'micro_secure' => 'Secure checkout',
     'micro_shipping' => 'Fast shipping',
-    'micro_trusted' => 'Trusted by thousands',
+    'micro_trusted' => '4.5 from 878 verified reviews',
     'trust_strip' => 
     array (
       0 => 
@@ -1389,47 +1368,47 @@ return array (
     ),
     'lifestyle_eyebrow' => 'Ergonomic Joint Stabilization',
     'lifestyle_title' => 'Relieve joint friction, wherever you move.',
-    'lifestyle_copy' => 'Athletic exercises, heavy lifting, or repetitive household tasks can overstretch your shoulder tendons. The Dainely™ Shoulder Brace provides adjustable compression and alignment to keep your joint moving naturally and safely.',
+    'lifestyle_copy' => 'From workouts and recreational activities to gardening, driving, and everyday tasks, the Dainely™ Shoulder Brace provides adjustable support designed to help you feel secure and comfortable while you move.',
     'lifestyle_cards' => 
     array (
       0 => 
       array (
-        0 => 'Workouts & Lifting',
-        1 => 'Prevents joint instability, subluxations, and strains during athletic movements or gym exercises.',
+        0 => 'Workouts & Active Movement',
+        1 => 'Designed to provide adjustable shoulder support during workouts, recreational activities, and everyday movement.',
       ),
       1 => 
       array (
-        0 => 'Active Daily Living',
-        1 => 'Reduces pressure on AC joints during driving, gardening, and daily chores.',
+        0 => 'Everyday Activities',
+        1 => 'Comfortable, adjustable support for everyday activities such as driving, gardening, household tasks, and getting things done.',
       ),
       2 => 
       array (
-        0 => 'Overnight Healing & Sleep',
-        1 => 'Soothes throbbing joint aches before bed to sleep comfortably without morning stiffness.',
+        0 => 'Comfort When You Need It',
+        1 => 'A flexible, low-profile design that provides comfortable support during downtime, travel, or relaxed everyday activities.',
       ),
     ),
     'how_eyebrow' => 'Structural Joint Support',
-    'how_title' => 'How it protects your shoulder from loading strain',
+    'how_title' => 'How the Support System Works',
     'how_copy' => 'Three mechanical support systems working together to stabilize and compress your shoulder joint.',
     'how_steps' => 
     array (
       0 => 
       array (
         0 => '01',
-        1 => 'Rotator Cuff Compression',
-        2 => 'The high-elastic neoprene sleeve wraps around the upper arm, supporting subluxations and relieving tendon pressure.',
+        1 => ' Flexible Shoulder & Upper-Arm Sleeve',
+        2 => 'The flexible sleeve wraps comfortably around the shoulder and upper arm for close-fitting support during movement.',
       ),
       1 => 
       array (
         0 => '02',
-        1 => 'Cushioned Pressure Pad',
-        2 => 'The top pressure pocket applies direct compression onto the AC joint, keeping it aligned while letting you insert ice or hot packs.',
+        1 => 'Integrated Top Pocket',
+        2 => 'The built-in pocket provides space for a suitable cold or warm pack when desired.',
       ),
       2 => 
       array (
         0 => '03',
-        1 => 'graduated Chest Fastening',
-        2 => 'Dual hook & loop chest straps anchor the brace firmly to the body, distributing movement loading and preventing slipping.',
+        1 => 'Adjustable Chest & Arm Straps',
+        2 => 'Hook-and-loop straps allow you to customize the fit and help keep the brace comfortably positioned during activity.',
       ),
     ),
     'science_eyebrow' => '',
@@ -1445,8 +1424,8 @@ return array (
       ),
       1 => 
       array (
-        0 => '93% Relief',
-        1 => 'Of users reported reduced joint swelling and aching',
+        0 => 'Adjustable Fit',
+        1 => 'Chest and arm straps make it easy to customize the fit for your preferred level of support.',
       ),
       2 => 
       array (
@@ -1494,13 +1473,13 @@ return array (
         2 => 'Hand wash with mild soap in cold water. Let it air dry completely. Do not machine wash or dry clean to maintain neoprene flexibility and strap durability.',
       ),
     ),
-    'cta_eyebrow' => 'Immediate Shoulder Relief',
-    'cta_title' => 'Support your rotator cuff. Walk & exercise pain-free.',
-    'cta_copy' => 'Designed for athletic protection, rotator cuff recovery, AC joint stability, and daily wear comfort.',
+    'cta_eyebrow' => 'Adjustable Shoulder Support',
+    'cta_title' => 'Feel supported through workouts, everyday activities, and active routines.',
+    'cta_copy' => 'Designed for active routines, everyday support, adjustable compression, and comfortable movement.',
     'cta_button' => 'Add to Cart — Free Shipping',
     'cta_guarantee' => '✓ 30-Day Pain Relief Guarantee',
-    'doctor_name' => 'Dr. M. Reinholt',
-    'doctor_title' => 'Physiotherapy Consultant',
+    'doctor_name' => 'Designed for Comfortable Support',
+    'doctor_title' => '',
     'doctor_quote' => 'Targeted joint compression and AC joint alignment speed up rotator cuff recovery and reduce throbbing inflammation.',
   ),
   'products_neck_stretcher' => 
@@ -1509,7 +1488,7 @@ return array (
     'seo_desc' => 'Restore natural cervical posture, relieve neck pain and tension headaches, and decompress spinal discs in 10 minutes a day with the Dainely™ Neck Stretcher.',
     'product_name' => 'Dainely™ Neck Stretcher',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
+    'badge_clinical' => '',
     'eyebrow' => 'Cervical Traction & Realignment',
     'hero_headline' => 'Restore your neck\'s natural curve. Relieve chronic tension in minutes.',
     'verified_reviews' => ':count verified reviews',
@@ -1694,7 +1673,7 @@ return array (
     'seo_desc' => 'Decompress your spine, restore the natural lumbar curve, and eliminate lower back stiffness and sciatica with the adjustable Dainely™ Back Stretcher.',
     'product_name' => 'Dainely™ Orthopedic Back Stretcher',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
+    'badge_clinical' => '',
     'eyebrow' => 'Multi-Level Spine Decompression',
     'hero_headline' => 'Decompress your spine. Restore natural lumbar alignment.',
     'verified_reviews' => ':count verified reviews',
@@ -1879,7 +1858,7 @@ return array (
     'seo_desc' => 'Boost leg circulation, ease heavy or achy leg soreness, and reduce swelling in just 10 minutes a day with the cordless Dainely™ RelaxaLeg™ System.',
     'product_name' => 'Dainely™ RelaxaLeg™ System',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
+    'badge_clinical' => '',
     'eyebrow' => 'Pneumatic Compression & Heat',
     'hero_headline' => 'Calm your restless legs. Melt away chronic swelling.',
     'verified_reviews' => ':count verified reviews',
@@ -2054,7 +2033,7 @@ return array (
     'seo_desc' => 'Alleviate lower back stiffness, support lumbar posture, and experience soothing deep-penetrating heat with the self-heating Dainely™ Tourmaline Belt.',
     'product_name' => 'Dainely™ Tourmaline Belt',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
+    'badge_clinical' => '',
     'eyebrow' => '',
     'hero_headline' => 'Soothing warmth.',
     'verified_reviews' => ':count verified reviews',
@@ -2220,7 +2199,7 @@ return array (
     'seo_desc' => 'Align your posture, stabilize your SI joint, and accelerate recovery with the DMEDE™ Daily Support System. Includes Dainely Belt, extender, and guided movement routines.',
     'product_name' => 'DMEDE™ Daily Support & Recovery System',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
+    'badge_clinical' => '',
     'eyebrow' => '',
     'hero_headline' => 'Everyday lumbar support.',
     'verified_reviews' => ':count verified reviews',
@@ -2386,9 +2365,9 @@ return array (
     'seo_desc' => 'Eliminate back pain, regain correct sitting posture, and relieve pressure on your tailbone with the orthopedic ErgoCushion® pressure relief seat cushion.',
     'product_name' => 'ErgoCushion® - Pressure Relief Seat Cushion',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
+    'badge_clinical' => '',
     'eyebrow' => '',
-    'hero_headline' => 'Regain your posture.',
+    'hero_headline' => 'Make Every Seat More Comfortable..',
     'verified_reviews' => ':count verified reviews',
     'in_stock' => '✓ In Stock',
     'description' => 'Uncomfortable desk chairs or long drives shouldn\\\'t dictate your physical wellness. The ErgoCushion® is an orthopedic seat pad designed to elevate your posture, suspend the tailbone (coccyx) to avoid compression, and eliminate chronic tailbone aches, sciatica, and lower back strain within 2 weeks.',
@@ -2445,34 +2424,34 @@ return array (
         1 => 'Structured bottom mesh holds the cushion firmly in place during daily chair movements.',
       ),
     ),
-    'lifestyle_eyebrow' => 'Ergonomic Seated Comfort',
-    'lifestyle_title' => 'Relief that fits any seat in your day',
-    'lifestyle_copy' => 'Office chairs can be rigid, car seats can be unsupportive, and home chairs lack decompression arches. The ErgoCushion® transforms any seating surface into a balanced, body-conforming posture alignment grid.',
+    'lifestyle_eyebrow' => 'Supportive Comfort for Everyday Seating',
+    'lifestyle_title' => 'Your chair doesn\'t have to be uncomfortable.',
+    'lifestyle_copy' => 'ErgoCushion® combines three thoughtful design elements to provide supportive cushioning and a more comfortable sitting experience.',
     'lifestyle_cards' => 
     array (
     ),
     'how_eyebrow' => 'Orthopedic Decompression',
-    'how_title' => 'How ErgoCushion® aligns your seated spine',
-    'how_copy' => 'Three mechanical steps working together to eliminate compression and retrain natural posture.',
+    'how_title' => 'Three Thoughtful Design Elements',
+    'how_copy' => 'Working together to provide supportive cushioning and a more comfortable sitting experience.',
     'how_steps' => 
     array (
       0 => 
       array (
         0 => '01',
-        1 => 'Tailbone Suspension',
-        2 => 'The U-shaped tailbone cutout suspends your coccyx in the air, preventing body weight from compressing the base of your spine.',
+        1 => 'Coccyx-Friendly Cutout',
+        2 => 'The rear U-shaped cutout creates additional space around the tailbone area and is designed to reduce direct contact with the seating surface.',
       ),
       1 => 
       array (
         0 => '02',
-        1 => 'Contoured Support Arch',
-        2 => 'Contoured curves cradle your thighs and hips, distributing body weight evenly across the cushion to avoid sciatic nerve pinch.',
+        1 => 'Contoured Seating Surface',
+        2 => 'The shaped surface provides cushioning beneath the hips and thighs while helping distribute body weight across the cushion.',
       ),
       2 => 
       array (
         0 => '03',
-        1 => 'Pelvic Tilt Realignment',
-        2 => 'The slight forward wedge angle encourages your pelvis to tilt forward, naturally restoring your lumbar spine\'s correct curve.',
+        1 => 'Supportive Memory Foam',
+        2 => 'The memory foam conforms to the seated body to provide a balance of cushioning and supportive comfort.',
       ),
     ),
     'science_eyebrow' => '',
@@ -2484,12 +2463,12 @@ return array (
       0 => 
       array (
         0 => 'Coccyx Cutout',
-        1 => 'Unloads 100% of contact tailbone pressure',
+        1 => 'The rear U-shaped cutout creates additional space around the tailbone area and is designed to reduce direct contact with the seating surface.',
       ),
       1 => 
       array (
-        0 => '96% Posture Score',
-        1 => 'Of users reported improved spine alignment comfort',
+        0 => 'Contoured Ergonomic Design',
+        1 => 'Shaped to provide supportive cushioning around the hips and thighs.',
       ),
       2 => 
       array (
@@ -2498,8 +2477,8 @@ return array (
       ),
       3 => 
       array (
-        0 => 'Universal Seat Fit',
-        1 => 'Fits office chairs, car seats, and home stools',
+        0 => 'Designed for Many Everyday Seats',
+        1 => 'Use ErgoCushion® with compatible office chairs, desk chairs, dining chairs, home seating and vehicle seats.<br><br>For vehicle use, make sure the cushion is positioned securely and does not interfere with the seat belt, airbags, pedals, controls or safe operation of the vehicle.',
       ),
     ),
     'faq_eyebrow' => 'Frequently Asked Questions',
@@ -2537,14 +2516,14 @@ return array (
         2 => 'The premium memory foam core is engineered to support body weights up to 250 lbs (110 kg) while maintaining its orthopedic compression and spinal alignment benefits.',
       ),
     ),
-    'cta_eyebrow' => 'Immediate Seated Comfort',
-    'cta_title' => 'Cushion your tailbone. Eliminate seated strain.',
-    'cta_copy' => 'Designed to suspend the tailbone, distribute body weight evenly, and align your lower spine for pain-free sitting.',
+    'cta_eyebrow' => 'A Simple Addition to Your Favorite Seat',
+    'cta_title' => 'You don\'t need to replace your chair to improve your seating experience.',
+    'cta_copy' => 'Simply place ErgoCushion® on a compatible seating surface and enjoy supportive cushioning wherever you sit.<br><br>More support. More comfort. One simple cushion.',
     'cta_button' => 'Add to Cart — Free Shipping',
     'cta_guarantee' => '✓ 30-Day Pain Relief Guarantee',
-    'doctor_name' => 'Dr. M. Reinholt',
-    'doctor_title' => 'Physiotherapy Consultant',
-    'doctor_quote' => 'Suspending the tailbone during extended sitting sessions prevents the base vertebrae from loading micro-impacts, which helps prevent sciatica flares.',
+    'doctor_name' => '★ ★ ★ ★ ★',
+    'doctor_title' => '',
+    'doctor_quote' => '4.8 — 103 verified reviews',
   ),
   'products_coffee' => 
   array (
@@ -2552,7 +2531,7 @@ return array (
     'seo_desc' => 'Start your morning with DMEDE Functional Mushroom Coffee. 6 adaptogenic mushrooms combined with Arabica coffee for smooth energy without jitters or crashes.',
     'product_name' => 'Functional Mushroom Coffee',
     'badge_best_seller' => 'Best Seller',
-    'badge_clinical' => 'Clinically Endorsed',
+    'badge_clinical' => '',
     'eyebrow' => '',
     'hero_headline' => 'Sustained mental energy.',
     'verified_reviews' => ':count verified reviews',

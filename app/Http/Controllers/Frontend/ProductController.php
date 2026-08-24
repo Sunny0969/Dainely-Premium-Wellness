@@ -351,13 +351,15 @@ class ProductController extends Controller
 
             $toBlockDto = static function ($block): object {
                 return (object) [
-                    'id'         => (int) ($block->id ?? 0),
-                    'locale'     => (string) ($block->locale ?? 'en'),
-                    'block_type' => (string) ($block->block_type ?? ''),
-                    'title'      => (string) ($block->title ?? ''),
-                    'content'    => (string) ($block->content ?? ''),
-                    'sort_order' => (int) ($block->sort_order ?? 0),
-                    'visible'    => (bool) ($block->visible ?? true),
+                    'id'               => (int) ($block->id ?? 0),
+                    'locale'           => (string) ($block->locale ?? 'en'),
+                    'block_type'       => (string) ($block->block_type ?? ''),
+                    'title'            => (string) ($block->title ?? ''),
+                    'content'          => (string) ($block->content ?? ''),
+                    'sort_order'       => (int) ($block->sort_order ?? 0),
+                    'visible'          => (bool) ($block->visible ?? true),
+                    'display_position' => (string) ($block->display_position ?? 'default'),
+                    'is_global'        => (bool) ($block->is_global ?? false),
                 ];
             };
 
@@ -375,6 +377,14 @@ class ProductController extends Controller
                 // Legacy: older FR/DE-only rows — fall back so nothing disappears.
                 $blocksEn = $pickLocale($dbProduct->pageBlocks);
             }
+
+            $globalBlocks = \App\Models\Supabase\PageBlock::where('blockable_type', \App\Models\Supabase\Product::class)
+                ->where('is_global', true)
+                ->where('locale', 'en')
+                ->visible()
+                ->get();
+            
+            $blocksEn = $blocksEn->concat($globalBlocks)->unique('id')->sortBy('sort_order')->values();
 
             return [
                 'found' => true,

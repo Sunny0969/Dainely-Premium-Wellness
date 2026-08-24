@@ -576,6 +576,13 @@
   vertical-align: top;
 }
 
+.cms-richtext td:first-child,
+.cms-richtext th:first-child {
+  min-width: 140px;
+  font-weight: 500;
+  color: #334155;
+}
+
 .cms-richtext a {
   color: #1e3a5f;
   text-decoration: underline;

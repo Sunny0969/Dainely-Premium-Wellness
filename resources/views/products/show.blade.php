@@ -343,7 +343,7 @@
   "@type": "Product",
   "name": "Dainely™ Massager",
   "image": "{{ $shopifyMainImg ?? '' }}",
-  "description": "Professional deep tissue percussion massager designed for muscle stiffness, soreness, and quick recovery.",
+  "description": "ADJUSTABLE PERCUSSION MASSAGE massager designed for muscle stiffness, soreness, and quick recovery.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
     "@type": "Offer",
@@ -652,7 +652,7 @@
           <img
             src="{{ $galleryUrls[0] }}"
             alt="{{ $title }}"
-            class="w-full aspect-square object-cover transition-all duration-500"
+            class="w-full aspect-square object-contain transition-all duration-500"
             loading="eager"
             width="640"
             height="640"
@@ -674,7 +674,7 @@
         <div class="flex gap-2 overflow-x-auto pb-2 lg:grid lg:grid-cols-5">
           <template x-for="(img, i) in images" :key="i">
             <button @click="setActive(i)" :class="active === i ? 'ring-2 ring-navy-600 ring-offset-2' : 'ring-1 ring-slate-200 hover:ring-navy-300'" class="rounded-xl overflow-hidden aspect-square w-14 h-14 flex-shrink-0 lg:w-auto lg:h-auto">
-              <img :src="img" :alt="'View ' + (i+1)" class="w-full h-full object-cover">
+              <img :src="img" :alt="'View ' + (i+1)" class="w-full h-full object-contain">
             </button>
           </template>
         </div>
