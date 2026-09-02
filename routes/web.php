@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminBundleController;
 use App\Http\Controllers\Admin\AdminRelatedController;
 use App\Http\Controllers\Admin\AdminEducationController;
+use App\Http\Controllers\Admin\AdminBlogController;
 use App\Http\Controllers\Admin\AdminShippingController;
 use Illuminate\Support\Facades\Route;
 
@@ -76,12 +77,8 @@ Route::prefix('{locale}')
 
     // ── Education Pages ───────────────────────────────────────
     Route::prefix('education')->name('education.')->middleware('cf.cache')->group(function () {
-        Route::get('/back-pain',  [EducationController::class, 'backPain'])->name('back-pain');
-        Route::get('/sciatica',   [EducationController::class, 'sciatica'])->name('sciatica');
-        Route::get('/posture',    [EducationController::class, 'posture'])->name('posture');
-        Route::get('/neck-pain',  [EducationController::class, 'neckPain'])->name('neck-pain');
-        Route::get('/mobility',   [EducationController::class, 'mobility'])->name('mobility');
-        Route::get('/recovery',   [EducationController::class, 'recovery'])->name('recovery');
+        Route::get('/', [EducationController::class, 'index'])->name('index');
+        Route::get('/{slug}', [EducationController::class, 'show'])->name('show');
     });
 
     // ── Static Pages ──────────────────────────────────────────
@@ -98,6 +95,7 @@ Route::prefix('{locale}')
     Route::get('/refund-policy',   [PageController::class, 'refund'])->middleware('cf.cache')->name('refund');
 
     // ── Cart ───────────────────────────────────────────────────
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add', [CartController::class, 'store'])->name('cart.store');
     Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
     Route::get('/api/cart/summary', [CartController::class, 'summary'])->name('cart.summary');
@@ -219,12 +217,21 @@ Route::prefix('dainely-admin-panel')->group(function () {
         Route::post('/related/{id}/update', [AdminRelatedController::class, 'update']);
         Route::post('/related/{id}/delete', [AdminRelatedController::class, 'destroy']);
 
-        // Education catalog page_blocks (§13)
+        // Education Pages CRUD
         Route::get('/education', [AdminEducationController::class, 'index']);
+        Route::get('/education/create', [AdminEducationController::class, 'create']);
+        Route::post('/education', [AdminEducationController::class, 'store']);
         Route::get('/education/{id}/edit', [AdminEducationController::class, 'edit']);
-        Route::post('/education/{id}/blocks', [AdminEducationController::class, 'addBlock']);
-        Route::post('/education/{id}/blocks/{blockId}/update', [AdminEducationController::class, 'updateBlock']);
-        Route::post('/education/{id}/blocks/{blockId}/delete', [AdminEducationController::class, 'deleteBlock']);
+        Route::put('/education/{id}', [AdminEducationController::class, 'update']);
+        Route::delete('/education/{id}', [AdminEducationController::class, 'destroy']);
+
+        // Blogs CRUD
+        Route::get('/blogs', [AdminBlogController::class, 'index']);
+        Route::get('/blogs/create', [AdminBlogController::class, 'create']);
+        Route::post('/blogs', [AdminBlogController::class, 'store']);
+        Route::get('/blogs/{id}/edit', [AdminBlogController::class, 'edit']);
+        Route::post('/blogs/{id}/update', [AdminBlogController::class, 'update']);
+        Route::post('/blogs/{id}/delete', [AdminBlogController::class, 'destroy']);
 
         // Shipping / free shipping threshold
         Route::get('/shipping', [AdminShippingController::class, 'edit'])->name('admin.shipping');
@@ -238,6 +245,15 @@ Route::get('/clear-live-cache-now', function () {
     return '<h1>Cache Cleared Successfully!</h1><p>Please go back and refresh your live website.</p>';
 });
 
+Route::get('/setup-education-db-now', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'EducationPagesSeeder', '--force' => true]);
+        return '<h1>Database Migrated & Seeded Successfully!</h1><p>The Education Pages tables have been set up. You can now use the admin panel.</p>';
+    } catch (\Exception $e) {
+        return '<h1>Error setting up database:</h1><p>' . $e->getMessage() . '</p>';
+    }
+});
 
 Route::get('/sync-shopify-now', function () {
     \Illuminate\Support\Facades\Artisan::call('shopify:sync-catalog');
@@ -286,4 +302,5 @@ Route::get('/clear-brace-cache', function () {
     \Illuminate\Support\Facades\Artisan::call('cache:clear');
     return 'Cache cleared for brace! Now visit /en/products/brace';
 });
+
 

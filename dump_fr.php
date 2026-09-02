@@ -1,0 +1,1 @@
+<?php require "vendor/autoload.php"; $app = require_once "bootstrap/app.php"; $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class); $kernel->bootstrap(); $p = App\Models\Catalog\EducationPage::where("locale", "fr")->where("slug", "movement-mobility")->first(); echo $p ? $p->hero_title : "Not Found";

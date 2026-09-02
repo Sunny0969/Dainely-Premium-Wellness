@@ -163,8 +163,13 @@ class AdminFaqController extends AdminController
                 'faqable_id'   => 'required|integer|min:1',
                 'locale'       => 'required|string|in:en,fr,de',
                 'question'     => 'required|string|max:2000',
-                'answer'       => 'required|string|max:10000',
+                'answer'       => 'required|string|max:20000',
             ]);
+
+            $validated['answer'] = \App\Support\CmsHtml::normalize($validated['answer']);
+            if (trim(strip_tags($validated['answer'])) === '') {
+                return back()->withInput()->with('error', 'Answer cannot be empty. Add some text (you can use bold, italics, and lists).');
+            }
 
             if ($validated['faqable_type'] === EducationPage::class
                 && ContentCatalog::educationById((int) $validated['faqable_id']) === null) {
@@ -203,9 +208,14 @@ class AdminFaqController extends AdminController
 
             $validated = $request->validate([
                 'question' => 'required|string|max:2000',
-                'answer'   => 'required|string|max:10000',
+                'answer'   => 'required|string|max:20000',
                 'approved' => 'required|in:0,1',
             ]);
+
+            $validated['answer'] = \App\Support\CmsHtml::normalize($validated['answer']);
+            if (trim(strip_tags($validated['answer'])) === '') {
+                return back()->withInput()->with('error', 'Answer cannot be empty. Add some text (you can use bold, italics, and lists).');
+            }
 
             $faq->update([
                 'question' => $validated['question'],

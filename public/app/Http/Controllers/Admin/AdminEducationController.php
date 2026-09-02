@@ -3,137 +3,149 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Catalog\EducationPage;
-use App\Models\Supabase\PageBlock;
-use App\Support\ContentCatalog;
-use App\Support\SupabaseDb;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
-/**
- * Phase 2 §13 — manage page_blocks for education entities (catalog IDs).
- */
 class AdminEducationController extends AdminController
 {
-    protected array $blockTypes = [
-        'benefits',
-        'how-it-works',
-        'testimonials',
-        'faqs',
-        'cta',
-        'video',
-        'comparison',
-        'bundle',
-    ];
-
     public function index()
     {
-        $pages = ContentCatalog::educationPages();
-
+        $pages = EducationPage::orderBy('id', 'asc')->get();
         return view('admin.education.index', compact('pages'));
+    }
+
+    public function create()
+    {
+        $page = new EducationPage();
+        return view('admin.education.edit', compact('page'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $this->validateEducation($request);
+        
+        if ($request->hasFile('hero_image_file')) {
+            $file = $request->file('hero_image_file');
+            $filename = time() . '_hero_' . $file->getClientOriginalName();
+            $file->move(public_path('images'), $filename);
+            $validated['hero_image'] = $filename;
+        }
+        unset($validated['hero_image_file']);
+        
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['title']);
+        }
+        
+        $validated['figures'] = $this->cleanRepeater($request->input('figures'));
+        $validated['root_causes'] = $this->cleanRepeater($request->input('root_causes'));
+        $validated['treatments'] = $this->cleanRepeater($request->input('treatments'), 'bullet');
+        $validated['content_blocks'] = $this->cleanRepeater($request->input('content_blocks'));
+        
+        $layoutOrder = $request->input('layout_order');
+        if (!empty($layoutOrder)) {
+            $validated['layout_order'] = explode(',', $layoutOrder);
+        } else {
+            $validated['layout_order'] = ['figures', 'root_causes', 'treatments', 'content_blocks'];
+        }
+
+        EducationPage::create($validated);
+
+        return redirect('/dainely-admin-panel/education')->with('success', 'Education Page created successfully.');
     }
 
     public function edit(int $id)
     {
-        $page = EducationPage::findCatalog($id);
-        if (! $page) {
-            return redirect('/dainely-admin-panel/education')->with('error', 'Education page not found.');
-        }
-
-        if (! $this->flashIfSupabaseOffline('Education blocks')) {
-            return redirect('/dainely-admin-panel/education');
-        }
-
-        $blocks = $page->pageBlocks();
-        $blockTypes = $this->blockTypes;
-
-        return view('admin.education.edit', compact('page', 'blocks', 'blockTypes'));
+        $page = EducationPage::findOrFail($id);
+        return view('admin.education.edit', compact('page'));
     }
 
-    public function addBlock(Request $request, int $id)
+    public function update(Request $request, int $id)
     {
-        if (! EducationPage::findCatalog($id)) {
-            return back()->with('error', 'Education page not found.');
+        $page = EducationPage::findOrFail($id);
+        $validated = $this->validateEducation($request);
+        
+        if ($request->hasFile('hero_image_file')) {
+            $file = $request->file('hero_image_file');
+            $filename = time() . '_hero_' . $file->getClientOriginalName();
+            $file->move(public_path('images'), $filename);
+            $validated['hero_image'] = $filename;
+        }
+        unset($validated['hero_image_file']);
+        
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['title']);
         }
 
-        if (! SupabaseDb::available()) {
-            return back()->with('error', 'Database offline. Cannot add block.');
+        $validated['figures'] = $this->cleanRepeater($request->input('figures'));
+        $validated['root_causes'] = $this->cleanRepeater($request->input('root_causes'));
+        $validated['treatments'] = $this->cleanRepeater($request->input('treatments'), 'bullet');
+        $validated['content_blocks'] = $this->cleanRepeater($request->input('content_blocks'));
+
+        $layoutOrder = $request->input('layout_order');
+        if (!empty($layoutOrder)) {
+            $validated['layout_order'] = explode(',', $layoutOrder);
+        } else {
+            $validated['layout_order'] = ['figures', 'root_causes', 'treatments', 'content_blocks'];
         }
 
-        return SupabaseDb::run(function () use ($request, $id) {
-            $validated = $request->validate([
-                'locale' => 'required|string|size:2',
-                'block_type' => 'required|string|in:'.implode(',', $this->blockTypes),
-                'title' => 'nullable|string|max:255',
-                'content' => 'nullable|string',
-                'sort_order' => 'required|integer',
-            ]);
+        $page->update($validated);
 
-            PageBlock::create([
-                'blockable_type' => EducationPage::MORPH_KEY,
-                'blockable_id' => $id,
-                'locale' => $validated['locale'],
-                'block_type' => $validated['block_type'],
-                'title' => $validated['title'] ?? null,
-                'content' => $validated['content'] ?? null,
-                'sort_order' => $validated['sort_order'],
-                'visible' => true,
-            ]);
+        \App\Support\StorefrontCache::forgetEducation($page->id);
 
-            \App\Support\StorefrontCache::forgetEducation((int) $id);
-
-            return back()->with('success', 'Education page block added.');
-        }, fn () => back()->with('error', 'Database operation failed.'));
+        return redirect('/dainely-admin-panel/education')->with('success', 'Education Page updated successfully.');
     }
 
-    public function updateBlock(Request $request, int $id, int $blockId)
+    public function destroy(int $id)
     {
-        if (! EducationPage::findCatalog($id)) {
-            return back()->with('error', 'Education page not found.');
-        }
-
-        if (! SupabaseDb::available()) {
-            return back()->with('error', 'Database offline. Cannot update block.');
-        }
-
-        return SupabaseDb::run(function () use ($request, $id, $blockId) {
-            $block = PageBlock::where('blockable_type', EducationPage::MORPH_KEY)
-                ->where('blockable_id', $id)
-                ->where('id', $blockId)
-                ->firstOrFail();
-
-            $validated = $request->validate([
-                'title' => 'nullable|string|max:255',
-                'content' => 'nullable|string',
-                'sort_order' => 'required|integer',
-                'visible' => 'required|boolean',
-            ]);
-
-            $block->update($validated);
-
-            \App\Support\StorefrontCache::forgetEducation((int) $id);
-
-            return back()->with('success', 'Education page block updated.');
-        }, fn () => back()->with('error', 'Database operation failed.'));
+        $page = EducationPage::findOrFail($id);
+        $page->delete();
+        return back()->with('success', 'Education Page deleted.');
     }
 
-    public function deleteBlock(int $id, int $blockId)
+    private function validateEducation(Request $request)
     {
-        if (! EducationPage::findCatalog($id)) {
-            return back()->with('error', 'Education page not found.');
+        return $request->validate([
+            'title' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255',
+            'category' => 'nullable|string|max:255',
+            'hero_title' => 'nullable|string|max:255',
+            'hero_description' => 'nullable|string',
+            'hero_image' => 'nullable|string',
+            'hero_image_file' => 'nullable|image|max:4096',
+            'author_image' => 'nullable|string',
+            'author_name' => 'nullable|string|max:255',
+            'author_role' => 'nullable|string|max:255',
+            'read_time' => 'nullable|string|max:255',
+            
+            'root_causes_title' => 'nullable|string|max:255',
+            'treatments_title' => 'nullable|string|max:255',
+            'treatments_description' => 'nullable|string',
+            
+            'layout_order' => 'nullable|string',
+            
+            'is_active' => 'boolean',
+        ]);
+    }
+
+    private function cleanRepeater($items, $mode = 'array')
+    {
+        if (!is_array($items)) {
+            return [];
         }
-
-        if (! SupabaseDb::available()) {
-            return back()->with('error', 'Database offline. Cannot delete block.');
+        
+        $cleaned = [];
+        foreach ($items as $item) {
+            if ($mode === 'bullet') {
+                if (!empty($item['text'])) {
+                    $cleaned[] = $item['text'];
+                }
+            } else {
+                if (!empty($item['title']) || !empty($item['value']) || !empty($item['label']) || !empty($item['description']) || !empty($item['content'])) {
+                    $cleaned[] = $item;
+                }
+            }
         }
-
-        return SupabaseDb::run(function () use ($id, $blockId) {
-            PageBlock::where('blockable_type', EducationPage::MORPH_KEY)
-                ->where('blockable_id', $id)
-                ->where('id', $blockId)
-                ->delete();
-
-            \App\Support\StorefrontCache::forgetEducation((int) $id);
-
-            return back()->with('success', 'Education page block deleted.');
-        }, fn () => back()->with('error', 'Database operation failed.'));
+        
+        return $cleaned;
     }
 }

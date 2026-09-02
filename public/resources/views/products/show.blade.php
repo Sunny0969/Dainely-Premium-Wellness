@@ -652,7 +652,7 @@
           <img
             src="{{ $galleryUrls[0] }}"
             alt="{{ $title }}"
-            class="w-full aspect-square object-cover transition-all duration-500"
+            class="w-full aspect-square object-contain transition-all duration-500"
             loading="eager"
             width="640"
             height="640"
@@ -674,7 +674,7 @@
         <div class="flex gap-2 overflow-x-auto pb-2 lg:grid lg:grid-cols-5">
           <template x-for="(img, i) in images" :key="i">
             <button @click="setActive(i)" :class="active === i ? 'ring-2 ring-navy-600 ring-offset-2' : 'ring-1 ring-slate-200 hover:ring-navy-300'" class="rounded-xl overflow-hidden aspect-square w-14 h-14 flex-shrink-0 lg:w-auto lg:h-auto">
-              <img :src="img" :alt="'View ' + (i+1)" class="w-full h-full object-cover">
+              <img :src="img" :alt="'View ' + (i+1)" class="w-full h-full object-contain">
             </button>
           </template>
         </div>
@@ -818,8 +818,8 @@
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </span>
           </summary>
-          <div class="mt-3 text-slate-600 text-sm leading-relaxed prose prose-slate max-w-none">
-            {!! nl2br(e($faq->answer)) !!}
+          <div class="mt-3 text-slate-600 text-sm leading-relaxed cms-richtext prose prose-slate max-w-none">
+            {!! \App\Support\CmsHtml::normalize($faq->answer) !!}
           </div>
         </details>
       @endforeach

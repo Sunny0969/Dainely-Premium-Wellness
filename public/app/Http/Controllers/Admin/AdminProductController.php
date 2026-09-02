@@ -44,7 +44,27 @@ class AdminProductController extends AdminController
                 ]);
             }
 
-            return view('admin.products.edit', compact('product', 'contents'));
+            $globalBlocks = \App\Models\Supabase\PageBlock::where('blockable_type', Product::class)
+                ->where('is_global', true)
+                ->where('locale', 'en')
+                ->orderBy('sort_order')
+                ->get();
+
+            $langKey = \App\Support\ProductLandingLang::langKeyForHandle($product->handle);
+            $t = fn($k) => \App\Support\ProductLandingLang::line($langKey, $k, [], 'en');
+
+            $pageHeadings = [
+                'hero'      => $t('hero_headline') ?: 'Hero Section',
+                'details'   => 'Product Details (Grid)',
+                'lifestyle' => $t('lifestyle_title') ?: 'Lifestyle Section',
+                'how'       => $t('how_title') ?: 'How to Use',
+                'science'   => $t('science_title') ?: 'Science & Materials',
+                'reviews'   => 'Customer Reviews',
+                'faq'       => 'Frequently Asked Questions',
+                'cta'       => $t('cta_title') ?: 'Final CTA',
+            ];
+
+            return view('admin.products.edit', compact('product', 'contents', 'globalBlocks', 'pageHeadings'));
         }, fn () => redirect('/dainely-admin-panel/products')->with('error', 'Database query failed.'));
     }
 
@@ -224,9 +244,11 @@ class AdminProductController extends AdminController
             $product = Product::findOrFail($id);
 
             $validated = $request->validate([
-                'block_type' => 'required|string|in:benefits,how-it-works,testimonials,faqs,cta,video,comparison,bundle',
-                'title'      => 'nullable|string|max:255',
-                'content'    => 'nullable|string',
+                'block_type'       => 'required|string|in:benefits,how-it-works,testimonials,faqs,cta,video,comparison,bundle,disclaimer',
+                'title'            => 'nullable|string|max:255',
+                'content'          => 'nullable|string',
+                'display_position' => 'nullable|string|max:100',
+                'is_global'        => 'nullable|boolean',
             ]);
 
             // Admin writes English only — storefront auto-translates for FR/DE.
@@ -235,12 +257,14 @@ class AdminProductController extends AdminController
                 ->max('sort_order');
 
             $product->pageBlocks()->create([
-                'locale'     => 'en',
-                'block_type' => $validated['block_type'],
-                'title'      => $validated['title'],
-                'content'    => $validated['content'],
-                'sort_order' => $nextOrder + 1,
-                'visible'    => true,
+                'locale'           => 'en',
+                'block_type'       => $validated['block_type'],
+                'title'            => $validated['title'],
+                'content'          => $validated['content'],
+                'display_position' => $validated['display_position'] ?? 'default',
+                'is_global'        => $validated['is_global'] ?? false,
+                'sort_order'       => $nextOrder + 1,
+                'visible'          => true,
             ]);
 
             foreach (['en', 'fr', 'de'] as $locale) {
@@ -264,16 +288,20 @@ class AdminProductController extends AdminController
             $block = \App\Models\Supabase\PageBlock::findOrFail($blockId);
 
             $validated = $request->validate([
-                'title'   => 'nullable|string|max:255',
-                'content' => 'nullable|string',
-                'visible' => 'required|in:0,1',
+                'title'            => 'nullable|string|max:255',
+                'content'          => 'nullable|string',
+                'display_position' => 'nullable|string|max:100',
+                'is_global'        => 'nullable|boolean',
+                'visible'          => 'required|in:0,1',
             ]);
 
             $block->update([
-                'title'   => $validated['title'],
-                'content' => $validated['content'],
-                'visible' => (bool) (int) $validated['visible'],
-                'locale'  => 'en',
+                'title'            => $validated['title'],
+                'content'          => $validated['content'],
+                'display_position' => $validated['display_position'] ?? 'default',
+                'is_global'        => $validated['is_global'] ?? false,
+                'visible'          => (bool) (int) $validated['visible'],
+                'locale'           => 'en',
             ]);
 
             foreach (['en', 'fr', 'de'] as $locale) {

@@ -1,0 +1,1 @@
+<?php require "vendor/autoload.php"; $app = require_once "bootstrap/app.php"; $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class); $kernel->bootstrap(); $page = App\Models\Catalog\EducationPage::find(1); app(App\Http\Controllers\Admin\AdminEducationController::class)->syncTranslations($page); echo "Done!";

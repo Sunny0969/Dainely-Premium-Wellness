@@ -13,74 +13,22 @@ class ContentCatalog
      */
     public static function educationPages(): array
     {
-        return [
-            [
-                'id' => 1,
-                'slug' => 'back-pain',
-                'route' => 'education.back-pain',
-                'title' => 'Back Pain Education',
-                'titles' => [
-                    'en' => 'Back Pain Education',
-                    'fr' => 'Éducation : Mal de dos',
-                    'de' => 'Rückenschmerzen Wissen',
-                ],
-            ],
-            [
-                'id' => 2,
-                'slug' => 'sciatica',
-                'route' => 'education.sciatica',
-                'title' => 'Sciatica Education',
-                'titles' => [
-                    'en' => 'Sciatica Education',
-                    'fr' => 'Éducation : Sciatique',
-                    'de' => 'Ischias Wissen',
-                ],
-            ],
-            [
-                'id' => 3,
-                'slug' => 'posture',
-                'route' => 'education.posture',
-                'title' => 'Posture Education',
-                'titles' => [
-                    'en' => 'Posture Education',
-                    'fr' => 'Éducation : Posture',
-                    'de' => 'Haltung Wissen',
-                ],
-            ],
-            [
-                'id' => 4,
-                'slug' => 'neck-pain',
-                'route' => 'education.neck-pain',
-                'title' => 'Neck Pain Education',
-                'titles' => [
-                    'en' => 'Neck Pain Education',
-                    'fr' => 'Éducation : Douleurs cervicales',
-                    'de' => 'Nackenschmerzen Wissen',
-                ],
-            ],
-            [
-                'id' => 5,
-                'slug' => 'mobility',
-                'route' => 'education.mobility',
-                'title' => 'Mobility Education',
-                'titles' => [
-                    'en' => 'Mobility Education',
-                    'fr' => 'Éducation : Mobilité',
-                    'de' => 'Mobilität Wissen',
-                ],
-            ],
-            [
-                'id' => 6,
-                'slug' => 'recovery',
-                'route' => 'education.recovery',
-                'title' => 'Recovery Education',
-                'titles' => [
-                    'en' => 'Recovery Education',
-                    'fr' => 'Éducation : Récupération',
-                    'de' => 'Erholung Wissen',
-                ],
-            ],
-        ];
+        if (\Illuminate\Support\Facades\Schema::hasTable('education_pages')) {
+            return \App\Models\Catalog\EducationPage::where('is_active', true)
+                ->get()
+                ->map(fn ($page) => [
+                    'id' => $page->id,
+                    'slug' => $page->slug,
+                    'route' => 'education.show', // New dynamic route
+                    'title' => $page->title,
+                    'titles' => [
+                        'en' => $page->title,
+                    ],
+                ])
+                ->toArray();
+        }
+
+        return [];
     }
 
     /**

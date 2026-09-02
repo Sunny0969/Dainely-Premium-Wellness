@@ -1,0 +1,1 @@
+<?php require "vendor/autoload.php"; $app = require_once "bootstrap/app.php"; $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class); $kernel->bootstrap(); $pages = App\Models\Catalog\EducationPage::all(["slug", "locale"]); foreach($pages as $p) echo $p->slug . " - " . $p->locale . "\n";

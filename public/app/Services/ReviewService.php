@@ -136,12 +136,10 @@ class ReviewService
         'dainely-tourmaline-belt' => 'dainely™-tourmaline-belt',
         'tourmaline-belt'         => 'dainely™-tourmaline-belt',
 
-        // ── DMEDE Daily Comfort System ───────────────────────────
-        'dainely-daily-comfort-system' => [
-            'dainely-daily-comfort-system',
-            'dmede-daily-support',
-            'dmede-daily-support-recovery-system',
-        ],
+        // ── DMEDE Daily Comfort System (shares belt review pool) ─
+        'dainely-daily-comfort-system'        => 'dainely-comfort-belt',
+        'dmede-daily-support'                 => 'dainely-daily-comfort-system',
+        'dmede-daily-support-recovery-system' => 'dainely-daily-comfort-system',
 
         // ── ErgoCushion ──────────────────────────────────────────
         'cushion' => [

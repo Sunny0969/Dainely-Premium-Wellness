@@ -60,7 +60,7 @@ class BreadcrumbBuilder
         return [
             ['name' => __('products.breadcrumb_home'), 'url' => route('home', ['locale' => $locale])],
             ['name' => __('nav.education') !== 'nav.education' ? __('nav.education') : 'Education', 'url' => null],
-            ['name' => $title, 'url' => $page ? route($page['route'], ['locale' => $locale]) : null],
+            ['name' => $title, 'url' => $page ? route($page['route'], ['locale' => $locale, 'slug' => $page['slug'] ?? $slug]) : null],
         ];
     }
 

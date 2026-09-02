@@ -22,4 +22,29 @@ class BlogPost extends Model
         return $this->translations->firstWhere('locale', $locale)
             ?? $this->translations->firstWhere('locale', 'en');
     }
+    public function resolveFeaturedImage(): string
+    {
+        $img = $this->featured_image;
+
+        // No image set — return default placeholder
+        if (empty($img)) {
+            return 'blog-hero-back-pain.jpg';
+        }
+
+        // Always return the database value directly.
+        // The admin upload saves to public/images/ so the file will exist on production.
+        // Only attempt a legacy fallback if the exact file is missing AND a slug-match exists.
+        if (!file_exists(public_path('images/' . $img))) {
+            $cleanName = preg_replace('/^\d+-/', '', $img);
+            $slug = pathinfo($cleanName, PATHINFO_FILENAME);
+            if (!empty($slug)) {
+                $matches = glob(public_path('images/*' . $slug . '.*'));
+                if (!empty($matches)) {
+                    return basename($matches[0]);
+                }
+            }
+        }
+
+        return $img;
+    }
 }

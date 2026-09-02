@@ -142,10 +142,17 @@ GRAPHQL;
                 return $this->createLegacyCheckout($items, $address, $email, $discountCode);
             }
 
+            $checkoutUrl = $cart['checkoutUrl'];
+            
+            // Append a return_to parameter to instruct Shopify to show a "Return to cart" back button
+            $returnTo = urlencode(route('cart.index', ['locale' => app()->getLocale()]));
+            $separator = str_contains($checkoutUrl, '?') ? '&' : '?';
+            $checkoutUrl .= $separator . 'return_to=' . $returnTo;
+
             return [
                 'success' => true,
                 'checkout_id' => $cart['id'],
-                'web_url' => $cart['checkoutUrl'],
+                'web_url' => $checkoutUrl,
             ];
         } catch (\Throwable $e) {
             Log::error('Error creating Shopify checkout', [
@@ -233,6 +240,11 @@ GRAPHQL;
                 $webUrl = $apply['webUrl'];
             }
         }
+
+        // Append a return_to parameter to instruct Shopify to show a "Return to cart" back button
+        $returnTo = urlencode(route('cart.index', ['locale' => app()->getLocale()]));
+        $separator = str_contains($webUrl, '?') ? '&' : '?';
+        $webUrl .= $separator . 'return_to=' . $returnTo;
 
         return [
             'success' => true,

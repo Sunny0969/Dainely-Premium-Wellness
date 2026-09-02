@@ -376,12 +376,12 @@
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-12">
       @foreach([
-        [__('nav.back_pain'), route('education.back-pain', ['locale' => $locale]), 'lifestyle-everyday-movement.webp'],
-        [__('nav.sciatica'), route('education.sciatica', ['locale' => $locale]), 'sciatica-edu.png'],
-        [__('nav.posture'), route('education.posture', ['locale' => $locale]), 'posture-edu.png'],
-        [__('nav.neck_pain'), route('education.neck-pain', ['locale' => $locale]), 'neck-pain-edu.png'],
-        [__('nav.mobility'), route('education.mobility', ['locale' => $locale]), 'mobility-edu.png'],
-        [__('nav.recovery'), route('education.recovery', ['locale' => $locale]), 'recovery-edu.webp'],
+        [__('nav.back_pain'), route('education.show', ['locale' => $locale, 'slug' => 'back-pain']), 'lifestyle-everyday-movement.webp'],
+        [__('nav.sciatica'), route('education.show', ['locale' => $locale, 'slug' => 'sciatica']), 'sciatica-edu.png'],
+        [__('nav.posture'), route('education.show', ['locale' => $locale, 'slug' => 'posture']), 'posture-edu.png'],
+        [__('nav.neck_pain'), route('education.show', ['locale' => $locale, 'slug' => 'neck-pain']), 'neck-pain-edu.png'],
+        [__('nav.mobility'), route('education.show', ['locale' => $locale, 'slug' => 'mobility']), 'mobility-edu.png'],
+        [__('nav.recovery'), route('education.show', ['locale' => $locale, 'slug' => 'recovery']), 'recovery-edu.webp'],
       ] as [$label, $href, $img])
       <a href="{{ $href }}" class="group block rounded-xl overflow-hidden ring-1 ring-stone-200/80 bg-white hover:ring-stone-300 transition-all">
         <div class="aspect-[4/3] overflow-hidden bg-stone-100">

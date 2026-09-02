@@ -31,7 +31,7 @@
                 <span>{{ $faq->question }}</span>
                 <span class="text-slate-400 group-open:rotate-180 transition">▾</span>
               </summary>
-              <p class="mt-3 text-slate-600 text-sm leading-relaxed">{{ $faq->answer }}</p>
+              <div class="mt-3 text-slate-600 text-sm leading-relaxed cms-richtext">{!! \App\Support\CmsHtml::normalize($faq->answer) !!}</div>
             </details>
           @endforeach
         </div>

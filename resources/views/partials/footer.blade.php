@@ -20,21 +20,19 @@
       <div class="flex-1 w-full min-w-[150px]">
         <h3 class="text-sm font-bold uppercase tracking-widest text-navy-400 mb-4">{{ __('footer.learn') }}</h3>
         <ul class="space-y-2.5">
-          <li><a href="{{ route('education.back-pain', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.back_pain') }}</a></li>
-          <li><a href="{{ route('education.sciatica', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.sciatica') }}</a></li>
-          <li><a href="{{ route('education.posture', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.posture') }}</a></li>
-          <li><a href="{{ route('education.mobility', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.mobility') }}</a></li>
-          <li><a href="{{ route('blog.index', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.blog') }}</a></li>
-          <li><a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.all_products') }}</a></li>
-          @php $footerCartCount = (int) ($cartItemCount ?? \App\Support\CheckoutCart::itemCount()); @endphp
-          <li>
-            <a href="{{ route('checkout.index', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors inline-flex items-center gap-2">
-              {{ __('nav.cart') }}
-              @if($footerCartCount > 0)
-                <span class="min-w-[1.125rem] h-[1.125rem] px-1 bg-white/20 text-white text-[10px] font-bold rounded-full inline-flex items-center justify-center">{{ $footerCartCount > 99 ? '99+' : $footerCartCount }}</span>
-              @endif
-            </a>
-          </li>
+          @php
+              $footerEduPages = \App\Models\Catalog\EducationPage::where('is_active', true)
+                  ->where(function($q) {
+                      $q->where('locale', app()->getLocale())
+                        ->orWhereNull('locale');
+                  })
+                  ->orderBy('id', 'desc')
+                  ->take(5)
+                  ->get();
+          @endphp
+          @foreach($footerEduPages as $eduPage)
+            <li><a href="{{ route('education.show', ['locale' => app()->getLocale(), 'slug' => $eduPage->slug]) }}" title="{{ str_replace(' Education', '', $eduPage->title) }}" class="text-navy-300 hover:text-white text-sm transition-colors line-clamp-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ str_replace(' Education', '', $eduPage->title) }}</a></li>
+          @endforeach
         </ul>
       </div>
 
@@ -42,6 +40,9 @@
       <div class="flex-1 w-full min-w-[150px]">
         <h3 class="text-sm font-bold uppercase tracking-widest text-navy-400 mb-4">{{ __('footer.company') }}</h3>
         <ul class="space-y-2.5">
+          <li><a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.products') }}</a></li>
+          <li><a href="{{ route('education.index', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.education') }}</a></li>
+          <li><a href="{{ route('blog.index', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.blog') }}</a></li>
           <li><a href="{{ route('about', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.about') }}</a></li>
           <li><a href="{{ route('contact', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('nav.contact') }}</a></li>
           <li><a href="{{ route('faq', ['locale' => app()->getLocale()]) }}" class="text-navy-300 hover:text-white text-sm transition-colors">{{ __('footer.faq') }}</a></li>

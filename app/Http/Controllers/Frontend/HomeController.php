@@ -41,6 +41,11 @@ class HomeController extends Controller
             ? asset('videos/day-in-motion.mp4')
             : null;
 
+        $educationPages = \App\Models\Catalog\EducationPage::where('is_active', true)
+            ->orderBy('id', 'asc') // or created_at desc
+            ->take(6)
+            ->get();
+
         return view('pages.home', compact(
             'locale',
             'shopifyProducts',
@@ -50,6 +55,7 @@ class HomeController extends Controller
             'featuredBelt',
             'dailyRelief',
             'heroVideo',
+            'educationPages',
         ));
     }
 

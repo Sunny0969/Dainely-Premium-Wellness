@@ -71,7 +71,6 @@ class CheckoutController extends Controller
             $result = $this->shopifyCheckout->createCheckout($rawItems);
 
             if ($result['success'] && ! empty($result['web_url'])) {
-                CheckoutCart::clear();
 
                 $itemCount = count($rawItems);
                 $checkoutValue = collect($rawItems)->sum(fn ($i) => ((float) ($i['price'] ?? 0)) * ((int) ($i['quantity'] ?? 1)));
@@ -209,7 +208,6 @@ class CheckoutController extends Controller
         $result = $this->shopifyCheckout->createCheckout($rawItems);
 
         if ($result['success'] && ! empty($result['web_url'])) {
-            CheckoutCart::clear();
 
             $itemCount = count($rawItems);
             $checkoutValue = collect($rawItems)->sum(fn ($i) => ((float) ($i['price'] ?? 0)) * ((int) ($i['quantity'] ?? 1)));

@@ -1,0 +1,1 @@
+<?php require "vendor/autoload.php"; $app = require_once "bootstrap/app.php"; $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class); $kernel->bootstrap(); $translator = app(App\Services\ContentTranslationService::class); echo $translator->translateContent("Hello world", "en", "fr");

@@ -45,15 +45,11 @@ class CheckoutController extends Controller
 
         // ── Primary: Shopify Native Checkout (same as before — redirect to Shopify) ──
         if (config('shopify.native_checkout', true) && ! $useSquareFallback) {
-            if (! CheckoutCart::exists()) {
-                $this->populateFeaturedBeltFallback();
-            }
-
             $rawItems = CheckoutCart::getItems();
 
             if ($rawItems === []) {
                 return redirect()
-                    ->route('products.index', ['locale' => $locale])
+                    ->route('cart.index', ['locale' => $locale])
                     ->withErrors(['checkout' => __('checkout.cart_empty')]);
             }
 
@@ -71,7 +67,6 @@ class CheckoutController extends Controller
             $result = $this->shopifyCheckout->createCheckout($rawItems);
 
             if ($result['success'] && ! empty($result['web_url'])) {
-                CheckoutCart::clear();
 
                 $itemCount = count($rawItems);
                 $checkoutValue = collect($rawItems)->sum(fn ($i) => ((float) ($i['price'] ?? 0)) * ((int) ($i['quantity'] ?? 1)));
@@ -110,13 +105,13 @@ class CheckoutController extends Controller
                 $useSquareFallback = true;
             } else {
                 return redirect()
-                    ->route('products.index', ['locale' => $locale])
+                    ->route('cart.index', ['locale' => $locale])
                     ->withErrors(['checkout' => $result['error'] ?? __('checkout.unavailable')]);
             }
         }
 
         if (! $useSquareFallback) {
-            return redirect()->route('products.index', ['locale' => $locale]);
+            return redirect()->route('cart.index', ['locale' => $locale]);
         }
 
         // ── TEMPORARY Square fallback UI (?square=1 or Shopify URL creation failed) ──
@@ -182,11 +177,6 @@ class CheckoutController extends Controller
     {
         $locale = App::getLocale();
 
-        if (! CheckoutCart::exists()) {
-            // Optional one-shot belt fallback only when cart is empty (AJAX path).
-            $this->populateFeaturedBeltFallback();
-        }
-
         $rawItems = CheckoutCart::getItems();
         if ($rawItems === []) {
             return response()->json([
@@ -209,7 +199,6 @@ class CheckoutController extends Controller
         $result = $this->shopifyCheckout->createCheckout($rawItems);
 
         if ($result['success'] && ! empty($result['web_url'])) {
-            CheckoutCart::clear();
 
             $itemCount = count($rawItems);
             $checkoutValue = collect($rawItems)->sum(fn ($i) => ((float) ($i['price'] ?? 0)) * ((int) ($i['quantity'] ?? 1)));

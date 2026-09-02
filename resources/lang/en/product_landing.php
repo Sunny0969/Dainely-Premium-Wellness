@@ -2460,36 +2460,7 @@ return array (
         1 => 'Structured bottom mesh holds the cushion firmly in place during daily chair movements.',
       ),
     ),
-    'lifestyle_eyebrow' => 'Supportive Comfort for Everyday Seating',
-    'lifestyle_title' => 'Your chair doesn\'t have to be uncomfortable.',
-    'lifestyle_copy' => 'ErgoCushion® combines three thoughtful design elements to provide supportive cushioning and a more comfortable sitting experience.',
-    'lifestyle_cards' => 
-    array (
-    ),
-    'how_eyebrow' => 'Orthopedic Decompression',
-    'how_title' => 'Three Thoughtful Design Elements',
-    'how_copy' => 'Working together to provide supportive cushioning and a more comfortable sitting experience.',
-    'how_steps' => 
-    array (
-      0 => 
-      array (
-        0 => '01',
-        1 => 'Coccyx-Friendly Cutout',
-        2 => 'The rear U-shaped cutout creates additional space around the tailbone area and is designed to reduce direct contact with the seating surface.',
-      ),
-      1 => 
-      array (
-        0 => '02',
-        1 => 'Contoured Seating Surface',
-        2 => 'The shaped surface provides cushioning beneath the hips and thighs while helping distribute body weight across the cushion.',
-      ),
-      2 => 
-      array (
-        0 => '03',
-        1 => 'Supportive Memory Foam',
-        2 => 'The memory foam conforms to the seated body to provide a balance of cushioning and supportive comfort.',
-      ),
-    ),
+
     'science_eyebrow' => '',
     'science_title' => '',
     'science_p1' => '',
@@ -2514,7 +2485,7 @@ return array (
       3 => 
       array (
         0 => 'Designed for Many Everyday Seats',
-        1 => 'Use ErgoCushion® with compatible office chairs, desk chairs, dining chairs, home seating and vehicle seats.<br><br>For vehicle use, make sure the cushion is positioned securely and does not interfere with the seat belt, airbags, pedals, controls or safe operation of the vehicle.',
+        1 => 'Suitable for many office chairs, desk chairs, dining chairs, home seating and compatible vehicle seats.',
       ),
     ),
     'faq_eyebrow' => 'Frequently Asked Questions',

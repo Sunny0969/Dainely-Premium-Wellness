@@ -41,7 +41,10 @@
       </div>
 
       <p class="text-red-600 text-sm mt-6 hidden" id="checkout-preparing-error"></p>
-      <a href="{{ $productsUrl }}" class="inline-block mt-4 text-sm text-navy-600 underline hidden" id="checkout-preparing-back">{{ __('nav.continue_shopping') }}</a>
+      <a href="javascript:history.back()" class="inline-flex items-center gap-1.5 mt-4 text-sm font-medium text-navy-600 hover:text-navy-800 transition-colors hidden" id="checkout-preparing-back">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+        Back
+      </a>
     </div>
   </div>
 </div>

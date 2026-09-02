@@ -7,7 +7,7 @@
   <div class="container-site">
     <nav class="flex items-center gap-2 text-sm text-navy-300 mb-8">
       <a href="{{ route('home', ['locale' => app()->getLocale()]) }}" class="hover:text-white transition-colors">Home</a>
-      <span>/</span><a href="{{ route('education.back-pain', ['locale' => app()->getLocale()]) }}" class="hover:text-white transition-colors">Education</a>
+      <span>/</span><a href="{{ route('education.show', ['locale' => app()->getLocale(), 'slug' => 'back-pain']) }}" class="hover:text-white transition-colors">Education</a>
       <span>/</span><span class="text-white">Sciatica</span>
     </nav>
     <div class="grid lg:grid-cols-2 gap-12 items-center">

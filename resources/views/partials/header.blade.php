@@ -111,25 +111,33 @@
 
         {{-- Education dropdown --}}
         <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
-          <button class="nav-link px-3 py-2 rounded-lg hover:bg-slate-50 flex items-center gap-1" :aria-expanded="open">
+          <a href="{{ route('education.index', ['locale' => app()->getLocale()]) }}" class="nav-link px-3 py-2 rounded-lg hover:bg-slate-50 flex items-center gap-1" :aria-expanded="open">
             {{ __('nav.education') }}
             <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-          <div
-            x-show="open"
-            x-cloak
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 -translate-y-2"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-            class="absolute top-full left-0 mt-1 w-56 bg-white rounded-2xl shadow-medium border border-slate-100 p-2 z-50"
-          >
-            @foreach([['back-pain', __('nav.back_pain')], ['sciatica', __('nav.sciatica')], ['posture', __('nav.posture')], ['neck-pain', __('nav.neck_pain')], ['mobility', __('nav.mobility')], ['recovery', __('nav.recovery')]] as [$slug, $label])
-            <a href="{{ route('education.' . $slug, ['locale' => app()->getLocale()]) }}" class="block px-3 py-2.5 rounded-xl text-sm text-slate-700 hover:bg-navy-50 hover:text-navy-700 font-medium transition-colors">{{ $label }}</a>
-            @endforeach
-          </div>
+          </a>
+            <div
+              x-show="open"
+              x-cloak
+              x-transition:enter="transition ease-out duration-200"
+              x-transition:enter-start="opacity-0 -translate-y-2"
+              x-transition:enter-end="opacity-100 translate-y-0"
+              x-transition:leave="transition ease-in duration-150"
+              x-transition:leave-start="opacity-100"
+              x-transition:leave-end="opacity-0"
+              class="absolute top-full left-0 mt-1 w-56 bg-white rounded-2xl shadow-medium border border-slate-100 p-2 z-50 flex flex-col"
+            >
+              @php
+              $dynamicEduPages = \Illuminate\Support\Facades\Cache::remember('nav_edu_desktop_v2_' . app()->getLocale(), 3600, function() { return \App\Models\Catalog\EducationPage::where('is_active', true)->where('locale', app()->getLocale())->orderBy('created_at', 'desc')->take(5)->get(); });
+            @endphp
+              @foreach($dynamicEduPages as $eduPage)
+                <a href="{{ route('education.show', ['locale' => app()->getLocale(), 'slug' => $eduPage->slug]) }}" class="block px-3 py-2.5 rounded-xl text-sm text-slate-700 hover:bg-navy-50 hover:text-navy-700 font-medium transition-colors">{{ str_replace(' Education', '', $eduPage->title) }}</a>
+              @endforeach
+              <div class="border-t border-slate-100 mt-1 pt-1">
+                <a href="{{ route('education.index', ['locale' => app()->getLocale()]) }}" class="block px-3 py-2.5 rounded-xl text-sm font-semibold text-navy-700 hover:bg-navy-50 transition-colors text-center">
+                  View All
+                </a>
+              </div>
+            </div>
         </div>
 
         <a href="{{ route('blog.index', ['locale' => app()->getLocale()]) }}" class="nav-link px-3 py-2 rounded-lg hover:bg-slate-50">{{ __('nav.blog') }}</a>
@@ -203,25 +211,46 @@
       x-transition:leave-end="opacity-0"
       class="lg:hidden pb-4 border-t border-slate-100 pt-4"
     >
-      <div class="flex flex-col gap-1">
+      <div class="flex flex-col gap-2">
         <a href="{{ route('home', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors">{{ __('nav.home') }}</a>
-        <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="px-3 pt-2 pb-1 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-navy-700 transition-colors block">{{ __('nav.products') }}</a>
-        @if(!empty($headerShopifyProducts))
-          @foreach($headerShopifyProducts as $product)
-          <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6 truncate block">{{ $product['title'] }}</a>
-          @endforeach
-        @else
-          <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('nav.dainely_belt') }}</a>
-        @endif
-        <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="px-3 py-2 rounded-xl text-sm font-semibold text-navy-700 hover:bg-navy-50 transition-colors pl-6">{{ __('nav.view_all_products') }}</a>
+        
+        {{-- Collapsible Products Menu --}}
+        <div x-data="{ openProducts: false }">
+          <button @click="openProducts = !openProducts" class="flex items-center justify-between w-full px-3 py-2 text-left focus:outline-none rounded-xl hover:bg-slate-50">
+            <span class="text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('nav.products') }}</span>
+            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{'rotate-180': openProducts}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div x-show="openProducts" x-collapse x-cloak class="flex flex-col gap-1 mt-1 pb-2">
+            @if(!empty($headerShopifyProducts))
+              @foreach($headerShopifyProducts as $product)
+              <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => $product['handle'] ?? '']) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6 truncate block">{{ $product['title'] }}</a>
+              @endforeach
+            @else
+              <a href="{{ route('products.show', ['locale' => app()->getLocale(), 'slug' => 'dainely-belt']) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('nav.dainely_belt') }}</a>
+            @endif
+            <a href="{{ route('products.index', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-semibold text-navy-700 hover:bg-navy-50 transition-colors pl-6">{{ __('nav.view_all_products') }}</a>
+          </div>
+        </div>
 
-        <p class="px-3 pt-2 pb-1 text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('nav.education') }}</p>
-        <a href="{{ route('education.back-pain', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('nav.back_pain') }}</a>
-        <a href="{{ route('education.sciatica', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('nav.sciatica') }}</a>
-        <a href="{{ route('education.posture', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ __('nav.posture') }}</a>
+        {{-- Collapsible Education Menu --}}
+        <div x-data="{ openEdu: false }">
+          <button @click="openEdu = !openEdu" class="flex items-center justify-between w-full px-3 py-2 text-left focus:outline-none rounded-xl hover:bg-slate-50">
+            <span class="text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('nav.education') }}</span>
+            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{'rotate-180': openEdu}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div x-show="openEdu" x-collapse x-cloak class="flex flex-col gap-1 mt-1 pb-2">
+            @php
+                $mobileEduPages = \Illuminate\Support\Facades\Cache::remember('nav_edu_mobile_v2_' . app()->getLocale(), 3600, function() { return \App\Models\Catalog\EducationPage::where('is_active', true)->where('locale', app()->getLocale())->orderBy('created_at', 'desc')->take(5)->get(); });
+            @endphp
+            @foreach($mobileEduPages as $eduPage)
+              <a href="{{ route('education.show', ['locale' => app()->getLocale(), 'slug' => $eduPage->slug]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors pl-6">{{ str_replace(' Education', '', $eduPage->title) }}</a>
+            @endforeach
+            <a href="{{ route('education.index', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-semibold text-navy-700 hover:bg-navy-50 transition-colors pl-6">View All</a>
+          </div>
+        </div>
         <a href="{{ route('blog.index', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors">{{ __('nav.blog') }}</a>
         <a href="{{ route('about', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors">{{ __('nav.about') }}</a>
-        <a href="{{ route('checkout.index', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors flex items-center justify-between gap-3">
+        <a href="{{ route('cart.index', ['locale' => app()->getLocale()]) }}" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-navy-700 transition-colors flex items-center justify-between gap-3">
           <span>{{ __('nav.cart') }}</span>
           @if($headerCartCount > 0)
             <span class="min-w-[1.25rem] h-5 px-1.5 bg-navy-600 text-white text-xs font-bold rounded-full flex items-center justify-center">{{ $headerCartCount > 99 ? '99+' : $headerCartCount }}</span>
@@ -234,4 +263,5 @@
     </div>
   </nav>
 </header>
+
 

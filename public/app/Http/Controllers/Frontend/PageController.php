@@ -116,12 +116,9 @@ class PageController extends Controller
         $urls[] = route('refund', ['locale' => $locale]);
 
         // Education routes
-        $urls[] = route('education.back-pain', ['locale' => $locale]);
-        $urls[] = route('education.sciatica', ['locale' => $locale]);
-        $urls[] = route('education.posture', ['locale' => $locale]);
-        $urls[] = route('education.neck-pain', ['locale' => $locale]);
-        $urls[] = route('education.mobility', ['locale' => $locale]);
-        $urls[] = route('education.recovery', ['locale' => $locale]);
+        foreach (\App\Support\ContentCatalog::educationPages() as $eduPage) {
+            $urls[] = route('education.show', ['locale' => $locale, 'slug' => $eduPage['slug']]);
+        }
 
         // Dynamic Products from Supabase
         if (\App\Support\SupabaseDb::available()) {

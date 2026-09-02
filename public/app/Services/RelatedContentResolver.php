@@ -143,7 +143,7 @@ class RelatedContentResolver
 
         return [
             'title' => ContentCatalog::educationTitle($page, $locale),
-            'url' => route($page['route'], ['locale' => $locale]),
+            'url' => route($page['route'], ['locale' => $locale, 'slug' => $page['slug']]),
             'type_label' => __('content_types.education'),
             'type' => 'education',
         ];

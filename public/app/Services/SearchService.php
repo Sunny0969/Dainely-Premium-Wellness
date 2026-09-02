@@ -199,7 +199,7 @@ class SearchService
     {
         $page = ContentCatalog::educationById($id);
 
-        return $page ? route($page['route'], ['locale' => $locale]) : '#';
+        return $page ? route($page['route'], ['locale' => $locale, 'slug' => $page['slug']]) : '#';
     }
 
     protected function blogUrl(int $id, string $locale): string

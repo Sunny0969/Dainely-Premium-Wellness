@@ -98,10 +98,11 @@
 
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-1">Answer</label>
-                <textarea name="answer" required rows="4" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Customer-facing answer…"></textarea>
+                <p class="text-[11px] text-slate-500 mb-1.5">Use bold, italics, underline, and bullet / numbered lists.</p>
+                <textarea name="answer" required rows="5" class="js-faq-richtext w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Customer-facing answer…"></textarea>
             </div>
 
-            <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-sm transition">
+            <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-sm transition" onclick="if (window.tinymce) tinymce.triggerSave();">
                 Create FAQ
             </button>
         </form>
@@ -188,12 +189,16 @@
                                     </span>
                                 </div>
                                 <strong class="block text-slate-900 text-base">{{ $faq->question }}</strong>
-                                <p class="text-slate-500 text-sm leading-relaxed">{{ $faq->answer }}</p>
+                                <div class="cms-richtext text-slate-500 text-sm leading-relaxed mt-1">{!! \App\Support\CmsHtml::normalize($faq->answer) !!}</div>
                             </div>
                         </div>
 
                         <div class="flex gap-2 shrink-0">
-                            <button type="button" @click="editing = !editing" class="text-navy-600 hover:text-navy-800 text-sm font-bold">
+                            <button
+                                type="button"
+                                @click="editing = !editing; if (editing) { setTimeout(function () { if (window.initFaqRichtext) window.initFaqRichtext(); }, 50); }"
+                                class="text-navy-600 hover:text-navy-800 text-sm font-bold"
+                            >
                                 Edit
                             </button>
                             <form action="/{{ $adminBase }}/faqs/{{ $faq->id }}/delete" method="POST" onsubmit="return confirm('Delete this FAQ?');">
@@ -204,7 +209,7 @@
                     </div>
 
                     <div x-show="editing" x-cloak class="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                        <form action="/{{ $adminBase }}/faqs/{{ $faq->id }}/update" method="POST" class="space-y-4">
+                        <form action="/{{ $adminBase }}/faqs/{{ $faq->id }}/update" method="POST" class="space-y-4" onsubmit="if (window.tinymce) tinymce.triggerSave();">
                             @csrf
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 mb-1">Question</label>
@@ -212,7 +217,8 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 mb-1">Answer</label>
-                                <textarea name="answer" required class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" rows="4">{{ $faq->answer }}</textarea>
+                                <p class="text-[11px] text-slate-500 mb-1.5">Bold, italics, underline, bullets, numbered lists.</p>
+                                <textarea name="answer" required class="js-faq-richtext w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" rows="5">{{ $faq->answer }}</textarea>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 mb-1">Published on site</label>
@@ -241,8 +247,62 @@
 @endsection
 
 @push('admin_scripts')
+<script src="https://cdn.jsdelivr.net/npm/tinymce@7.6.1/tinymce.min.js" referrerpolicy="origin"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script>
+window.initFaqRichtext = function () {
+  if (typeof tinymce === 'undefined') return;
+
+  document.querySelectorAll('textarea.js-faq-richtext').forEach(function (el) {
+    if (!el.id) {
+      el.id = 'faq-rt-' + Math.random().toString(36).slice(2, 10);
+    }
+    if (tinymce.get(el.id)) {
+      return;
+    }
+    // Hidden Alpine edit panels: only init when visible.
+    if (el.offsetParent === null) {
+      return;
+    }
+
+    tinymce.init({
+      selector: '#' + el.id,
+      license_key: 'gpl',
+      base_url: 'https://cdn.jsdelivr.net/npm/tinymce@7.6.1',
+      suffix: '.min',
+      plugins: 'lists link autoresize',
+      toolbar: 'bold italic underline | bullist numlist | link | removeformat',
+      menubar: false,
+      branding: false,
+      promotion: false,
+      statusbar: false,
+      height: 200,
+      min_height: 160,
+      resize: true,
+      convert_urls: false,
+      entity_encoding: 'raw',
+      verify_html: false,
+      forced_root_block: 'p',
+      valid_elements: 'p,br,strong/b,em/i,u,ul,ol,li,a[href|target|rel|title]',
+      paste_data_images: false,
+      invalid_elements: 'img,picture,source,svg,video,audio,iframe,object,embed,table,thead,tbody,tr,th,td',
+      content_style: 'body { font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.7; } body p { margin: 0; } body p + p { margin-top: 0.75em; } body strong, body b { font-weight: 700; } body em, body i { font-style: italic; } body ul { list-style: disc; padding-left: 1.5rem; margin: 0.6em 0; } body ol { list-style: decimal; padding-left: 1.5rem; margin: 0.6em 0; } body li { margin: 0.3em 0; }',
+      setup: function (editor) {
+        editor.on('change blur', function () { editor.save(); });
+      },
+    });
+  });
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+  window.initFaqRichtext();
+  document.querySelectorAll('form').forEach(function (form) {
+    form.addEventListener('submit', function () {
+      if (window.tinymce) tinymce.triggerSave();
+    });
+  });
+});
+
 function faqManager(cfg) {
   return {
     faqableType: cfg.faqableType,

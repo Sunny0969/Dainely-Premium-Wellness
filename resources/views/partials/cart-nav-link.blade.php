@@ -8,7 +8,7 @@
 @endphp
 
 <a
-  href="{{ route('checkout.index', ['locale' => app()->getLocale()]) }}"
+  href="{{ route('cart.index', ['locale' => app()->getLocale()]) }}"
   class="relative inline-flex flex-shrink-0 items-center gap-2 rounded-xl px-2.5 py-2 text-slate-700 hover:text-navy-700 hover:bg-navy-50 transition-all {{ $count > 0 ? 'bg-navy-50/80 ring-1 ring-navy-100' : '' }} {{ $class ?? '' }}"
   aria-label="{{ $cartAriaLabel }}"
   data-testid="header-cart-link"

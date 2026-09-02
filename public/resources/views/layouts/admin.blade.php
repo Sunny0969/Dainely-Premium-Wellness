@@ -31,8 +31,16 @@
             <a href="/dainely-admin-panel/landings" class="flex items-center px-4 py-2.5 rounded-lg font-medium hover:bg-slate-800 hover:text-white transition duration-150 {{ request()->is('dainely-admin-panel/landings*') ? 'bg-slate-800 text-white' : '' }}">
                 Landing Pages
             </a>
-            <a href="/dainely-admin-panel/education" class="flex items-center px-4 py-2.5 rounded-lg font-medium hover:bg-slate-800 hover:text-white transition duration-150 {{ request()->is('dainely-admin-panel/education*') ? 'bg-slate-800 text-white' : '' }}">
-                Education Blocks
+            <div class="space-y-1">
+                <a href="/dainely-admin-panel/education" class="flex items-center px-4 py-2.5 rounded-lg font-medium hover:bg-slate-800 hover:text-white transition duration-150 {{ request()->is('dainely-admin-panel/education') ? 'bg-slate-800 text-white' : '' }}">
+                    Education Blocks
+                </a>
+                <a href="/dainely-admin-panel/education/create" class="flex items-center px-4 py-2 pl-8 rounded-lg text-sm hover:text-white transition duration-150 {{ request()->is('dainely-admin-panel/education/create') ? 'text-white font-medium' : 'text-slate-400' }}">
+                    ↳ Add New Page
+                </a>
+            </div>
+            <a href="/dainely-admin-panel/blogs" class="flex items-center px-4 py-2.5 rounded-lg font-medium hover:bg-slate-800 hover:text-white transition duration-150 {{ request()->is('dainely-admin-panel/blogs*') ? 'bg-slate-800 text-white' : '' }}">
+                Blogs Manager
             </a>
             <a href="/dainely-admin-panel/bundles" class="flex items-center px-4 py-2.5 rounded-lg font-medium hover:bg-slate-800 hover:text-white transition duration-150 {{ request()->is('dainely-admin-panel/bundles*') ? 'bg-slate-800 text-white' : '' }}">
                 Bundles & Offers
@@ -90,6 +98,20 @@
                 <div class="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-lg text-rose-800 text-sm font-semibold flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-lg text-rose-800 text-sm font-semibold">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Please fix the following issues:</span>
+                    </div>
+                    <ul class="list-disc list-inside ml-7">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
 

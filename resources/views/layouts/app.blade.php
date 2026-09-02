@@ -92,6 +92,12 @@
   @stack('json-ld')
 </head>
 <body class="min-h-screen flex flex-col" x-data="scrollTop()">
+<script>
+  // Force scroll to top on page load to prevent unintended auto-scrolling to bottom
+  window.addEventListener('pageshow', function() {
+    window.scrollTo(0, 0);
+  });
+</script>
 
 {{-- Skip to content (accessibility) --}}
 <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 btn-primary z-50">

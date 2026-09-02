@@ -729,29 +729,33 @@ class ShopifyService
             if (is_array($cached) && ($cached['success'] ?? false) && ! empty($cached['product'])) {
                 return $cached;
             }
-
-            if ($localFirst) {
-                $local = app(LocalShopifyCatalog::class)->productByHandle($handle);
-                if (is_array($local) && ! empty($local['handle'])) {
-                    $result = [
-                        'success' => true,
-                        'product' => $local,
-                        'error'   => null,
-                        'source'  => 'local_webhook_sync',
-                    ];
-                    Cache::put($cacheKey, $result, $ttl);
-
-                    return $result;
-                }
-            }
         }
 
+        // Prefer live Shopify so Admin image/title updates appear after cache expiry.
+        // Local webhook catalog is only a fallback when Shopify is unreachable.
         $result = $this->fetchProductByHandleLive($handle, $accessToken);
 
         if ($result['success'] ?? false) {
             Cache::put($cacheKey, $result, $ttl);
-            if ($localFirst && ! $fresh && is_array($result['product'] ?? null)) {
+            if ($localFirst && is_array($result['product'] ?? null)) {
                 app(LocalShopifyCatalog::class)->rememberWebhookProduct($result['product']);
+            }
+
+            return $result;
+        }
+
+        if ($localFirst) {
+            $local = app(LocalShopifyCatalog::class)->productByHandle($handle);
+            if (is_array($local) && ! empty($local['handle'])) {
+                $fallback = [
+                    'success' => true,
+                    'product' => $local,
+                    'error'   => null,
+                    'source'  => 'local_webhook_sync',
+                ];
+                Cache::put($cacheKey, $fallback, 30);
+
+                return $fallback;
             }
         }
 

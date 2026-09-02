@@ -650,6 +650,29 @@ return array (
     'lifestyle_eyebrow' => 'Confort lombaire en mouvement',
     'lifestyle_title' => 'Soulagez la raideur du dos, où que vous soyez.',
     'lifestyle_copy' => 'Que vous travailliez à un bureau, que vous soyez debout toute la journée ou que vous vous remettiez de la fatigue musculaire, les douleurs lombaires peuvent limiter votre mobilité. Les patchs Dainely™ pour soulager les maux de dos offrent une chaleur localisée et durable pour vous aider à rester actif et sans douleur.',
+    'botanical_title' => 'Ingrédients botaniques',
+    'botanical_intro' => 'Les patchs Dainely® pour soulager les maux de dos contiennent un mélange soigneusement sélectionné d’ingrédients botaniques traditionnels utilisés depuis des générations dans les pratiques de bien-être. Ces ingrédients sont combinés dans un patch topique pratique conçu pour un confort localisé.',
+    'botanical_items' => 
+    array (
+      0 => 'Encens (Frankincense)',
+      1 => 'Myrrhe',
+      2 => 'Racine de curcuma',
+      3 => 'Rhizome de Chuanxiong',
+      4 => 'Angelica pubescens',
+      5 => 'Herbe de Lycopodium',
+      6 => 'Caulis Lonicerae',
+    ),
+    'botanical_note' => 'Les ingrédients font partie de la formulation botanique exclusive du produit.',
+    'safety_title' => 'Informations importantes',
+    'safety_items' => 
+    array (
+      0 => 'Pour usage externe uniquement.',
+      1 => 'Appliquer uniquement sur une peau propre et sèche.',
+      2 => 'Ne pas appliquer sur une peau abîmée ou irritée.',
+      3 => 'Arrêter l’utilisation en cas d’irritation.',
+      4 => 'Tenir hors de portée des enfants.',
+      5 => 'Consultez un professionnel de santé si vous êtes enceinte, allaitante ou sous traitement médical avant utilisation.',
+    ),
     'lifestyle_cards' => 
     array (
       0 => 
@@ -754,11 +777,20 @@ return array (
         2 => 'Yes. The self-heating action is safe for overnight wear and will help you sleep comfortably without waking up from lower back aches.',
       ),
     ),
-    'cta_eyebrow' => 'Immediate Lumbar Relief',
-    'cta_title' => 'Soothe spasms. Keep moving without back soreness.',
-    'cta_copy' => 'Designed for daily movement, physical recovery, and desk strain relief.',
+    'cta_eyebrow' => '',
+    'cta_title' => 'Pourquoi les clients l’adorent ?',
+    'cta_copy' => '',
+    'cta_love_points' => 
+    array (
+      0 => 'Patch fin et confortable',
+      1 => 'Facile à appliquer',
+      2 => 'Sans crèmes ni gels salissants',
+      3 => 'Pratique au travail, en voyage et à la maison',
+      4 => 'Léger et discret sous les vêtements',
+      5 => 'Conçu pour les routines bien-être du quotidien',
+    ),
     'cta_button' => 'Ajouter au panier — Livraison gratuite',
-    'cta_guarantee' => '✓ Garantie de soulagement de la douleur de 30 jours',
+    'cta_guarantee' => '✓ Garantie satisfait ou remboursé 30 jours',
     'doctor_name' => 'Dr M. Reinholt',
     'doctor_title' => 'Consultant en physiothérapie',
     'doctor_quote' => 'Localized warming patches provide safe, targeted relief for lumbar fatigue.',
@@ -2369,7 +2401,7 @@ return array (
     'badge_best_seller' => 'Meilleure Vendeur',
     'badge_clinical' => '',
     'eyebrow' => '',
-    'hero_headline' => 'Regain your posture.',
+    'hero_headline' => 'Make Every Seat More Comfortable..',
     'verified_reviews' => ':count commentaires vérifiés',
     'in_stock' => 'En stock',
     'description' => 'Uncomfortable desk chairs or long drives shouldn\\\'t dictate your physical wellness. The ErgoCushion® is an orthopedic seat pad designed to elevate your posture, suspend the tailbone (coccyx) to avoid compression, and eliminate chronic tailbone aches, sciatica, and lower back strain within 2 weeks.',

@@ -649,6 +649,29 @@ return array (
     'lifestyle_eyebrow' => 'Lumbar Comfort on the Move',
     'lifestyle_title' => 'Targeted comfort wherever your day takes you.',
     'lifestyle_copy' => 'Dainely™ Back Pain Relief Patches provide convenient, targeted topical comfort with a lightweight design that fits easily into your daily routine — helping you stay comfortable while doing the things you enjoy.',
+    'botanical_title' => 'Botanische Inhaltsstoffe',
+    'botanical_intro' => 'Dainely® Back Pain Relief Patches enthalten eine sorgfältig ausgewählte Mischung traditioneller botanischer Inhaltsstoffe, die seit Generationen in Wellness-Praktiken verwendet werden. Diese Inhaltsstoffe sind in einem praktischen topischen Pflaster für lokalen Komfort kombiniert.',
+    'botanical_items' => 
+    array (
+      0 => 'Weihrauch (Frankincense)',
+      1 => 'Myrrhe',
+      2 => 'Curcuma-Wurzel',
+      3 => 'Chuanxiong-Rhizom',
+      4 => 'Angelica pubescens',
+      5 => 'Lycopodium-Kraut',
+      6 => 'Caulis Lonicerae',
+    ),
+    'botanical_note' => 'Die Inhaltsstoffe sind Teil der firmeneigenen botanischen Formulierung des Produkts.',
+    'safety_title' => 'Wichtige Informationen',
+    'safety_items' => 
+    array (
+      0 => 'Nur zur äußerlichen Anwendung.',
+      1 => 'Nur auf saubere, trockene Haut auftragen.',
+      2 => 'Nicht auf verletzte oder gereizte Haut auftragen.',
+      3 => 'Bei Reizung die Anwendung beenden.',
+      4 => 'Außerhalb der Reichweite von Kindern aufbewahren.',
+      5 => 'Bei Schwangerschaft, Stillzeit oder medizinischer Behandlung vor der Anwendung Ihren Arzt konsultieren.',
+    ),
     'lifestyle_cards' => 
     array (
       0 => 
@@ -753,11 +776,20 @@ return array (
         2 => 'Yes. The self-heating action is safe for overnight wear and will help you sleep comfortably without waking up from lower back aches.',
       ),
     ),
-    'cta_eyebrow' => 'Immediate Lumbar Relief',
-    'cta_title' => 'Soothe spasms. Keep moving without back soreness.',
-    'cta_copy' => 'Designed for daily movement, physical recovery, and desk strain relief.',
-    'cta_button' => 'Add to Cart — Free Shipping',
-    'cta_guarantee' => '✓ 30-Day Pain Relief Guarantee',
+    'cta_eyebrow' => '',
+    'cta_title' => 'Warum Kunden es lieben?',
+    'cta_copy' => '',
+    'cta_love_points' => 
+    array (
+      0 => 'Dünnes, komfortables Pflaster',
+      1 => 'Einfach aufzutragen',
+      2 => 'Keine schmierigen Cremes oder Gele',
+      3 => 'Praktisch für Arbeit, Reisen und Zuhause',
+      4 => 'Leicht und diskret unter der Kleidung',
+      5 => 'Für alltägliche Wellness-Routinen entwickelt',
+    ),
+    'cta_button' => 'In den Warenkorb — Kostenloser Versand',
+    'cta_guarantee' => '✓ 30-Tage-Geld-zurück-Garantie',
     'doctor_name' => 'Dr. M. Reinholt',
     'doctor_title' => 'Physiotherapy Consultant',
     'doctor_quote' => 'Localized warming patches provide safe, targeted relief for lumbar fatigue.',
@@ -2285,7 +2317,7 @@ return array (
     'lifestyle_cards' => 
     array (
     ),
-    'how_eyebrow' => 'Complete Back Protocol',
+    'how_eyebrow' => 'Complete Back sdsProtocol',
     'how_title' => 'How the Daily Support & Recovery System works',
     'how_copy' => 'Three integrated components working together to support your lower back and accelerate joint recovery.',
     'how_steps' => 
@@ -2388,7 +2420,7 @@ return array (
     'badge_best_seller' => 'Best Seller',
     'badge_clinical' => '',
     'eyebrow' => '',
-    'hero_headline' => 'Regain your posture.',
+    'hero_headline' => 'Make Every Seat More Comfortable..',
     'verified_reviews' => ':count verified reviews',
     'in_stock' => '✓ In Stock',
     'description' => 'Uncomfortable desk chairs or long drives shouldn\\\'t dictate your physical wellness. The ErgoCushion® is an orthopedic seat pad designed to elevate your posture, suspend the tailbone (coccyx) to avoid compression, and eliminate chronic tailbone aches, sciatica, and lower back strain within 2 weeks.',

@@ -66,7 +66,32 @@
   </div>
 </div>
 
+{{-- ── DYNAMIC BLOCKS HOOK ───────────────────────────────────────── --}}
+@php
+  $renderBlocks = function($pos) use ($pageBlocks) {
+      $blocks = collect($pageBlocks ?? [])
+          ->filter(fn ($b) => (bool) ($b->visible ?? true))
+          ->sortBy(fn ($b) => (int) ($b->sort_order ?? 0))
+          ->filter(function($b) use ($pos) {
+              $displayPos = $b->display_position ?? null;
+              if ($pos === 'default') {
+                  return empty($displayPos) || $displayPos === 'default';
+              }
+              return $displayPos === $pos;
+          });
+      $html = '';
+      foreach($blocks as $block) {
+          $view = 'components.blocks.' . ($block->block_type ?? '');
+          if (view()->exists($view)) {
+              $html .= view($view, ['title' => $block->title, 'content' => $block->content])->render();
+          }
+      }
+      return $html;
+  };
+@endphp
+
 {{-- ── 1. HERO ───────────────────────────────────────────────── --}}
+{!! $renderBlocks('before_hero') !!}
 <section class="bg-white pt-4 sm:pt-5 pb-8 sm:pb-12 lg:pb-16" aria-label="Product detail" id="product-hero">
   <div class="container-site">
     <div class="grid lg:grid-cols-2 gap-8 lg:gap-20 items-start">
@@ -92,11 +117,17 @@
           </div>
           @endif
           <div class="absolute top-3 left-3 right-3 flex items-start justify-between gap-2 pointer-events-none">
+            @if($t('badge_best_seller'))
             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-emerald-500 text-white shrink-0">{{ $t('badge_best_seller') }}</span>
+            @else
+            <div></div>
+            @endif
+            @if($t('badge_clinical'))
             <span class="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg sm:rounded-xl px-2 py-1 sm:px-3 sm:py-1.5 shadow text-sage-700 text-[10px] sm:text-xs font-semibold shrink min-w-0 max-w-[55%] sm:max-w-none">
               <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0117.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
               <span class="break-anywhere leading-tight">{{ $t('badge_clinical') }}</span>
             </span>
+            @endif
           </div>
         </div>
         <div class="grid grid-cols-4 gap-2" x-show="images.length > 1">
@@ -192,7 +223,7 @@
             @endforeach
           </ul>
           @else
-          <div class="cms-richtext text-slate-700 text-sm mb-8 break-anywhere">
+          <div class="cms-richtext text-slate-700 text-sm sm:text-base mb-8 break-anywhere">
             {!! \App\Support\CmsHtml::normalize($cmsBenefitsRaw) !!}
           </div>
           @endif
@@ -204,9 +235,7 @@
           <svg class="w-10 h-10 text-sage-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
           <div>
             <p class="font-semibold text-sage-800 text-sm">{{ $t('guarantee_title') }}</p>
-            <p class="text-sage-600 text-xs">{{ $t('guarantee_desc') }}</p>
-          </div>
-        </div>
+            <p class="text-sage-600 text-xs">{!! $t('guarantee_desc') !!}</p>        </div>
 
         <div class="flex flex-wrap gap-4 mt-5 text-xs text-slate-500">
           <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-sage-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg> {{ $t('micro_secure') }}</span>
@@ -217,6 +246,41 @@
     </div>
   </div>
 </section>
+
+{{-- ── 1b. BOTANICAL INGREDIENTS (optional per product) ─────── --}}
+@php
+  $botanicalItems = collect($landingList('botanical_items') ?? [])
+      ->map(fn ($row) => is_string($row) ? trim($row) : trim((string) (is_array($row) ? ($row[0] ?? '') : '')))
+      ->filter()
+      ->values();
+  $botanicalTitle = trim((string) $t('botanical_title'));
+  $botanicalIntro = trim((string) $t('botanical_intro'));
+  $botanicalNote = trim((string) $t('botanical_note'));
+  $showBotanical = $botanicalItems->isNotEmpty()
+      && $botanicalTitle !== ''
+      && ! str_contains($botanicalTitle, 'product_landing.');
+@endphp
+@if($showBotanical)
+<section class="section bg-white border-t border-slate-100" aria-labelledby="botanical-heading" id="botanical-ingredients">
+  <div class="container-site max-w-3xl">
+    <h2 id="botanical-heading" class="heading-section mb-4">{{ $botanicalTitle }}</h2>
+    @if($botanicalIntro !== '' && ! str_contains($botanicalIntro, 'product_landing.'))
+      <p class="text-body text-stone-600 mb-6">{{ $botanicalIntro }}</p>
+    @endif
+    <ul class="grid sm:grid-cols-2 gap-x-8 gap-y-2.5 mb-6">
+      @foreach($botanicalItems as $item)
+        <li class="flex items-start gap-2.5 text-stone-700 text-sm sm:text-base">
+          <span class="mt-1.5 h-1.5 w-1.5 rounded-full bg-sage-600 flex-shrink-0" aria-hidden="true"></span>
+          <span>{{ $item }}</span>
+        </li>
+      @endforeach
+    </ul>
+    @if($botanicalNote !== '' && ! str_contains($botanicalNote, 'product_landing.'))
+      <p class="text-sm text-stone-500 leading-relaxed">{{ $botanicalNote }}</p>
+    @endif
+  </div>
+</section>
+@endif
 
 {{-- ── 2. CMS DETAIL GRID (How / Who / Specs / Care) ──────────── --}}
 @php
@@ -240,13 +304,14 @@
   ], static fn (array $card): bool => $card['body'] !== ''));
 @endphp
 @if(count($cmsDetailCards) > 0)
+{!! $renderBlocks('before_details') !!}
 <section class="bg-white border-y border-slate-100 py-12 md:py-16" aria-label="Product details">
   <div class="container-site">
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
       @foreach($cmsDetailCards as $card)
       <div class="rounded-2xl border border-slate-100 bg-slate-50/80 p-6 md:p-8 h-full">
         <h3 class="font-display font-bold text-navy-950 text-lg md:text-xl mb-3">{{ $card['title'] }}</h3>
-        <div class="cms-richtext text-slate-600 text-sm md:text-base break-anywhere">
+        <div class="cms-richtext text-slate-600 text-sm md:text-base break-words overflow-x-auto">
           {!! \App\Support\CmsHtml::normalize($card['body']) !!}
         </div>
       </div>
@@ -254,45 +319,14 @@
     </div>
   </div>
 </section>
+{!! $renderBlocks('after_details') !!}
 @endif
 
-@if($langKey === 'products_cushion')
-  {{-- Custom Combined Seating Comfort & Design Elements Section --}}
-  <section class="section bg-stone-50 border-b border-stone-100" aria-label="Supportive Comfort">
-    <div class="container-site">
-      <div class="grid lg:grid-cols-12 gap-12 items-center">
-        <div class="lg:col-span-5">
-          <p class="eyebrow mb-3">{{ $t('lifestyle_eyebrow') }}</p>
-          <h2 class="font-display font-bold text-stone-900 mb-5 text-3xl sm:text-4xl leading-tight">{{ $t('lifestyle_title') }}</h2>
-          <p class="text-body text-stone-600 leading-relaxed text-sm sm:text-base">{!! $t('lifestyle_copy') !!}</p>
-        </div>
-        <div class="lg:col-span-7">
-          <div class="space-y-6">
-            @foreach($landingList('how_steps') as $step)
-            @php 
-              $num = $step[0] ?? '';
-              $title = $step[1] ?? '';
-              $desc = $step[2] ?? '';
-              $stepColors = ['navy', 'gold', 'sage']; 
-              $color = $stepColors[(int) $num - 1] ?? 'navy'; 
-            @endphp
-            <div class="flex gap-5 bg-white p-6 rounded-2xl border border-stone-200/60 shadow-sm hover:shadow-md transition-shadow">
-              <div class="w-12 h-12 bg-{{ $color }}-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                <span class="font-display font-bold text-lg text-{{ $color }}-600">{{ $num }}</span>
-              </div>
-              <div>
-                <h3 class="font-semibold text-stone-900 text-base mb-1">{{ $title }}</h3>
-                <p class="text-stone-500 text-xs sm:text-sm leading-relaxed">{!! $desc !!}</p>
-              </div>
-            </div>
-            @endforeach
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+@if($langKey === 'product_landing.products_cushion' || $langKey === 'products_cushion')
+  {{-- Custom Seating Comfort & Design Elements Section removed as requested --}}
 @else
   {{-- ── 3. LIFESTYLE POSITIONING ──────────────────────────────── --}}
+  {!! $renderBlocks('before_lifestyle') !!}
   <section class="section bg-stone-50" aria-label="Lifestyle">
     <div class="container-site">
       <div class="max-w-2xl mb-12">
@@ -316,8 +350,10 @@
       </div>
     </div>
   </section>
+  {!! $renderBlocks('after_lifestyle') !!}
 
   {{-- ── 4. HOW IT WORKS ───────────────────────────────────────── --}}
+  {!! $renderBlocks('before_how') !!}
   <section class="section bg-white" aria-label="How it works">
     <div class="container-site">
       <div class="text-center mb-14">
@@ -348,9 +384,38 @@
       @endif
     </div>
   </section>
+  {!! $renderBlocks('after_how') !!}
+@endif
+
+{{-- ── 4b. SAFETY / IMPORTANT INFORMATION (optional) ─────────── --}}
+@php
+  $safetyItems = collect($landingList('safety_items') ?? [])
+      ->map(fn ($row) => is_string($row) ? trim($row) : trim((string) (is_array($row) ? ($row[0] ?? '') : '')))
+      ->filter()
+      ->values();
+  $safetyTitle = trim((string) $t('safety_title'));
+  $showSafety = $safetyItems->isNotEmpty()
+      && $safetyTitle !== ''
+      && ! str_contains($safetyTitle, 'product_landing.');
+@endphp
+@if($showSafety)
+<section class="section bg-stone-50 border-y border-stone-100" aria-labelledby="safety-heading" id="important-information">
+  <div class="container-site max-w-3xl">
+    <h2 id="safety-heading" class="heading-section mb-6">{{ $safetyTitle }}</h2>
+    <ul class="space-y-3">
+      @foreach($safetyItems as $item)
+        <li class="flex items-start gap-3 text-stone-700 text-sm sm:text-base">
+          <span class="mt-1.5 h-1.5 w-1.5 rounded-full bg-navy-600 flex-shrink-0" aria-hidden="true"></span>
+          <span>{{ $item }}</span>
+        </li>
+      @endforeach
+    </ul>
+  </div>
+</section>
 @endif
 
 {{-- ── 5. SCIENCE / AUTHORITY ────────────────────────────────── --}}
+{!! $renderBlocks('before_science') !!}
 <section class="section bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 text-white" aria-label="Educational authority">
   <div class="container-site">
     <div class="grid lg:grid-cols-2 gap-16 items-center">
@@ -430,23 +495,129 @@
 </section>
 @endif
 
-{{-- ── 5b. ADMIN PAGE LAYOUT BLOCKS (stacked in order) ────────── --}}
-@php
-  $cmsPageBlocks = collect($pageBlocks ?? [])
-      ->filter(fn ($b) => (bool) ($b->visible ?? true))
-      ->sortBy(fn ($b) => (int) ($b->sort_order ?? 0))
-      ->values();
-@endphp
-@foreach($cmsPageBlocks as $block)
-  @php $blockView = 'components.blocks.' . ($block->block_type ?? ''); @endphp
-  @includeIf($blockView, [
-      'title'   => $block->title,
-      'content' => $block->content,
-  ])
-@endforeach
+{!! $renderBlocks('after_science') !!}
 
-{{-- ── 6. FAQ (Phase 2 §6.4: semantic HTML, not JS-only) ── --}}
+{{-- ── 5b. ADMIN PAGE LAYOUT BLOCKS (stacked in order) ────────── --}}
+{!! $renderBlocks('default') !!}
+
+
+@if($langKey === 'product_landing.products_cushion' || $langKey === 'products_cushion')
+<section class="py-20 md:py-28 bg-stone-50 border-t border-b border-stone-200/80" aria-label="Supportive Seating Experience">
+  <div class="container-site max-w-6xl mx-auto px-6">
+    
+    {{-- Header --}}
+    <div class="text-center max-w-3xl mx-auto mb-16 md:mb-20">
+      <span class="inline-block text-amber-600 font-bold uppercase tracking-widest text-xs mb-3 bg-amber-50 px-4 py-1.5 rounded-full border border-amber-200/40">
+        Supportive Comfort for Everyday Seating
+      </span>
+      <h2 class="font-display font-bold text-navy-950 text-3xl sm:text-4xl md:text-5xl leading-tight mt-2 mb-6">
+        Your chair doesn't have to be uncomfortable.
+      </h2>
+      <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
+        ErgoCushion® combines three thoughtful design elements to provide supportive cushioning and a more comfortable sitting experience.
+      </p>
+    </div>
+
+    {{-- 3-Column Premium Hover Cards --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 mb-20" style="margin-top: 48px; margin-bottom: 48px; gap: 32px;">
+      {{-- Card 01 --}}
+      <div class="bg-white p-8 rounded-3xl border border-stone-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between h-full">
+        <div>
+          <div class="flex items-center justify-between mb-8">
+            <div class="w-14 h-14 bg-navy-50 rounded-2xl flex items-center justify-center text-navy-600">
+              {{-- Coccyx Cutout Icon --}}
+              <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4M9 9l3-3 3 3M9 15l3 3 3-3" />
+              </svg>
+            </div>
+            <span class="font-display font-black text-3xl text-navy-100">01</span>
+          </div>
+          <h3 class="font-bold text-navy-950 text-xl mb-3">Coccyx-Friendly Cutout</h3>
+          <p class="text-slate-500 text-sm leading-relaxed">
+            The rear U-shaped cutout creates additional space around the tailbone area and is designed to reduce direct contact with the seating surface.
+          </p>
+        </div>
+      </div>
+
+      {{-- Card 02 --}}
+      <div class="bg-white p-8 rounded-3xl border border-stone-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between h-full">
+        <div>
+          <div class="flex items-center justify-between mb-8">
+            <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+              {{-- Contoured Surface Icon --}}
+              <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+              </svg>
+            </div>
+            <span class="font-display font-black text-3xl text-amber-100">02</span>
+          </div>
+          <h3 class="font-bold text-navy-950 text-xl mb-3">Contoured Seating Surface</h3>
+          <p class="text-slate-500 text-sm leading-relaxed">
+            The shaped surface provides cushioning beneath the hips and thighs while helping distribute body weight across the cushion.
+          </p>
+        </div>
+      </div>
+
+      {{-- Card 03 --}}
+      <div class="bg-white p-8 rounded-3xl border border-stone-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between h-full">
+        <div>
+          <div class="flex items-center justify-between mb-8">
+            <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+              {{-- Memory Foam Icon --}}
+              <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <span class="font-display font-black text-3xl text-emerald-100">03</span>
+          </div>
+          <h3 class="font-bold text-navy-950 text-xl mb-3">Supportive Memory Foam</h3>
+          <p class="text-slate-500 text-sm leading-relaxed">
+            The memory foam conforms to the seated body to provide a balance of cushioning and supportive comfort.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {{-- Divider Line --}}
+    <hr class="border-t border-stone-200/80 my-16 md:my-24" style="margin-top: 64px; margin-bottom: 64px; border-top: 1px solid #e5e5e0;">
+
+    {{-- Details Sections Grid --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-16" style="margin-top: 48px; margin-bottom: 48px; gap: 32px;">
+      {{-- Designed for Many Everyday Seats --}}
+      <div class="bg-white p-8 md:p-10 rounded-3xl border border-stone-200/40 shadow-sm">
+        <h4 class="font-display font-bold text-navy-950 text-2xl mb-4">Designed for Many Everyday Seats</h4>
+        <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+          Suitable for many office chairs, desk chairs, dining chairs, home seating and compatible vehicle seats.
+        </p>
+      </div>
+
+      {{-- A Simple Addition to Your Favorite Seat --}}
+      <div class="bg-white p-8 md:p-10 rounded-3xl border border-stone-200/40 shadow-sm flex flex-col justify-between">
+        <div>
+          <h4 class="font-display font-bold text-navy-950 text-2xl mb-4">A Simple Addition to Your Favorite Seat</h4>
+          <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+            You don't need to replace your chair to improve your seating experience. Simply place ErgoCushion® on a compatible seating surface and enjoy supportive cushioning wherever you sit.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {{-- Centered Slogan --}}
+    <div class="text-center pt-8 border-t border-stone-200/60">
+      <p class="font-display italic text-xl sm:text-2xl md:text-3xl text-navy-900 font-semibold tracking-wide">
+        "More support. More comfort. One simple cushion."
+      </p>
+    </div>
+
+  </div>
+</section>
+@endif
+
+{{-- ── 6. REVIEWS ── --}}
+{!! $renderBlocks('before_reviews') !!}
 @include('partials.reviews-lazy', ['handle' => $handle])
+{!! $renderBlocks('after_reviews') !!}
 
 @php
   $cmsFaqs = collect($cmsFaqs ?? [])->map(function ($row) {
@@ -467,7 +638,9 @@
       : $landingFaqs;
 @endphp
 
-@if($allFaqs->isNotEmpty())
+{{-- ── 6b. FAQ ── --}}
+@if($cmsFaqs->isNotEmpty() || $landingFaqs->isNotEmpty())
+{!! $renderBlocks('before_faq') !!}
 <section class="faq-section section bg-stone-50" id="faq" aria-labelledby="premium-faq-heading">
   <div class="container-site">
     <div class="text-center mb-12">
@@ -481,22 +654,55 @@
           <span>{{ $faq->question }}</span>
           <svg class="w-5 h-5 text-slate-400 transition-transform duration-200 flex-shrink-0 group-open:rotate-180 group-open:text-navy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </summary>
-        <div class="mt-3 text-slate-600 text-sm leading-relaxed">
-          {!! nl2br(e($faq->answer)) !!}
+        <div class="mt-3 text-slate-600 text-sm leading-relaxed cms-richtext">
+          {!! \App\Support\CmsHtml::normalize($faq->answer) !!}
         </div>
       </details>
       @endforeach
     </div>
   </div>
 </section>
+{!! $renderBlocks('after_faq') !!}
 @endif
 
+{!! $renderBlocks('before_cta') !!}
 {{-- ── 7. FINAL CTA ─────────────────────────────────────────── --}}
+@php
+  $ctaLovePoints = collect($landingList('cta_love_points') ?? [])
+      ->map(function ($row) {
+          if (is_string($row)) {
+              return trim($row);
+          }
+          if (is_array($row)) {
+              return trim((string) ($row[0] ?? $row['text'] ?? ''));
+          }
+
+          return '';
+      })
+      ->filter()
+      ->values();
+  $ctaEyebrow = trim((string) $t('cta_eyebrow'));
+  $ctaCopy = trim((string) $t('cta_copy'));
+@endphp
 <section class="section bg-gradient-to-b from-stone-50 to-white" aria-label="Final call to action">
   <div class="container-narrow text-center">
-    <p class="eyebrow mb-4">{{ $t('cta_eyebrow') }}</p>
+    @if($ctaEyebrow !== '' && ! str_contains($ctaEyebrow, 'product_landing.'))
+      <p class="eyebrow mb-4">{{ $ctaEyebrow }}</p>
+    @endif
     <h2 class="heading-section mb-4">{!! $t('cta_title') !!}</h2>
-    <p class="text-lead text-stone-600 mb-3">{{ $t('cta_copy') }}</p>
+
+    @if($ctaLovePoints->isNotEmpty())
+      <ul class="max-w-md mx-auto text-left space-y-3 mb-8">
+        @foreach($ctaLovePoints as $point)
+          <li class="flex items-start gap-3 text-stone-700 text-sm sm:text-base">
+            <span class="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-700 text-xs font-bold" aria-hidden="true">✓</span>
+            <span>{{ $point }}</span>
+          </li>
+        @endforeach
+      </ul>
+    @elseif($ctaCopy !== '' && ! str_contains($ctaCopy, 'product_landing.'))
+      <p class="text-lead text-stone-600 mb-3">{!! $ctaCopy !!}</p>
+    @endif
 
     <div class="mb-6">
       <span class="font-display font-bold text-4xl sm:text-5xl text-navy-900">{{ $fmt($displayPrice) }}</span>
@@ -514,6 +720,7 @@
     </div>
   </div>
 </section>
+{!! $renderBlocks('after_cta') !!}
 
 {{-- Mobile sticky Order Now — fixed at bottom while scrolling --}}
 <div

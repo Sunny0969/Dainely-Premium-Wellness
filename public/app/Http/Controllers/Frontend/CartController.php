@@ -16,6 +16,18 @@ class CartController extends Controller
         protected CheckoutTotals $totals,
     ) {}
 
+    public function index()
+    {
+        $locale = \Illuminate\Support\Facades\App::getLocale();
+        $cartItems = CheckoutCart::getItems();
+        $pricing = $this->totals->calculate($cartItems, 'standard', $locale, 0, 0.0);
+        
+        return view('cart.index', [
+            'cartItems' => $cartItems,
+            'pricing'   => $pricing,
+        ]);
+    }
+
     public function store(Request $request): JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
@@ -100,7 +112,6 @@ class CartController extends Controller
 
                 if (($shopifyResult['success'] ?? false) && ! empty($shopifyResult['web_url'])) {
                     $shopifyUrl = $shopifyResult['web_url'];
-                    CheckoutCart::clear();
 
                     dispatch(function () use ($request, $itemCount) {
                         try {
@@ -151,7 +162,7 @@ class CartController extends Controller
         return redirect()->back()->with('success', $message);
     }
 
-    public function update(Request $request): JsonResponse
+    public function update(Request $request): JsonResponse|\Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'line_quantities'   => 'nullable|array',
@@ -165,6 +176,10 @@ class CartController extends Controller
 
         if (! empty($validated['line_quantities']) && is_array($validated['line_quantities'])) {
             CheckoutCart::updateQuantities($validated['line_quantities']);
+        }
+
+        if (!$request->wantsJson()) {
+            return redirect()->back();
         }
 
         return $this->summaryResponse();

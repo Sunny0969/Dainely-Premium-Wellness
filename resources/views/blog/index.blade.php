@@ -26,9 +26,12 @@
 <section class="bg-white border-b border-slate-100" aria-label="Blog categories">
   <div class="container-site">
     <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide py-4">
-      @foreach(['All Articles', 'Back Pain', 'Sciatica', 'Posture', 'Neck Pain', 'Mobility', 'Recovery', 'Product Guides'] as $cat)
-      <button class="whitespace-nowrap px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 {{ $loop->first ? 'bg-navy-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-navy-100 hover:text-navy-800' }}">
-        {{ $cat }}
+      <button class="category-btn whitespace-nowrap px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 bg-navy-900 text-white" data-target="all">
+        All Articles
+      </button>
+      @foreach($categories as $cat)
+      <button class="category-btn whitespace-nowrap px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 bg-slate-100 text-slate-600 hover:bg-navy-100 hover:text-navy-800" data-target="{{ $cat['name'] }}">
+        {{ $cat['name'] }}
       </button>
       @endforeach
     </div>
@@ -37,9 +40,9 @@
 
 {{-- FEATURED ARTICLE --}}
 @if($featuredArticle)
-<section class="section bg-white" aria-label="Featured article">
+<section class="section bg-white blog-featured-section" aria-label="Featured article" data-category="{{ $featuredArticle['category'] }}">
   <div class="container-site">
-    <div class="card overflow-hidden group">
+    <div class="card overflow-hidden group blog-post-card" data-category="{{ $featuredArticle['category'] }}">
       <div class="grid lg:grid-cols-[1.5fr_1fr] gap-0">
         <div class="relative overflow-hidden max-h-96 lg:max-h-full">
           <img
@@ -85,7 +88,7 @@
     </div>
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
       @foreach($latestArticles as $article)
-      <article class="card overflow-hidden group animate-on-scroll">
+      <article class="card overflow-hidden group animate-on-scroll blog-post-card" data-category="{{ $article['category'] }}">
         <div class="overflow-hidden">
           <img
             src="{{ asset('images/' . $article['image']) }}"
@@ -135,4 +138,61 @@
   </div>
 </section>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const buttons = document.querySelectorAll('.category-btn');
+    const cards = document.querySelectorAll('.blog-post-card');
+    const featuredSec = document.querySelector('.blog-featured-section');
+    const articlesCountSpan = document.querySelector('.text-slate-400.text-sm');
+
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Update active button styling
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-navy-900', 'text-white');
+                btn.classList.add('bg-slate-100', 'text-slate-600');
+            });
+            this.classList.remove('bg-slate-100', 'text-slate-600');
+            this.classList.add('bg-navy-900', 'text-white');
+
+            const targetCategory = this.getAttribute('data-target');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const cardCategory = card.getAttribute('data-category');
+                if (targetCategory === 'all' || cardCategory === targetCategory) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Handle featured section visibility
+            if (featuredSec) {
+                const featCategory = featuredSec.getAttribute('data-category');
+                if (targetCategory === 'all' || featCategory === targetCategory) {
+                    featuredSec.style.display = '';
+                } else {
+                    featuredSec.style.display = 'none';
+                }
+            }
+
+            // Update articles count display
+            if (articlesCountSpan) {
+                if (targetCategory === 'all') {
+                    const gridCards = document.querySelectorAll('.grid.md\\:grid-cols-2 .blog-post-card');
+                    articlesCountSpan.textContent = `Showing ${gridCards.length} of ${gridCards.length} articles`;
+                } else {
+                    // If featured is visible and matches, don't count it in the grid total count display or adjust count
+                    const gridCards = document.querySelectorAll('.grid.md\\:grid-cols-2 .blog-post-card');
+                    let visibleGridCount = 0;
+                    gridCards.forEach(c => { if(c.style.display !== 'none') visibleGridCount++; });
+                    articlesCountSpan.textContent = `Showing ${visibleGridCount} matching articles`;
+                }
+            }
+        });
+    });
+});
+</script>
 @endsection

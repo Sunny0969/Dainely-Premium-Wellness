@@ -26,38 +26,75 @@ class EducationController extends Controller
         });
     }
 
-    protected function render(string $locale, string $slug, string $view)
+
+
+    public function index(string $locale)
     {
-        $catalog = ContentCatalog::educationBySlug($slug);
-        $educationId = (int) ($catalog['id'] ?? 0);
-        $product = $this->featuredProduct();
-        $relatedLinks = $educationId
-            ? $this->related->for('education', $educationId, $locale)
-            : collect();
-        $breadcrumbs = $this->breadcrumbs->forEducation($locale, $slug);
+        // Cache the grouped pages to prevent DB hits on every index view
+        $groupedPages = Cache::remember("education_index_pages_v1_{$locale}", 3600, function() use ($locale) {
+            $pages = EducationPage::where('is_active', true)
+                ->where('locale', $locale)
+                ->whereNotNull('category')
+                ->where('category', '!=', '')
+                ->orderBy('created_at', 'desc')
+                ->get();
+                
+            return $pages->groupBy('category');
+        });
+        
+        $breadcrumbs = [
+            ['name' => __('products.breadcrumb_home'), 'url' => route('home', ['locale' => $locale])],
+            ['name' => __('nav.education') !== 'nav.education' ? __('nav.education') : 'Education', 'url' => null],
+        ];
+        
+        return view('education.index', compact('locale', 'groupedPages', 'breadcrumbs'));
+    }
 
-        if ($educationId > 0) {
-            app(\App\Services\AnalyticsEventService::class)->track('education_view', [
-                'education_id' => $educationId,
-                'slug' => $slug,
-                'title' => $catalog['title'] ?? $slug,
-                'content_type' => 'education',
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ]);
+    public function show(string $locale, string $slug)
+    {
+        $page = EducationPage::where('slug', $slug)
+            ->where('locale', $locale)
+            ->where('is_active', true)
+            ->first();
+            
+        // Fallback to English if translation doesn't exist yet
+        if (!$page) {
+            $page = EducationPage::where('slug', $slug)
+                ->where('locale', 'en')
+                ->where('is_active', true)
+                ->firstOrFail();
         }
+        
+        $product = $this->featuredProduct();
+        
+        $relatedLinks = collect(); // Legacy support placeholder if needed
+        $breadcrumbs = $this->breadcrumbs->forEducation($locale, $slug);
+        
+        $relatedProducts = collect();
+        if (!empty($page->related_products) && is_array($page->related_products)) {
+            $relatedProducts = \App\Models\Supabase\Product::whereIn('id', $page->related_products)->get();
+        }
+        
+        app(\App\Services\AnalyticsEventService::class)->track('education_view', [
+            'education_id' => $page->id,
+            'slug' => $slug,
+            'title' => $page->title ?? $slug,
+            'content_type' => 'education',
+            'ip' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
 
-        $edu = $educationId > 0 ? EducationPage::findCatalog($educationId) : null;
         $pageBlocks = collect();
         $faqItems = collect();
-        if ($edu && SupabaseDb::available()) {
+        
+        if (SupabaseDb::available()) {
             $cms = Cache::remember(
-                \App\Support\StorefrontCache::educationCmsKey($educationId, $locale),
+                \App\Support\StorefrontCache::educationCmsKey($page->id, $locale),
                 \App\Support\StorefrontCache::cmsTtlSeconds(),
-                function () use ($edu, $locale) {
+                function () use ($page, $locale) {
                     return [
-                        'pageBlocks' => $edu->pageBlocks($locale)->where('visible', true)->values()->all(),
-                        'faqItems' => $edu->faqs($locale, true)->values()->all(),
+                        'pageBlocks' => $page->pageBlocks()->where('locale', $locale)->where('visible', true)->get()->values()->all(),
+                        'faqItems' => $page->faqs()->where('locale', $locale)->approved()->get()->values()->all(),
                     ];
                 }
             );
@@ -65,36 +102,6 @@ class EducationController extends Controller
             $faqItems = collect($cms['faqItems'] ?? []);
         }
 
-        return view($view, compact('locale', 'product', 'relatedLinks', 'breadcrumbs', 'pageBlocks', 'faqItems'));
-    }
-
-    public function backPain(string $locale)
-    {
-        return $this->render($locale, 'back-pain', 'education.back-pain');
-    }
-
-    public function sciatica(string $locale)
-    {
-        return $this->render($locale, 'sciatica', 'education.sciatica');
-    }
-
-    public function posture(string $locale)
-    {
-        return $this->render($locale, 'posture', 'education.posture');
-    }
-
-    public function neckPain(string $locale)
-    {
-        return $this->render($locale, 'neck-pain', 'education.neck-pain');
-    }
-
-    public function mobility(string $locale)
-    {
-        return $this->render($locale, 'mobility', 'education.mobility');
-    }
-
-    public function recovery(string $locale)
-    {
-        return $this->render($locale, 'recovery', 'education.recovery');
+        return view('education.show', compact('locale', 'page', 'product', 'relatedLinks', 'breadcrumbs', 'pageBlocks', 'faqItems', 'relatedProducts'));
     }
 }

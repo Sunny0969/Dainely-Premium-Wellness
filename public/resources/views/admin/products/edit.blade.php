@@ -152,7 +152,25 @@
                             <option value="video">Video</option>
                             <option value="comparison">Comparison</option>
                             <option value="bundle">Bundle</option>
+                            <option value="disclaimer">Disclaimer</option>
                         </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-800 mb-1">Display Position</label>
+                        <select name="display_position" class="w-full rounded-lg border border-slate-400 px-3 py-2 text-sm bg-white text-slate-900">
+                            <option value="default">Default (In-order)</option>
+                            @foreach($pageHeadings as $key => $heading)
+                                <option value="before_{{ $key }}">Before: "{{ \Illuminate\Support\Str::limit(strip_tags($heading), 50) }}"</option>
+                                <option value="after_{{ $key }}">After: "{{ \Illuminate\Support\Str::limit(strip_tags($heading), 50) }}"</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2 mt-2">
+                        <input type="hidden" name="is_global" value="0">
+                        <input type="checkbox" name="is_global" id="is_global" value="1" class="rounded border-slate-400 text-navy-600 focus:ring-navy-600">
+                        <label for="is_global" class="text-sm font-semibold text-slate-800">Apply to all products (Global Block)</label>
                     </div>
 
                     <div>
@@ -162,7 +180,7 @@
 
                     <div>
                         <label class="block text-sm font-semibold text-slate-800 mb-1">Content (HTML/Markdown)</label>
-                        <textarea name="content" rows="4" class="w-full rounded-lg border border-slate-400 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400" placeholder="Customer-facing section content…"></textarea>
+                        <textarea name="content" rows="4" class="js-admin-richtext w-full rounded-lg border border-slate-400 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400" placeholder="Customer-facing section content…"></textarea>
                     </div>
 
                     <button type="submit" class="w-full bg-navy-800 hover:bg-navy-900 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-sm" style="background-color:#1e3a5f;color:#fff;">
@@ -179,7 +197,10 @@
                 </div>
 
                 <div class="divide-y divide-slate-200">
-                    @forelse($product->pageBlocks->where('locale', 'en')->sortBy('sort_order')->values() as $block)
+                    @php
+                        $allBlocks = $product->pageBlocks->where('locale', 'en')->concat($globalBlocks ?? collect())->unique('id')->sortBy('sort_order')->values();
+                    @endphp
+                    @forelse($allBlocks as $block)
                         <div class="p-6 space-y-4" x-data="{ editing: false }">
                             <div class="flex justify-between items-start gap-4">
                                 <div class="min-w-0">
@@ -188,6 +209,21 @@
                                             {{ $block->block_type }}
                                         </span>
                                         <span class="text-xs font-semibold text-slate-600">#{{ $loop->iteration }}</span>
+                                        @if($block->is_global)
+                                            <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold uppercase tracking-wider">GLOBAL</span>
+                                        @endif
+                                        @if($block->display_position !== 'default' && $block->display_position !== null)
+                                            @php
+                                                $posText = str_replace('_', ' ', $block->display_position);
+                                                if (preg_match('/^(before|after)_(.*)$/', $block->display_position, $matches)) {
+                                                    $sectionKey = $matches[2];
+                                                    if (isset($pageHeadings[$sectionKey])) {
+                                                        $posText = ucfirst($matches[1]) . ' "' . \Illuminate\Support\Str::limit(strip_tags($pageHeadings[$sectionKey]), 30) . '"';
+                                                    }
+                                                }
+                                            @endphp
+                                            <span class="px-2 py-0.5 rounded bg-slate-200 text-slate-700 border border-slate-300 text-xs font-bold tracking-wider" title="{{ $block->display_position }}">{{ $posText }}</span>
+                                        @endif
                                     </div>
                                     @if($block->title)
                                         <strong class="block text-slate-900 text-base mt-2">{{ $block->title }}</strong>
@@ -199,7 +235,7 @@
                                 </div>
 
                                 <div class="flex gap-3 shrink-0">
-                                    <button type="button" @click="editing = !editing" class="text-navy-800 hover:text-navy-950 text-sm font-bold underline underline-offset-2">
+                                    <button type="button" @click="editing = !editing; if (editing) setTimeout(() => { if(window.tinymce) tinymce.editors.forEach(e => { try { e.fire('ResizeEditor'); } catch (_) {} }) }, 50)" class="text-navy-800 hover:text-navy-950 text-sm font-bold underline underline-offset-2">
                                         Edit
                                     </button>
                                     <form action="/{{ $adminBase }}/products/{{ $product->id }}/blocks/{{ $block->id }}/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this block?');">
@@ -221,7 +257,22 @@
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-800 mb-1">Block Content</label>
-                                        <textarea name="content" class="w-full rounded-lg border border-slate-400 px-3 py-1.5 text-sm bg-white text-slate-900" rows="3">{{ $block->content }}</textarea>
+                                        <textarea name="content" class="js-admin-richtext w-full rounded-lg border border-slate-400 px-3 py-1.5 text-sm bg-white text-slate-900" rows="3">{{ $block->content }}</textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-800 mb-1">Display Position</label>
+                                        <select name="display_position" class="w-full rounded-lg border border-slate-400 px-3 py-1.5 text-sm bg-white text-slate-900">
+                                            <option value="default" {{ $block->display_position == 'default' ? 'selected' : '' }}>Default (In-order)</option>
+                                            @foreach($pageHeadings as $key => $heading)
+                                                <option value="before_{{ $key }}" {{ $block->display_position === 'before_'.$key ? 'selected' : '' }}>Before: "{{ \Illuminate\Support\Str::limit(strip_tags($heading), 50) }}"</option>
+                                                <option value="after_{{ $key }}" {{ $block->display_position === 'after_'.$key ? 'selected' : '' }}>After: "{{ \Illuminate\Support\Str::limit(strip_tags($heading), 50) }}"</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="hidden" name="is_global" value="0">
+                                        <input type="checkbox" name="is_global" id="edit_is_global_{{ $block->id }}" value="1" {{ $block->is_global ? 'checked' : '' }} class="rounded border-slate-400 text-navy-600 focus:ring-navy-600">
+                                        <label for="edit_is_global_{{ $block->id }}" class="text-xs font-bold text-slate-800">Apply to all products (Global Block)</label>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-800 mb-1">Visible on customer page</label>

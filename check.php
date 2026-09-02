@@ -1,0 +1,1 @@
+<?php require "vendor/autoload.php"; $app = require_once "bootstrap/app.php"; $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class); $kernel->bootstrap(); $p = \App\Models\Supabase\Product::whereIn("id", ["14","13","16","2"])->get(); echo count($p);

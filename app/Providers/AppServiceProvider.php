@@ -25,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
             return new \App\Database\SupabasePostgresConnection($connection, $database, $prefix, $config);
         });
 
-        // Hosting: subdomain docroot is dev.dainelylab.com/ (not public/).
+        // Hosting: subdomain docroot is dev.dainelylab.com/ or dainely.com/ (not public/).
         $customPublic = env('APP_PUBLIC_PATH');
         if (is_string($customPublic) && $customPublic !== '' && is_dir($customPublic)) {
             $this->app->usePublicPath($customPublic);
@@ -33,11 +33,14 @@ class AppServiceProvider extends ServiceProvider
             return;
         }
 
-        $alternatePublic = base_path('dev.dainelylab.com');
+        $alternatePublic = is_dir(base_path('dainely.com')) ? base_path('dainely.com') : base_path('dev.dainelylab.com');
         $defaultManifest = base_path('public/build/manifest.json');
         $alternateManifest = $alternatePublic.'/build/manifest.json';
 
         if (is_file($alternateManifest) && ! is_file($defaultManifest) && is_dir($alternatePublic)) {
+            $this->app->usePublicPath($alternatePublic);
+        } else if (is_dir($alternatePublic)) {
+            // Fallback: Use the alternate directory even if manifest checks are skipped on non-build uploads
             $this->app->usePublicPath($alternatePublic);
         }
     }
