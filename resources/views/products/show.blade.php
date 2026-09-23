@@ -14,8 +14,12 @@
   $mainImg   = $images[0]['src'] ?? ($product['image']['src'] ?? null);
   $variants  = $product['variants'] ?? [];
   $firstVar  = $variants[0] ?? [];
-  $price     = $firstVar['price'] ?? null;
-  $compareAt = $firstVar['compare_at_price'] ?? null;
+  
+  // Find the cheapest variant for base display (so bundles like 'Get 3 for 2' don't skew the hero price)
+  $cheapestVar = collect($variants)->sortBy('price')->first() ?? $firstVar;
+  
+  $price     = $product['price'] ?? $cheapestVar['price'] ?? null;
+  $compareAt = $cheapestVar['compare_at_price'] ?? null;
   $status    = $product['status'] ?? 'active';
   $vendor    = $product['vendor'] ?? '';
   $tags      = $product['tags'] ?? '';
@@ -32,7 +36,7 @@
   $isDainelyBelt = in_array($handle, ['dainely-belt', 'dainely-comfort-belt', 'dainely-belt-2-b', 'dainely-belt-2-c']);
 
   // Detect Dainely Ball Massager
-  $isBallMassager = in_array($handle, ['dainely-ball-massager', 'dainely™-ball-massager', 'dainely-ball-massager-1']);
+  $isBallMassager = in_array($handle, ['dainely-ball-massager', 'dainelyâ„¢-ball-massager', 'dainely-ball-massager-1']);
 
   // Detect Neck Cloud
   $isNeckCloud = in_array($handle, ['neck-pain']);
@@ -44,13 +48,13 @@
   $isHeatedJacket = in_array($handle, ['dainely-unisex-heated-jacket']);
 
   // Detect Foot Massager
-  $isFootMassager = in_array($handle, ['dainely-foot-massager', 'dainely™-foot-massager']);
+  $isFootMassager = in_array($handle, ['dainely-foot-massager', 'dainelyâ„¢-foot-massager']);
 
   // Detect Knee Brace
   $isKneeBrace = in_array($handle, ['brace', 'dainely-knee-brace']);
 
   // Detect Dainely Massager
-  $isDainelyMassager = in_array($handle, ['dainely-massager', 'dainely™-massager']);
+  $isDainelyMassager = in_array($handle, ['dainely-massager', 'dainelyâ„¢-massager']);
 
   // Detect Shoulder Brace
   $isShoulderBrace = in_array($handle, ['shoulder-brace', 'dainely-shoulder-brace']);
@@ -59,13 +63,13 @@
   $isNeckStretcher = in_array($handle, ['stretcher', 'dainely-neck-stretcher']);
 
   // Detect Back Stretcher
-  $isBackStretcher = in_array($handle, ['dainely™-orthopedic-back-stretcher', 'dainely-orthopedic-back-stretcher', 'back-stretcher']);
+  $isBackStretcher = in_array($handle, ['dainelyâ„¢-orthopedic-back-stretcher', 'dainely-orthopedic-back-stretcher', 'back-stretcher']);
 
   // Detect RelaxaLeg System
   $isRelaxaLeg = in_array($handle, ['leg-massager', 'relaxaleg-system', 'dainely-relaxaleg-system', 'relaxaleg']);
 
   // Detect Tourmaline Belt
-  $isTourmalineBelt = in_array($handle, ['dainely™-tourmaline-belt', 'dainely-tourmaline-belt', 'tourmaline-belt']);
+  $isTourmalineBelt = in_array($handle, ['dainelyâ„¢-tourmaline-belt', 'dainely-tourmaline-belt', 'tourmaline-belt']);
 
   // Detect DMEDE Daily Support & Recovery System
   $isDmedeSystem = in_array($handle, ['dainely-daily-comfort-system', 'daily-relief-system', 'dmede-daily-support', 'dmede-daily-support-recovery-system']);
@@ -95,7 +99,7 @@
     'isMushroomCoffee'  => $isMushroomCoffee,
   ]);
   $productLangPrefix = \App\Support\ProductLandingLang::translationPrefix($productLangKey);
-  // Product gallery / cart / OG — Shopify CDN only (no local product photo overrides)
+  // Product gallery / cart / OG â€” Shopify CDN only (no local product photo overrides)
   $galleryUrls = \App\Support\ProductLandingAssets::shopifyImageUrls(
       is_array($images) ? $images : [],
       is_string($mainImg) ? $mainImg : null
@@ -130,7 +134,7 @@
 
 @php
   // Defaults: Shopify title + description
-  $seoTitle = $title . ' — ' . config('app.name');
+  $seoTitle = $title . ' â€” ' . config('app.name');
   $seoDesc = \Illuminate\Support\Str::limit($plainDesc, 160) ?: 'View product details.';
 
   // Premium landing copy (lang files) when no CMS overlay
@@ -191,9 +195,9 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "Dainely™ Ball Massager",
+  "name": "Dainelyâ„¢ Ball Massager",
   "image": "{{ $shopifyMainImg ?? '' }}",
-  "description": "Eliminate neck and shoulder pain in 10 minutes a day with the Dainely™ Ball Massager.",
+  "description": "Eliminate neck and shoulder pain in 10 minutes a day with the Dainelyâ„¢ Ball Massager.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
     "@type": "Offer",
@@ -216,7 +220,7 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "Neck Cloud™️",
+  "name": "Neck Cloudâ„¢ï¸",
   "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Eliminate neck pain, tension headaches, and stiffness in just 10 minutes a day.",
   "brand": { "@type": "Brand", "name": "Dainely" },
@@ -266,9 +270,9 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "Dainely™ Unisex Heated Jacket",
+  "name": "Dainelyâ„¢ Unisex Heated Jacket",
   "image": "{{ $shopifyMainImg ?? '' }}",
-  "description": "Stay warm in any weather with the Dainely™ Unisex Heated Jacket. Features smart carbon fiber heating elements.",
+  "description": "Stay warm in any weather with the Dainelyâ„¢ Unisex Heated Jacket. Features smart carbon fiber heating elements.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
     "@type": "Offer",
@@ -291,7 +295,7 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "Dainely™ Foot Massager",
+  "name": "Dainelyâ„¢ Foot Massager",
   "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Alleviate foot neuropathy, swelling, and chronic aches in just 15 minutes a day.",
   "brand": { "@type": "Brand", "name": "Dainely" },
@@ -316,7 +320,7 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "Dainely™ Knee Brace",
+  "name": "Dainelyâ„¢ Knee Brace",
   "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Stabilize knee joints, relieve meniscus and patella pressure, and walk without pain.",
   "brand": { "@type": "Brand", "name": "Dainely" },
@@ -341,7 +345,7 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "Dainely™ Massager",
+  "name": "Dainelyâ„¢ Massager",
   "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "ADJUSTABLE PERCUSSION MASSAGE massager designed for muscle stiffness, soreness, and quick recovery.",
   "brand": { "@type": "Brand", "name": "Dainely" },
@@ -366,7 +370,7 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "Dainely™ Shoulder Brace",
+  "name": "Dainelyâ„¢ Shoulder Brace",
   "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Premium shoulder compression sleeve with adjustable straps for rotator cuff support, AC joint stability, and pain relief.",
   "brand": { "@type": "Brand", "name": "Dainely" },
@@ -391,7 +395,7 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "Dainely™ Neck Stretcher",
+  "name": "Dainelyâ„¢ Neck Stretcher",
   "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Ergonomic cervical traction device designed to restore natural neck posture, relieve tension headaches, and decompress spinal discs.",
   "brand": { "@type": "Brand", "name": "Dainely" },
@@ -416,7 +420,7 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "Dainely™ Orthopedic Back Stretcher",
+  "name": "Dainelyâ„¢ Orthopedic Back Stretcher",
   "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Ergonomic multi-level lumbar support device designed to decompress the spine, relieve lower back pain, and improve overall posture.",
   "brand": { "@type": "Brand", "name": "Dainely" },
@@ -441,7 +445,7 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "Dainely™ RelaxaLeg™ System",
+  "name": "Dainelyâ„¢ RelaxaLegâ„¢ System",
   "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Premium pneumatic air compression leg massager wraps with soothing carbon heat therapy designed for restless leg syndrome, edema, and heavy, tired legs.",
   "brand": { "@type": "Brand", "name": "Dainely" },
@@ -466,7 +470,7 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "Dainely™ Tourmaline Belt",
+  "name": "Dainelyâ„¢ Tourmaline Belt",
   "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Premium self-heating magnetic therapy support wrap designed to decompress the spine, relieve lower back stiffness, and improve lumbar posture.",
   "brand": { "@type": "Brand", "name": "Dainely" },
@@ -491,9 +495,9 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "DMEDE™ Daily Support & Recovery System",
+  "name": "DMEDEâ„¢ Daily Support & Recovery System",
   "image": "{{ $shopifyMainImg ?? '' }}",
-  "description": "Align your posture, stabilize your SI joint, and accelerate recovery with the DMEDE™ Daily Support & Recovery System.",
+  "description": "Align your posture, stabilize your SI joint, and accelerate recovery with the DMEDEâ„¢ Daily Support & Recovery System.",
   "brand": { "@type": "Brand", "name": "Dainely" },
   "offers": {
     "@type": "Offer",
@@ -516,7 +520,7 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "ErgoCushion® - Pressure Relief Seat Cushion",
+  "name": "ErgoCushionÂ® - Pressure Relief Seat Cushion",
   "image": "{{ $shopifyMainImg ?? '' }}",
   "description": "Premium orthopedic memory foam seat cushion designed to decompress the tailbone, relieve sciatica, and align seated posture.",
   "brand": { "@type": "Brand", "name": "Dainely" },
@@ -634,7 +638,7 @@
       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       <a href="{{ route('products.index', ['locale' => $locale]) }}" class="hover:text-navy-700 transition-colors">{{ __('nav.products') }}</a>
       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-      <span class="text-navy-800 font-medium">{{ \Illuminate\Support\Str::limit($title, 40, '…') }}</span>
+      <span class="text-navy-800 font-medium">{{ \Illuminate\Support\Str::limit($title, 40, 'â€¦') }}</span>
     </nav>
   </div>
 </div>
@@ -709,7 +713,7 @@
           <div class="flex gap-0.5 shrink-0">
             @for($i=0;$i<5;$i++)<svg class="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>@endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm shrink-0" x-text="average > 0 ? average : '—'">{{ ($reviewStats['average_rating'] ?? 0) > 0 ? $reviewStats['average_rating'] : '—' }}</span>
+          <span class="text-navy-800 font-bold text-sm shrink-0" x-text="average > 0 ? average : 'â€”'">{{ ($reviewStats['average_rating'] ?? 0) > 0 ? $reviewStats['average_rating'] : 'â€”' }}</span>
           <a href="#reviews" class="text-slate-500 text-xs sm:text-sm hover:text-navy-700 underline underline-offset-2 break-anywhere" x-text="label">{{ __('products.verified_reviews', ['count' => number_format($reviewStats['total_reviews'] ?? 0)]) }}</a>
           <span class="text-slate-300 hidden sm:inline">|</span>
           <span class="text-emerald-600 text-xs sm:text-sm font-semibold shrink-0">{{ __('products.in_stock') }}</span>
@@ -779,10 +783,10 @@
         <tbody class="divide-y divide-slate-100">
           @foreach($variants as $variant)
           <tr class="hover:bg-slate-50/80">
-            <td class="px-4 py-3 font-medium text-navy-900">{{ $variant['title'] ?? '—' }}</td>
-            <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ $variant['sku'] ?? '—' }}</td>
-            <td class="px-4 py-3 font-semibold text-navy-800">@if(!empty($variant['price'])) {{ $fmt($variant['price']) }} @else — @endif</td>
-            <td class="px-4 py-3 text-slate-400 line-through text-sm">@if(!empty($variant['compare_at_price'])) {{ $fmt($variant['compare_at_price']) }} @else — @endif</td>
+            <td class="px-4 py-3 font-medium text-navy-900">{{ $variant['title'] ?? 'â€”' }}</td>
+            <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ $variant['sku'] ?? 'â€”' }}</td>
+            <td class="px-4 py-3 font-semibold text-navy-800">@if(!empty($variant['price'])) {{ $fmt($variant['price']) }} @else â€” @endif</td>
+            <td class="px-4 py-3 text-slate-400 line-through text-sm">@if(!empty($variant['compare_at_price'])) {{ $fmt($variant['compare_at_price']) }} @else â€” @endif</td>
             <td class="px-4 py-3">
               @if(($variant['inventory_quantity'] ?? 1) > 0)
               <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800">{{ __('products.in_stock') }}</span>
@@ -801,7 +805,7 @@
 
 @include('partials.reviews-lazy', ['handle' => $handle])
 
-{{-- Phase 2 §6.4: Semantic FAQ HTML (server-rendered, progressive enhancement) --}}
+{{-- Phase 2 Â§6.4: Semantic FAQ HTML (server-rendered, progressive enhancement) --}}
 @php $faqItems = $faqItems ?? collect(); @endphp
 @if($faqItems->isNotEmpty())
 <section class="faq-section section bg-slate-50 border-t border-slate-100" id="faq" aria-labelledby="faq-heading">

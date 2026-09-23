@@ -70,7 +70,7 @@
                     @foreach($pages as $page)
                         <a href="{{ route('education.show', ['locale' => $locale, 'slug' => $page->slug]) }}" class="bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md hover:border-navy-200 transition-all group flex flex-col h-full overflow-hidden">
                             @if($page->hero_image)
-                                <img src="{{ Str::startsWith($page->hero_image, ['http://', 'https://', '//']) ? $page->hero_image : asset('images/' . $page->hero_image) }}" alt="{{ $page->title }}" class="w-full h-48 object-cover">
+                                <img src="{{ Str::startsWith($page->hero_image, ['http://', 'https://', '//']) ? $page->hero_image : (\Illuminate\Support\Str::startsWith($page->hero_image, ['http://', 'https://']) ? $page->hero_image : asset('images/' . $page->hero_image)) }}" alt="{{ $page->title }}" loading="lazy" class="w-full h-48 object-cover">
                             @else
                                 <div class="w-full h-48 bg-slate-100 flex items-center justify-center">
                                     <svg class="w-12 h-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5L18.5 7H20M9 11h.01M15 11h.01M9 15h.01M15 15h.01M9 19h.01M15 19h.01"/></svg>

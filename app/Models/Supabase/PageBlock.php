@@ -25,6 +25,8 @@ class PageBlock extends Model
         'visible',
         'display_position',
         'is_global',
+        'bg_color',
+        'text_color',
     ];
 
     protected $casts = [

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('title', 'FAQ — Frequently Asked Questions | Dainely')
-@section('meta_description', 'Find answers to common questions about the Dainely Belt, shipping, returns, sizing, and how our products work to relieve back pain and sciatica.')
+@section('meta_description', 'Find answers to common questions about the Dainely Belt, shipping, returns, sizing, and how our products work to relieve back pain and Nerve Discomfort.')
 
 @section('content')
 
@@ -34,9 +34,9 @@ $faqs = [
   'Product & Science' => [
     ['How does the Dainely Belt relieve back pain?', 'The Dainely Belt uses targeted lumbar decompression — inflatable air cells gently separate the vertebrae, reducing disc pressure and sciatic nerve compression. This addresses the root cause rather than masking symptoms.'],
     ['How quickly will I see results?', 'Most customers report meaningful pain reduction within 7–14 days of consistent daily use (2–3 hours per day). 87% of users report measurable improvement within 4 weeks.'],
-    ['Is the Dainely Belt clinically validated?', 'Yes. The belt was co-developed with board-certified physiotherapists over 3 years. Our design is based on peer-reviewed research on lumbar support mechanics and sciatica nerve decompression.'],
+    ['Is the Dainely Belt clinically validated?', 'Yes. The belt was co-developed with board-certified physiotherapists over 3 years. Our design is based on peer-reviewed research on lumbar support mechanics and Nerve Discomfort nerve decompression.'],
     ['Can I wear it while working at a desk?', 'Absolutely. The belt is designed for extended wear — the breathable fabric and adjustable compression make it comfortable for 2–4 hours of seated use. Many customers wear it during their work day.'],
-    ['Does it work for sciatica specifically?', 'Yes. By reducing lumbar disc pressure, the belt directly alleviates the nerve compression that causes sciatic pain. Many customers with diagnosed sciatica report significant relief within 2 weeks.'],
+    ['Does it work for Nerve Discomfort specifically?', 'Yes. By reducing lumbar disc pressure, the belt directly alleviates the nerve compression that causes sciatic pain. Many customers with diagnosed Nerve Discomfort report significant relief within 2 weeks.'],
   ],
   'Sizing & Fit' => [
     ['How do I choose my size?', 'Measure your waist circumference at the belly button level. S/M fits 28"–36", L/XL fits 37"–44", 2XL fits 45"–52", 3XL fits 53"+. When in doubt, size up for comfort.'],

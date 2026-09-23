@@ -32,6 +32,66 @@ class ProductController extends Controller
             )
             : [];
 
+        // --- INJECT BUNDLES ---
+        $bundles = \App\Support\SupabaseDb::run(function () use ($locale) {
+            // Fetch bundles matching the requested locale or fallback to English
+            $found = \App\Models\Supabase\ProductBundle::where('locale', $locale)->get();
+            if ($found->isEmpty() && $locale !== 'en') {
+                $found = \App\Models\Supabase\ProductBundle::where('locale', 'en')->get();
+                
+                // Translate EN bundles dynamically
+                if (config('services.auto_translate.enabled', true)) {
+                    $translator = app(\App\Services\ContentTranslationService::class);
+                    foreach ($found as $bundle) {
+                        try {
+                            $bundle->title = $translator->translateContent($bundle->title, 'en', $locale);
+                            if ($bundle->description) {
+                                $bundle->description = $translator->translateContent($bundle->description, 'en', $locale);
+                            }
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::warning("Failed to translate bundle on products page: " . $e->getMessage());
+                        }
+                    }
+                }
+            }
+            return $found;
+        }, collect());
+
+        foreach ($bundles as $bundle) {
+            $imageUrl = null;
+            $imgs = $bundle->images;
+            if (is_string($imgs)) {
+                $decoded = json_decode($imgs, true);
+                if (is_array($decoded)) {
+                    $imgs = $decoded;
+                }
+            }
+
+            if (!empty($imgs) && is_array($imgs)) {
+                if (isset($imgs['url'])) {
+                    $imageUrl = $imgs['url'];
+                } elseif (isset($imgs[0]['url'])) {
+                    $imageUrl = $imgs[0]['url'];
+                } elseif (isset($imgs[0]) && is_string($imgs[0])) {
+                    $imageUrl = $imgs[0];
+                }
+            }
+            
+            $products[] = [
+                'id' => 'bundle_' . $bundle->id,
+                'title' => $bundle->title,
+                'handle' => $bundle->slug,
+                'status' => 'active',
+                'image' => $imageUrl,
+                'price' => $bundle->price ?? 0,
+                'compare_at' => null,
+                'variants' => [],
+                'variant_count' => 1,
+                'updated_at' => $bundle->updated_at->toIso8601String(),
+                'is_bundle' => true,
+            ];
+        }
+
         $error = $result['success'] ? null : ($result['error'] ?? 'Could not load products from Shopify.');
 
         // --- Search / Filter (client-side params, server-side filtering) ---
@@ -138,7 +198,7 @@ class ProductController extends Controller
             })->afterResponse();
         }
 
-        // ── Phase 2 overlay: one eager Supabase round-trip (cached 10 min) ──
+        // â”€â”€ Phase 2 overlay: one eager Supabase round-trip (cached 10 min) â”€â”€
         $overlay = $this->loadPdpOverlay($productHandle, $locale);
         $dbContent = null;
         $faqs = collect();
@@ -185,16 +245,16 @@ class ProductController extends Controller
             $dbProduct = new SupabaseProduct([
                 'title'  => $product['title'] ?? '',
                 'handle' => $productHandle,
-                'price'  => $product['price'] ?? ($product['variants'][0]['price'] ?? null),
+                'price'  => $product['price'] ?? collect($product['variants'] ?? [])->min('price'),
                 'status' => 'active',
                 'featured_image' => $product['images'][0]['src'] ?? ($product['image']['src'] ?? null),
                 'sku' => $product['variants'][0]['sku'] ?? null,
             ]);
         }
 
-        // §6.2–6.3 JSON-LD @graph (cached 24h) — prefer locale CMS, else EN for schema only
+        // Â§6.2â€“6.3 JSON-LD @graph (cached 24h) â€” prefer locale CMS, else EN for schema only
         $schemaContent = $dbContent ?? ($overlay['content_en'] ?? null);
-        $productJsonLd = $jsonLdBuilder->buildProductSchema($dbProduct, $schemaContent);
+        $productJsonLd = $jsonLdBuilder->buildProductSchema($dbProduct, $schemaContent, $product);
 
         $relatedLinks = collect();
         $breadcrumbs = app(\App\Services\BreadcrumbBuilder::class)->forProduct(
@@ -265,7 +325,7 @@ class ProductController extends Controller
             }
         }
 
-        // Admin EN page blocks → auto-translate for FR/DE on the storefront.
+        // Admin EN page blocks â†’ auto-translate for FR/DE on the storefront.
         $blocks = app(\App\Services\PageBlockLocalizationService::class)->forLocale(
             collect($overlay['blocks'] ?? []),
             $locale
@@ -305,7 +365,7 @@ class ProductController extends Controller
 
             $fresh = $this->fetchPdpOverlay($handle, $locale);
 
-            // Only cache successful overlays — a transient Supabase blip must not
+            // Only cache successful overlays â€” a transient Supabase blip must not
             // hide page blocks / FAQs on FR/DE for the full CMS TTL.
             if (($fresh['found'] ?? false) === true) {
                 \Illuminate\Support\Facades\Cache::put($cacheKey, $fresh, $ttl);
@@ -364,17 +424,17 @@ class ProductController extends Controller
             };
 
             $dbContent = $dbProduct->productContents->firstWhere('locale', $locale);
-            // Keep EN row only as translation source — do not display EN CMS on FR/DE pages.
+            // Keep EN row only as translation source â€” do not display EN CMS on FR/DE pages.
             $dbContentEn = $dbProduct->productContents->firstWhere('locale', 'en');
 
             // FAQs: keep locale rows separate from English (no silent EN fallback for display).
             $faqsForLocale = $dbProduct->faqs->where('locale', $locale)->values();
             $faqsEn = $dbProduct->faqs->where('locale', 'en')->values();
 
-            // Page blocks: admin writes English only — always use EN rows as source.
+            // Page blocks: admin writes English only â€” always use EN rows as source.
             $blocksEn = $dbProduct->pageBlocks->where('locale', 'en')->values();
             if ($blocksEn->isEmpty()) {
-                // Legacy: older FR/DE-only rows — fall back so nothing disappears.
+                // Legacy: older FR/DE-only rows â€” fall back so nothing disappears.
                 $blocksEn = $pickLocale($dbProduct->pageBlocks);
             }
 
@@ -394,7 +454,7 @@ class ProductController extends Controller
                 'faqs' => $faqsForLocale,
                 'faqs_en' => $faqsEn,
                 'signals' => $pickLocale($dbProduct->knowledgeSignals),
-                // Plain DTOs — safe to cache; Eloquent models often poison FR/DE entries.
+                // Plain DTOs â€” safe to cache; Eloquent models often poison FR/DE entries.
                 'blocks' => $blocksEn->map($toBlockDto)->values(),
             ];
         }, ['found' => false]);

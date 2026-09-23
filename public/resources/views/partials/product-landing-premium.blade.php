@@ -53,7 +53,7 @@
 
 <div x-data="productPurchase({{ ($purchaseOptions['requiresOption'] ?? $requiresOption) ? 'true' : 'false' }}, @js($cartProduct), @js($cartAddUrl), @js($checkoutUrl))" class="product-landing pb-24 lg:pb-0">
 
-{{-- ── 0. BREADCRUMB ─────────────────────────────────────────── --}}
+{{-- â”€â”€ 0. BREADCRUMB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
 <div class="bg-slate-50 border-b border-slate-100">
   <div class="container-site py-3">
     <nav class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500" aria-label="Breadcrumb">
@@ -66,7 +66,7 @@
   </div>
 </div>
 
-{{-- ── DYNAMIC BLOCKS HOOK ───────────────────────────────────────── --}}
+{{-- â”€â”€ DYNAMIC BLOCKS HOOK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
 @php
   $renderBlocks = function($pos) use ($pageBlocks) {
       $blocks = collect($pageBlocks ?? [])
@@ -90,7 +90,7 @@
   };
 @endphp
 
-{{-- ── 1. HERO ───────────────────────────────────────────────── --}}
+{{-- â”€â”€ 1. HERO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
 {!! $renderBlocks('before_hero') !!}
 <section class="bg-white pt-4 sm:pt-5 pb-8 sm:pb-12 lg:pb-16" aria-label="Product detail" id="product-hero">
   <div class="container-site">
@@ -101,9 +101,7 @@
         <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-50 shadow-lg mb-4 group aspect-square">
           @if(!empty($galleryImages))
           <img
-            src="{{ $galleryImages[0] }}"
-            alt="{{ $t('product_name') }}"
-            class="w-full h-full object-contain transition-all duration-500"
+            src="{{ $galleryImages[0] }}" alt="{{ $t('product_name') }}" loading="eager" fetchpriority="high" width="800" height="800" class="w-full h-full object-contain transition-all duration-500"
             loading="eager"
             fetchpriority="high"
             decoding="async"
@@ -170,7 +168,7 @@
             <svg class="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             @endfor
           </div>
-          <span class="text-navy-800 font-bold text-sm shrink-0" x-text="average > 0 ? average : '—'">{{ ($reviewStats['average_rating'] ?? 0) > 0 ? $reviewStats['average_rating'] : '—' }}</span>
+          <span class="text-navy-800 font-bold text-sm shrink-0" x-text="average > 0 ? average : 'â€”'">{{ ($reviewStats['average_rating'] ?? 0) > 0 ? $reviewStats['average_rating'] : 'â€”' }}</span>
           <a href="#reviews" class="text-slate-500 text-xs sm:text-sm hover:text-navy-700 underline underline-offset-2 break-anywhere" x-text="label">{{ $t('verified_reviews', ['count' => number_format($reviewStats['total_reviews'] ?? 0)]) }}</a>
           <span class="text-slate-300 hidden sm:inline">|</span>
           <span class="text-emerald-600 text-xs sm:text-sm font-semibold shrink-0">{{ $t('in_stock') }}</span>
@@ -206,7 +204,7 @@
           $cmsBenefitItems = [];
           if ($cmsBenefitsRaw !== '' && $cmsBenefitsRaw === strip_tags($cmsBenefitsRaw)) {
               $cmsBenefitItems = array_values(array_filter(array_map(
-                  static fn (string $line): string => trim(preg_replace('/^[-*•]\s+/u', '', $line) ?? $line),
+                  static fn (string $line): string => trim(preg_replace('/^[-*â€¢]\s+/u', '', $line) ?? $line),
                   preg_split('/\r\n|\r|\n/', $cmsBenefitsRaw) ?: []
               )));
           }
@@ -247,7 +245,7 @@
   </div>
 </section>
 
-{{-- ── 1b. BOTANICAL INGREDIENTS (optional per product) ─────── --}}
+{{-- â”€â”€ 1b. BOTANICAL INGREDIENTS (optional per product) â”€â”€â”€â”€â”€â”€â”€ --}}
 @php
   $botanicalItems = collect($landingList('botanical_items') ?? [])
       ->map(fn ($row) => is_string($row) ? trim($row) : trim((string) (is_array($row) ? ($row[0] ?? '') : '')))
@@ -282,7 +280,7 @@
 </section>
 @endif
 
-{{-- ── 2. CMS DETAIL GRID (How / Who / Specs / Care) ──────────── --}}
+{{-- â”€â”€ 2. CMS DETAIL GRID (How / Who / Specs / Care) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
 @php
   $cmsDetailCards = array_values(array_filter([
       [
@@ -325,7 +323,7 @@
 @if($langKey === 'product_landing.products_cushion' || $langKey === 'products_cushion')
   {{-- Custom Seating Comfort & Design Elements Section removed as requested --}}
 @else
-  {{-- ── 3. LIFESTYLE POSITIONING ──────────────────────────────── --}}
+  {{-- â”€â”€ 3. LIFESTYLE POSITIONING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
   {!! $renderBlocks('before_lifestyle') !!}
   <section class="section bg-stone-50" aria-label="Lifestyle">
     <div class="container-site">
@@ -352,7 +350,7 @@
   </section>
   {!! $renderBlocks('after_lifestyle') !!}
 
-  {{-- ── 4. HOW IT WORKS ───────────────────────────────────────── --}}
+  {{-- â”€â”€ 4. HOW IT WORKS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
   {!! $renderBlocks('before_how') !!}
   <section class="section bg-white" aria-label="How it works">
     <div class="container-site">
@@ -387,7 +385,7 @@
   {!! $renderBlocks('after_how') !!}
 @endif
 
-{{-- ── 4b. SAFETY / IMPORTANT INFORMATION (optional) ─────────── --}}
+{{-- â”€â”€ 4b. SAFETY / IMPORTANT INFORMATION (optional) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
 @php
   $safetyItems = collect($landingList('safety_items') ?? [])
       ->map(fn ($row) => is_string($row) ? trim($row) : trim((string) (is_array($row) ? ($row[0] ?? '') : '')))
@@ -414,7 +412,7 @@
 </section>
 @endif
 
-{{-- ── 5. SCIENCE / AUTHORITY ────────────────────────────────── --}}
+{{-- â”€â”€ 5. SCIENCE / AUTHORITY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
 {!! $renderBlocks('before_science') !!}
 <section class="section bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 text-white" aria-label="Educational authority">
   <div class="container-site">
@@ -464,7 +462,7 @@
 </section>
 
 @if($showSizeGuide ?? false)
-{{-- ── SIZE GUIDE (belt) ─────────────────────────────────────── --}}
+{{-- â”€â”€ SIZE GUIDE (belt) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
 <section id="size-guide" class="section bg-white" aria-label="Size guide">
   <div class="container-site">
     <div class="text-center mb-10">
@@ -477,17 +475,33 @@
           <tr>
             <th class="px-5 py-3 font-semibold">{{ __('product_landing.size_guide_col_size') }}</th>
             <th class="px-5 py-3 font-semibold">{{ __('product_landing.size_guide_col_waist') }}</th>
-            <th class="px-5 py-3 font-semibold">{{ __('product_landing.size_guide_col_for') }}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
-          @foreach($landingRootList('size_guide_rows') as [$size, $waist, $rec])
-          <tr class="hover:bg-slate-50/80">
-            <td class="px-5 py-3 font-semibold text-navy-900">{{ $size }}</td>
-            <td class="px-5 py-3 text-slate-600">{{ $waist }}</td>
-            <td class="px-5 py-3 text-slate-500 text-xs">{{ $rec }}</td>
-          </tr>
-          @endforeach
+          @if(isset($purchaseOptions['options']) && count($purchaseOptions['options']) > 0)
+            @foreach($purchaseOptions['options'] as $variant)
+              @php
+                $title = $variant['title'] ?? '';
+                $size = $title;
+                $measurement = '';
+                if (preg_match('/^([A-Za-z0-9\/\-\s]+)\s*\((.*?)\)$/', $title, $matches)) {
+                    $size = trim($matches[1]);
+                    $measurement = trim($matches[2]);
+                }
+              @endphp
+              <tr class="hover:bg-slate-50/80">
+                <td class="px-5 py-3 font-semibold text-navy-900">{{ $size }}</td>
+                <td class="px-5 py-3 text-slate-600">{{ $measurement }}</td>
+              </tr>
+            @endforeach
+          @else
+            @foreach($landingRootList('size_guide_rows') as [$size, $waist, $rec])
+            <tr class="hover:bg-slate-50/80">
+              <td class="px-5 py-3 font-semibold text-navy-900">{{ $size }}</td>
+              <td class="px-5 py-3 text-slate-600">{{ $waist }}</td>
+            </tr>
+            @endforeach
+          @endif
         </tbody>
       </table>
     </div>
@@ -497,7 +511,7 @@
 
 {!! $renderBlocks('after_science') !!}
 
-{{-- ── 5b. ADMIN PAGE LAYOUT BLOCKS (stacked in order) ────────── --}}
+{{-- â”€â”€ 5b. ADMIN PAGE LAYOUT BLOCKS (stacked in order) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
 {!! $renderBlocks('default') !!}
 
 
@@ -514,7 +528,7 @@
         Your chair doesn't have to be uncomfortable.
       </h2>
       <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
-        ErgoCushion® combines three thoughtful design elements to provide supportive cushioning and a more comfortable sitting experience.
+        ErgoCushionÂ® combines three thoughtful design elements to provide supportive cushioning and a more comfortable sitting experience.
       </p>
     </div>
 
@@ -597,7 +611,7 @@
         <div>
           <h4 class="font-display font-bold text-navy-950 text-2xl mb-4">A Simple Addition to Your Favorite Seat</h4>
           <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
-            You don't need to replace your chair to improve your seating experience. Simply place ErgoCushion® on a compatible seating surface and enjoy supportive cushioning wherever you sit.
+            You don't need to replace your chair to improve your seating experience. Simply place ErgoCushionÂ® on a compatible seating surface and enjoy supportive cushioning wherever you sit.
           </p>
         </div>
       </div>
@@ -614,7 +628,7 @@
 </section>
 @endif
 
-{{-- ── 6. REVIEWS ── --}}
+{{-- â”€â”€ 6. REVIEWS â”€â”€ --}}
 {!! $renderBlocks('before_reviews') !!}
 @include('partials.reviews-lazy', ['handle' => $handle])
 {!! $renderBlocks('after_reviews') !!}
@@ -638,7 +652,7 @@
       : $landingFaqs;
 @endphp
 
-{{-- ── 6b. FAQ ── --}}
+{{-- â”€â”€ 6b. FAQ â”€â”€ --}}
 @if($cmsFaqs->isNotEmpty() || $landingFaqs->isNotEmpty())
 {!! $renderBlocks('before_faq') !!}
 <section class="faq-section section bg-stone-50" id="faq" aria-labelledby="premium-faq-heading">
@@ -666,7 +680,7 @@
 @endif
 
 {!! $renderBlocks('before_cta') !!}
-{{-- ── 7. FINAL CTA ─────────────────────────────────────────── --}}
+{{-- â”€â”€ 7. FINAL CTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
 @php
   $ctaLovePoints = collect($landingList('cta_love_points') ?? [])
       ->map(function ($row) {
@@ -695,7 +709,7 @@
       <ul class="max-w-md mx-auto text-left space-y-3 mb-8">
         @foreach($ctaLovePoints as $point)
           <li class="flex items-start gap-3 text-stone-700 text-sm sm:text-base">
-            <span class="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-700 text-xs font-bold" aria-hidden="true">✓</span>
+            <span class="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-700 text-xs font-bold" aria-hidden="true">âœ“</span>
             <span>{{ $point }}</span>
           </li>
         @endforeach
@@ -722,7 +736,7 @@
 </section>
 {!! $renderBlocks('after_cta') !!}
 
-{{-- Mobile sticky Order Now — fixed at bottom while scrolling --}}
+{{-- Mobile sticky Order Now â€” fixed at bottom while scrolling --}}
 <div
   id="sticky-order-bar"
   class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-[0_-4px_24px_rgba(0,0,0,0.12)]"
@@ -766,3 +780,4 @@
   })();
 </script>
 @endpush
+

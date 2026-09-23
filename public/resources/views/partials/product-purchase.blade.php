@@ -49,19 +49,59 @@
     <a href="{{ $sizeGuideHref }}" class="text-navy-600 text-sm underline underline-offset-2 hover:text-navy-800 shrink-0">{{ __('product_landing.size_guide_title') }}</a>
     @endif
   </div>
-  <div class="grid grid-cols-1 sm:flex sm:flex-wrap gap-2">
+  <div class="flex flex-col gap-3">
     @if($optionType === 'shopify')
       @foreach($options as $variant)
-      @php $optionValue = $loop->index; @endphp
+      @php 
+        $optionValue = $loop->index; 
+        $price = !empty($variant['price']) ? (float)$variant['price'] : 0;
+        $compare = !empty($variant['compare_at_price']) ? (float)$variant['compare_at_price'] : 0;
+        $title = $variant['title'] ?? 'Option';
+        $isPopular = str_contains(strtolower($title), 'buy 3') || str_contains(strtolower($title), 'get 3');
+      @endphp
       <button
         type="button"
         @click="selectOption({{ $optionValue }})"
-        :class="optionClasses({{ $optionValue }})"
-        class="w-full sm:w-auto border-2 font-semibold py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm transition-all duration-200 focus:outline-none text-left whitespace-normal break-words"
+        :class="selectedOption === {{ $optionValue }} ? 'border-navy-600 bg-navy-50' : 'border-slate-300 bg-white hover:border-slate-400'"
+        class="relative w-full border-2 rounded-xl p-3 sm:p-4 transition-all duration-200 focus:outline-none text-left flex items-center justify-between shadow-sm"
       >
-        {{ $variant['title'] ?? 'Option' }}
-        @if(!empty($variant['price']))
-        — ${{ number_format((float) $variant['price'], 2) }}
+        @if($isPopular && $compare > $price)
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold px-3 py-0.5 rounded shadow-sm whitespace-nowrap">
+            You save ${{ number_format($compare - $price, 2) }}
+          </div>
+          <div class="absolute -top-3 right-0 bg-navy-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">
+            MOST POPULAR
+          </div>
+        @endif
+        
+        <div class="flex items-center gap-3 w-3/4 pr-2">
+          {{-- Custom Radio Circle --}}
+          <div 
+            class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors"
+            :class="selectedOption === {{ $optionValue }} ? 'border-navy-600 bg-white' : 'border-slate-300 bg-white'"
+          >
+            <div 
+              class="w-2.5 h-2.5 rounded-full bg-navy-600 transition-opacity"
+              :class="selectedOption === {{ $optionValue }} ? 'opacity-100' : 'opacity-0'"
+            ></div>
+          </div>
+          
+          <div class="font-medium text-sm sm:text-base leading-snug break-words" :class="selectedOption === {{ $optionValue }} ? 'text-navy-700' : 'text-slate-800'">
+            {{ $title }}
+          </div>
+        </div>
+
+        @if($price > 0)
+        <div class="text-right shrink-0">
+          <div class="font-bold text-sm sm:text-base" :class="selectedOption === {{ $optionValue }} ? 'text-navy-700' : 'text-slate-800'">
+            ${{ number_format($price, 2) }}
+          </div>
+          @if($compare > $price)
+          <div class="text-xs text-slate-500 line-through font-medium">
+            ${{ number_format($compare, 2) }}
+          </div>
+          @endif
+        </div>
         @endif
       </button>
       @endforeach
@@ -71,9 +111,18 @@
       <button
         type="button"
         @click="selectOption(@js($optionValue))"
-        :class="optionClasses(@js($optionValue))"
-        class="w-full sm:w-auto border-2 font-semibold py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm transition-all duration-200 focus:outline-none text-left whitespace-normal break-words"
+        :class="selectedOption === @js($optionValue) ? 'border-navy-600 bg-navy-50 text-navy-700' : 'border-slate-300 bg-white text-slate-800 hover:border-slate-400'"
+        class="w-full border-2 font-semibold p-4 rounded-xl text-sm transition-all duration-200 focus:outline-none text-left flex items-center gap-3"
       >
+        <div 
+          class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors"
+          :class="selectedOption === @js($optionValue) ? 'border-navy-600 bg-white' : 'border-slate-300 bg-white'"
+        >
+          <div 
+            class="w-2.5 h-2.5 rounded-full bg-navy-600 transition-opacity"
+            :class="selectedOption === @js($optionValue) ? 'opacity-100' : 'opacity-0'"
+          ></div>
+        </div>
         {{ is_array($option) ? ($option['label'] ?? $optionValue) : $option }}
       </button>
       @endforeach

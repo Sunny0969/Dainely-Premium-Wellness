@@ -58,13 +58,22 @@ class ProductLandingAssets
             return $url;
         }
 
-        if (preg_match('/[?&]width=\d+/i', $url)) {
-            return $url;
+        // Strip existing Shopify query parameters (width, format, v) if they exist, 
+        // to cleanly append our optimized params
+        if (str_contains($url, '?')) {
+            [$base, $query] = explode('?', $url, 2);
+            parse_str($query, $params);
+            
+            // Only keep necessary params, discard size/format ones
+            unset($params['width'], $params['format'], $params['crop']);
+            
+            $params['width'] = max(40, min(2000, $width));
+            $params['format'] = 'webp';
+            
+            return $base . '?' . http_build_query($params);
         }
 
-        $sep = str_contains($url, '?') ? '&' : '?';
-
-        return $url.$sep.'width='.max(40, min(2000, $width));
+        return $url . '?width=' . max(40, min(2000, $width)) . '&format=webp';
     }
 
     /**

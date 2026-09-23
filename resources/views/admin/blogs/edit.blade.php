@@ -14,7 +14,7 @@
 @section('admin_content')
 <div class="mb-6 flex items-center justify-between">
     <a href="/dainely-admin-panel/blogs" class="text-sm font-semibold text-navy-700 hover:text-navy-900 flex items-center gap-1">
-        ← Back to Blog List
+        â† Back to Blog List
     </a>
 </div>
 
@@ -47,7 +47,7 @@
                     {{-- Alert to notify auto-translate behavior --}}
                     @if($loc !== 'en')
                         <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600">
-                            💡 If Title is left empty, the English post will be automatically translated into {{ strtoupper($loc) }} using DeepL/MyMemory upon saving.
+                            ðŸ’¡ If Title is left empty, the English post will be automatically translated into {{ strtoupper($loc) }} using DeepL/MyMemory upon saving.
                         </div>
                     @endif
 
@@ -134,7 +134,7 @@
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Cover Image</label>
                     <div class="mb-3">
                         <img id="current-cover-preview" 
-                             src="{{ $post->featured_image ? asset('images/' . $post->featured_image) : '' }}" 
+                             src="{{ $post->featured_image ? (\Illuminate\Support\Str::startsWith($post->featured_image, ['http://', 'https://']) ? $post->featured_image : asset('images/' . $post->featured_image)) : '' }}" 
                              alt="current cover" 
                              class="w-full h-32 object-cover rounded-lg border border-slate-200 mb-1 {{ !$post->featured_image ? 'hidden' : '' }}">
                         <span id="current-cover-filename" class="text-xs text-slate-400 block {{ !$post->featured_image ? 'hidden' : '' }}">
@@ -142,7 +142,7 @@
                         </span>
                     </div>
                     <input type="file" name="featured_image" id="featured-image-input" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-white hover:file:bg-slate-900">
-                    <p class="text-xs text-rose-500 mt-2 font-medium">⚠️ Max file size: 2MB. Please compress larger images before uploading.</p>
+                    <p class="text-xs text-rose-500 mt-2 font-medium">âš ï¸ Max file size: 2MB. Please compress larger images before uploading.</p>
                 </div>
 
                 @php
@@ -174,6 +174,56 @@
 
 @push('admin_scripts')
 <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+<script src="https://unpkg.com/quill-html-edit-button@2.2.7/dist/quill.htmlEditButton.min.js"></script>
+<script>
+function selectLocalImage(quill) {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+    input.onchange = () => {
+        const file = input.files[0];
+        if (/^image\//.test(file.type)) {
+            const fd = new FormData();
+            fd.append('image', file);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            const token = csrfToken ? csrfToken.getAttribute('content') : '';
+            
+            fetch('/dainely-admin-panel/editor-upload', {
+                method: 'POST',
+                headers: { 
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: fd
+            })
+            .then(async r => {
+                if (!r.ok) {
+                    let err = await r.json().catch(() => ({}));
+                    throw new Error(err.message || 'Server error: ' + r.status);
+                }
+                return r.json();
+            })
+            .then(result => {
+                if (result.success) {
+                    const range = quill.getSelection(true) || {index: quill.getLength()};
+                    quill.insertEmbed(range.index, 'image', result.url);
+                    quill.setSelection(range.index + 1);
+                } else { 
+                    alert('Upload failed: ' + (result.message || 'Unknown error')); 
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Upload failed: ' + e.message);
+            });
+        }
+    };
+}
+            }).catch(e => alert('Upload failed'));
+        }
+    };
+}Quill.register("modules/htmlEditButton", htmlEditButton);</script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const locales = ['en', 'fr', 'de'];
@@ -183,15 +233,21 @@
             editors[loc] = new Quill('#editor-' + loc, {
                 theme: 'snow',
                 modules: {
+                    htmlEditButton: { msg: 'Edit HTML Code' },
                     table: true,
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, 4, false] }],
-                        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link', 'image', 'video'],
-                        ['table'],
-                        ['clean']
-                    ]
+                                        toolbar: {
+                        container: [
+                            [{ 'header': [1, 2, 3, 4, false] }],
+                            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            ['link', 'image', 'video'],
+                            ['table'],
+                            ['clean']
+                        ],
+                        handlers: {
+                            image: function() { selectLocalImage(this.quill); }
+                        }
+                    }
                 }
             });
         });

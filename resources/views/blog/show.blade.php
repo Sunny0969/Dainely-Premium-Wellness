@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 @section('title', ($article['meta_title'] ?? $article['title']) . ' | Dainely')
 @section('meta_description', $article['meta_description'] ?? $article['excerpt'] ?? '')
 @section('content')
@@ -101,7 +101,7 @@
         
         {{-- 2. Cover Image --}}
         <div class="rounded-3xl overflow-hidden bg-slate-50 mb-10 border border-slate-100 flex items-center justify-center">
-          <img src="{{ asset('images/' . $article['image']) }}" alt="{{ $article['image_alt'] }}" class="w-full h-auto block" style="max-height: 600px; object-fit: cover;">
+          <img src="{{ asset('images/' . $article['image']) }}" alt="{{ $article['image_alt'] }}" fetchpriority="high" loading="eager" class="w-full h-auto block" style="max-height: 600px; object-fit: cover;">
         </div>
 
         {{-- 3. Title --}}
@@ -130,7 +130,7 @@
         <article class="prose prose-slate max-w-none" style="max-width: 100% !important; width: 100% !important;">
           <p class="lead text-xl text-slate-600 leading-relaxed mb-8" style="max-width: 100% !important;">{{ $article['excerpt'] }}</p>
           <div class="blog-rich-content" style="max-width: 100% !important; width: 100% !important;">
-            {!! $article['content'] !!}
+            {!! str_replace('<iframe ', '<iframe referrerpolicy="strict-origin-when-cross-origin" ', $article['content'] ?? '') !!}
           </div>
 
           @if(!empty($article['tags']))
@@ -326,3 +326,5 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 @endsection
+
+

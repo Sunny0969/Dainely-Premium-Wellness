@@ -29,10 +29,19 @@
   .admin-actions-row form { display: inline; margin: 0; }
 </style>
 
-<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-    <div class="px-6 py-4 bg-slate-50 border-b border-slate-200">
-        <h2 class="text-lg font-bold text-slate-800">Synced Products Catalog</h2>
-        <p class="text-xs text-slate-500 mt-1">Unpublish hides a product on the live site. Delete removes it from this CMS catalog (Shopify store is unchanged).</p>
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mt-6">
+    <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-4 items-center justify-between">
+        <div>
+            <h2 class="text-lg font-bold text-slate-800">Synced Products Catalog</h2>
+            <p class="text-xs text-slate-500 mt-1">Unpublish hides a product on the live site. Delete removes it from this CMS catalog (Shopify store is unchanged).</p>
+        </div>
+        <form action="/{{ $adminBase ?? 'dainely-admin-panel' }}/products" method="GET" class="flex gap-2">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search products..." class="rounded border border-slate-300 px-3 py-1.5 text-sm">
+            <button type="submit" class="bg-slate-800 text-white px-3 py-1.5 rounded text-sm font-semibold">Search</button>
+            @if(request()->filled('search'))
+                <a href="/{{ $adminBase ?? 'dainely-admin-panel' }}/products" class="text-slate-500 hover:text-slate-800 text-sm px-2 py-1.5">Clear</a>
+            @endif
+        </form>
     </div>
 
     <div class="overflow-x-auto">

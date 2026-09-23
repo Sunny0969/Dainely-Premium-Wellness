@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 @section('title', $page->title)
 
 @section('content')
@@ -13,26 +13,30 @@
         <h1 class="font-display text-white text-4xl md:text-5xl font-bold mb-6">{{ $page->hero_title }}</h1>
         
         @if(!empty($page->hero_description))
-        <div class="cms-richtext text-lg text-slate-300 mb-8 leading-relaxed max-w-none">{!! $page->hero_description !!}</div>
+        <div class="cms-richtext text-lg text-slate-300 mb-8 leading-relaxed max-w-none">{!! str_replace('<iframe ', '<iframe referrerpolicy="strict-origin-when-cross-origin" ', $page->hero_description ?? '') !!}</div>
         @endif
         
         @if(!empty($page->author_name))
         <div class="flex items-center gap-4 mt-8 pt-8 border-t border-navy-800">
           @if(!empty($page->author_image))
-          <img src="{{ Str::startsWith($page->author_image, ['http://', 'https://']) ? $page->author_image : asset('images/' . $page->author_image) }}" alt="{{ $page->author_name }}" class="w-12 h-12 rounded-full object-cover">
+          <img src="{{ Str::startsWith($page->author_image, ['http://', 'https://']) ? $page->author_image : (\Illuminate\Support\Str::startsWith($page->author_image, ['http://', 'https://']) ? $page->author_image : asset('images/' . $page->author_image)) }}" alt="{{ $page->author_name }}" class="w-12 h-12 rounded-full object-cover">
           @endif
           <div>
             <div class="font-bold">{{ $page->author_name }}</div>
-            <div class="text-slate-400 text-sm">{{ $page->author_role ?? '' }} • {{ $page->read_time ?? '' }}</div>
+            <div class="text-slate-400 text-sm">{{ $page->author_role ?? '' }} Ã¢â‚¬Â¢ {{ $page->read_time ?? '' }}</div>
           </div>
         </div>
         @endif
       </div>
       
-      @if(!empty($page->hero_image))
+      @if(!empty($page->hero_image) || !empty($page->hero_media_id))
       <div class="rounded-2xl overflow-hidden relative w-full flex items-center justify-center" style="min-height: 400px;">
-        <img src="{{ Str::startsWith($page->hero_image, ['http://', 'https://']) ? $page->hero_image : asset('images/' . $page->hero_image) }}" alt="{{ $page->hero_title }}" class="absolute inset-0 w-full h-full object-contain">
-      </div>
+        @if(!empty($page->hero_media_id))
+          <x-media-image :media-id="$page->hero_media_id" fetchpriority="high" loading="eager" class="absolute inset-0 w-full h-full object-contain" />
+        @else
+          <img src="{{ Str::startsWith($page->hero_image, ['http://', 'https://']) ? $page->hero_image : asset('images/' . $page->hero_image) }}" alt="{{ $page->hero_title }}" fetchpriority="high" loading="eager" class="absolute inset-0 w-full h-full object-contain">
+        @endif
+        </div>
       @endif
     </div>
   </section>
@@ -68,7 +72,7 @@
       <div class="mb-12 last:mb-0">
         <h2 class="text-3xl font-display font-bold text-navy-900 mb-6">{{ $block['title'] ?? '' }}</h2>
         <div class="cms-richtext text-lg max-w-none text-slate-600">
-          {!! $block['content'] ?? '' !!}
+          {!! str_replace('<iframe ', '<iframe referrerpolicy="strict-origin-when-cross-origin" ', $block['content'] ?? '') !!}
         </div>
       </div>
       @endforeach
@@ -84,7 +88,7 @@
           @foreach($page->root_causes as $cause)
           <div class="bg-indigo-50/50 rounded-xl p-6 border-l-4 border-indigo-500">
             <h3 class="font-bold text-navy-900 text-xl mb-3">{{ $cause['title'] ?? '' }}</h3>
-            <div class="cms-richtext max-w-none text-slate-600 leading-relaxed">{!! $cause['description'] ?? '' !!}</div>
+            <div class="cms-richtext max-w-none text-slate-600 leading-relaxed">{!! str_replace('<iframe ', '<iframe referrerpolicy="strict-origin-when-cross-origin" ', $cause['description'] ?? '') !!}</div>
           </div>
           @endforeach
         </div>
@@ -99,7 +103,7 @@
         <h2 class="text-3xl font-display font-bold text-navy-900 mb-6">{{ $page->treatments_title ?? 'Evidence-Based Treatments' }}</h2>
         
         @if(!empty($page->treatments_description))
-        <div class="cms-richtext text-lg max-w-none text-slate-600 mb-8">{!! $page->treatments_description !!}</div>
+        <div class="cms-richtext text-lg max-w-none text-slate-600 mb-8">{!! str_replace('<iframe ', '<iframe referrerpolicy="strict-origin-when-cross-origin" ', $page->treatments_description ?? '') !!}</div>
         @endif
 
         <ul class="space-y-4">
@@ -107,7 +111,7 @@
           <li class="flex items-start gap-4">
             <div class="w-1.5 h-1.5 rounded-full bg-slate-400 mt-2.5 shrink-0"></div>
             <div class="cms-richtext text-lg max-w-none text-slate-700 leading-relaxed">
-              {!! $treatment !!}
+              {!! str_replace('<iframe ', '<iframe referrerpolicy="strict-origin-when-cross-origin" ', $treatment ?? '') !!}
             </div>
           </li>
           @endforeach
@@ -135,7 +139,7 @@
           <div class="bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md hover:border-navy-200 transition-all flex flex-col overflow-hidden group">
             <a href="{{ $productUrl }}" class="block aspect-[4/3] bg-slate-100 relative overflow-hidden">
               @if($image)
-                <img src="{{ Str::startsWith($image, ['http://', 'https://']) ? $image : asset('images/' . $image) }}" alt="{{ $product->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <img src="{{ Str::startsWith($image, ['http://', 'https://']) ? $image : (\Illuminate\Support\Str::startsWith($image, ['http://', 'https://']) ? $image : asset('images/' . $image)) }}" alt="{{ $product->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
               @else
                 <div class="absolute inset-0 flex items-center justify-center text-slate-300">
                   <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -171,3 +175,7 @@
 
 </main>
 @endsection
+
+
+
+

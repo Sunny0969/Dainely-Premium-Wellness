@@ -1723,7 +1723,7 @@ return array (
   'products_back_stretcher' => 
   array (
     'seo_title' => 'Dainely™ Orthopedic Back Stretcher — Multi-Level Lumbar Support',
-    'seo_desc' => 'Decompress your spine, restore the natural lumbar curve, and eliminate lower back stiffness and sciatica with the adjustable Dainely™ Back Stretcher.',
+    'seo_desc' => 'Decompress your spine, restore the natural lumbar curve, and eliminate lower back stiffness and Nerve Discomfort with the adjustable Dainely™ Back Stretcher.',
     'product_name' => 'Dainely™ Orthopedic Back Stretcher',
     'badge_best_seller' => 'Best Seller',
     'badge_clinical' => '',
@@ -1731,7 +1731,7 @@ return array (
     'hero_headline' => 'Decompress your spine. Restore natural lumbar alignment.',
     'verified_reviews' => ':count verified reviews',
     'in_stock' => '✓ In Stock',
-    'description' => 'Sedentary lifestyles, poor sitting posture at desks, and repetitive heavy lifting compress the lumbar spine, causing chronic lower back stiffness, muscle spasms, and shooting sciatica discomfort. The Dainely™ Orthopedic Back Stretcher provides a targeted passive stretch. With 3 adjustable slot levels and a grid of acupressure trigger nodes, it gently expands intervertebral space, releases pinched nerves, and decompresses spinal loading in just 5 to 10 minutes a day.',
+    'description' => 'Sedentary lifestyles, poor sitting posture at desks, and repetitive heavy lifting compress the lumbar spine, causing chronic lower back stiffness, muscle spasms, and shooting Nerve Discomfort discomfort. The Dainely™ Orthopedic Back Stretcher provides a targeted passive stretch. With 3 adjustable slot levels and a grid of acupressure trigger nodes, it gently expands intervertebral space, releases pinched nerves, and decompresses spinal loading in just 5 to 10 minutes a day.',
     'benefits' => 
     array (
       0 => 'Multi-level arch adjusts to 3 heights to match progressive lower back flexibility',
@@ -1853,7 +1853,7 @@ return array (
       2 => 
       array (
         0 => '94% Relief Rate',
-        1 => 'Of users reported reduction in sciatica discomfort',
+        1 => 'Of users reported reduction in Nerve Discomfort discomfort',
       ),
       3 => 
       array (
@@ -2414,7 +2414,7 @@ return array (
   ),
   'products_cushion' => 
   array (
-    'seo_title' => 'ErgoCushion® Seat Cushion — Premium Tailbone & Sciatica Relief',
+    'seo_title' => 'ErgoCushion® Seat Cushion — Premium Tailbone & Nerve Discomfort Relief',
     'seo_desc' => 'Eliminate back pain, regain correct sitting posture, and relieve pressure on your tailbone with the orthopedic ErgoCushion® pressure relief seat cushion.',
     'product_name' => 'ErgoCushion® - Pressure Relief Seat Cushion',
     'badge_best_seller' => 'Best Seller',
@@ -2423,7 +2423,7 @@ return array (
     'hero_headline' => 'Make Every Seat More Comfortable..',
     'verified_reviews' => ':count verified reviews',
     'in_stock' => '✓ In Stock',
-    'description' => 'Uncomfortable desk chairs or long drives shouldn\\\'t dictate your physical wellness. The ErgoCushion® is an orthopedic seat pad designed to elevate your posture, suspend the tailbone (coccyx) to avoid compression, and eliminate chronic tailbone aches, sciatica, and lower back strain within 2 weeks.',
+    'description' => 'Uncomfortable desk chairs or long drives shouldn\\\'t dictate your physical wellness. The ErgoCushion® is an orthopedic seat pad designed to elevate your posture, suspend the tailbone (coccyx) to avoid compression, and eliminate chronic tailbone aches, Nerve Discomfort, and lower back strain within 2 weeks.',
     'benefits' => 
     array (
       0 => 'Non-slip bottom grid keeps the cushion in place on desk chairs or car seats',
@@ -2547,7 +2547,7 @@ return array (
       1 => 
       array (
         0 => 'c_faq2',
-        1 => 'Can it support tailbone pain and sciatica recovery?',
+        1 => 'Can it support tailbone pain and Nerve Discomfort recovery?',
         2 => 'Yes. The U-shaped coccyx cutout is specifically designed to suspend your tailbone, which helps alleviate direct pressure on the spinal column and sciatic nerve pathways.',
       ),
       2 => 
@@ -2576,7 +2576,7 @@ return array (
     'cta_guarantee' => '✓ 30-Day Pain Relief Guarantee',
     'doctor_name' => 'Dr. J. Carter',
     'doctor_title' => 'Ergonomic Health Adviser',
-    'doctor_quote' => 'Suspending the tailbone during extended sitting sessions prevents the base vertebrae from loading micro-impacts, which helps prevent sciatica flares.',
+    'doctor_quote' => 'Suspending the tailbone during extended sitting sessions prevents the base vertebrae from loading micro-impacts, which helps prevent Nerve Discomfort flares.',
   ),
   'products_coffee' => 
   array (

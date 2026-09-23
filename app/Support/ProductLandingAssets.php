@@ -58,13 +58,22 @@ class ProductLandingAssets
             return $url;
         }
 
-        if (preg_match('/[?&]width=\d+/i', $url)) {
-            return $url;
+        // Strip existing Shopify query parameters (width, format, v) if they exist, 
+        // to cleanly append our optimized params
+        if (str_contains($url, '?')) {
+            [$base, $query] = explode('?', $url, 2);
+            parse_str($query, $params);
+            
+            // Only keep necessary params, discard size/format ones
+            unset($params['width'], $params['format'], $params['crop']);
+            
+            $params['width'] = max(40, min(2000, $width));
+            $params['format'] = 'webp';
+            
+            return $base . '?' . http_build_query($params);
         }
 
-        $sep = str_contains($url, '?') ? '&' : '?';
-
-        return $url.$sep.'width='.max(40, min(2000, $width));
+        return $url . '?width=' . max(40, min(2000, $width)) . '&format=webp';
     }
 
     /**
@@ -137,15 +146,15 @@ class ProductLandingAssets
             ],
         ];
 
-        // Per-product marketing sections only — never override galleryImages (Shopify).
+        // Per-product marketing sections only â€” never override galleryImages (Shopify).
         $map = [
             'products_belt' => [
-                // Order: At the Standing Desk → During Daily Movement → Commute & Travel
+                // Order: At the Standing Desk â†’ During Daily Movement â†’ Commute & Travel
                 'lifestyleImages' => ['back-pain-edu.webp', 'man-sitting.jpg', 'women-walking.jpg'],
                 'scienceImage'    => 'spine-anatomy.png',
-                'showSizeGuide'   => true,
+                'showSizeGuide'   => false,
                 'purchaseOptions' => [
-                    'showSizeGuide' => true,
+                    'showSizeGuide' => false,
                 ],
             ],
             'products_ball' => [
@@ -160,7 +169,7 @@ class ProductLandingAssets
                 'scienceImage'    => 'NeckCloud-Routine.jpg',
             ],
             'products_patches' => [
-                // Order matches lifestyle_cards: Active Movement → At Your Desk → Overnight Healing
+                // Order matches lifestyle_cards: Active Movement â†’ At Your Desk â†’ Overnight Healing
                 // Use Shopify CDN (always on server); local lifestyle webp files are missing on production.
                 'lifestyleImages' => [
                     'lifestyle-everyday-movement.webp',
@@ -180,7 +189,7 @@ class ProductLandingAssets
                 'compareAt'       => $compareAt ?: 79.95,
             ],
             'products_knee' => [
-                // Order matches lifestyle_cards: Workouts → Walking → Sitting-to-Standing
+                // Order matches lifestyle_cards: Workouts â†’ Walking â†’ Sitting-to-Standing
                 'lifestyleImages' => [
                     'Workouts-and-Athletics.webp',
                     'Stairs-and-Daily-Walking.webp',

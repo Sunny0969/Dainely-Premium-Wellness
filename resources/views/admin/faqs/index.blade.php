@@ -99,7 +99,7 @@
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-1">Answer</label>
                 <p class="text-[11px] text-slate-500 mb-1.5">Use bold, italics, underline, and bullet / numbered lists.</p>
-                <textarea name="answer" required rows="5" class="js-faq-richtext w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Customer-facing answer…"></textarea>
+                <textarea name="answer" required rows="5" class="js-faq-richtext w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Customer-facing answerâ€¦"></textarea>
             </div>
 
             <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-sm transition" onclick="if (window.tinymce) tinymce.triggerSave();">
@@ -115,7 +115,7 @@
                 <h2 class="text-lg font-bold text-slate-800">Existing FAQs</h2>
                 <p class="text-xs text-slate-500 mt-1">
                     Showing for <span class="font-semibold text-slate-700">{{ $selectedTitle }}</span>
-                    · <span class="uppercase font-bold">{{ $locale }}</span>
+                    Â· <span class="uppercase font-bold">{{ $locale }}</span>
                 </p>
             </div>
             <div class="flex flex-col sm:items-end gap-2">
@@ -133,7 +133,7 @@
                     </button>
                 </form>
                 <p class="text-xs text-slate-400" x-show="!loading">Drag handles to reorder, then publish if the live page looks old.</p>
-                <p class="text-xs text-navy-600 font-semibold" x-show="loading" x-cloak>Loading…</p>
+                <p class="text-xs text-navy-600 font-semibold" x-show="loading" x-cloak>Loadingâ€¦</p>
                 <p class="text-xs text-emerald-600 font-semibold" x-show="reorderMsg" x-text="reorderMsg" x-cloak></p>
             </div>
         </div>
@@ -148,7 +148,7 @@
             <div class="px-6 py-3 bg-slate-50 border-b border-slate-100 text-sm text-slate-700">
                 Showing <strong>{{ count($previewFaqs) }}</strong> live page FAQ(s).
                 @if(empty($online))
-                    Database is offline right now — reconnect to edit / reorder.
+                    Database is offline right now â€” reconnect to edit / reorder.
                 @else
                     They will sync into CMS on the next successful save cycle.
                 @endif
@@ -270,8 +270,8 @@ window.initFaqRichtext = function () {
       license_key: 'gpl',
       base_url: 'https://cdn.jsdelivr.net/npm/tinymce@7.6.1',
       suffix: '.min',
-      plugins: 'lists link autoresize',
-      toolbar: 'bold italic underline | bullist numlist | link | removeformat',
+      plugins: 'lists link autoresize code',
+      toolbar: 'bold italic underline | bullist numlist | link | code | removeformat',
       menubar: false,
       branding: false,
       promotion: false,
@@ -352,7 +352,7 @@ function faqManager(cfg) {
       const ids = Array.from(el.querySelectorAll('[data-id]')).map((n) => Number(n.getAttribute('data-id')));
       if (ids.length < 2) return;
 
-      this.reorderMsg = 'Saving order…';
+      this.reorderMsg = 'Saving orderâ€¦';
       try {
         const res = await fetch(cfg.reorderUrl, {
           method: 'POST',
@@ -365,7 +365,7 @@ function faqManager(cfg) {
           body: JSON.stringify({ ids }),
         });
         const data = await res.json();
-        this.reorderMsg = data.ok ? 'Order saved — live site updated.' : (data.error || 'Could not save order.');
+        this.reorderMsg = data.ok ? 'Order saved â€” live site updated.' : (data.error || 'Could not save order.');
       } catch (e) {
         this.reorderMsg = 'Could not save order. Try again.';
       }

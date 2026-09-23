@@ -8,10 +8,33 @@ use Illuminate\Support\Str;
 
 class AdminEducationController extends AdminController
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $pages = EducationPage::where('locale', 'en')->orderBy('id', 'desc')->get();
-        return view('admin.education.index', compact('pages'));
+        $query = EducationPage::where('locale', 'en')
+            ->select('id', 'title', 'slug', 'category', 'is_active', 'locale')
+            ->orderBy('id', 'desc');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'ilike', '%' . $search . '%')
+                  ->orWhere('hero_title', 'ilike', '%' . $search . '%')
+                  ->orWhere('slug', 'ilike', '%' . $search . '%');
+            });
+        }
+
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'published');
+        }
+
+        $pages = $query->paginate(20)->withQueryString();
+        $categories = EducationPage::whereNotNull('category')->where('category', '!=', '')->distinct()->pluck('category');
+
+        return view('admin.education.index', compact('pages', 'categories'));
     }
 
     public function create()
@@ -23,6 +46,7 @@ class AdminEducationController extends AdminController
 
     public function store(Request $request)
     {
+        set_time_limit(300);
         $validated = $this->validateEducation($request);
         $validated = $this->handleUploads($request, $validated);
         
@@ -51,6 +75,7 @@ class AdminEducationController extends AdminController
 
     public function update(Request $request, int $id)
     {
+        set_time_limit(300);
         $page = EducationPage::findOrFail($id);
         $validated = $this->validateEducation($request);
         $validated = $this->handleUploads($request, $validated);
@@ -77,7 +102,7 @@ class AdminEducationController extends AdminController
         }
 
         \App\Support\StorefrontCache::forgetEducation($page->id);
-        return redirect('/dainely-admin-panel/education')->with('success', 'Education Page updated successfully.');
+        return back()->with('success', 'Education Page updated successfully.');
     }
 
     public function destroy(int $id)
@@ -89,10 +114,34 @@ class AdminEducationController extends AdminController
 
     private function handleUploads(Request $request, array $validated): array
     {
+        // PROCESS ALL BASE64 IMAGES FROM QUILL EDITOR FIRST
+        if (!empty($validated['hero_description'])) {
+            $validated['hero_description'] = \App\Services\HtmlImageProcessor::processBase64Images($validated['hero_description']);
+        }
+        if (!empty($validated['treatments_description'])) {
+            $validated['treatments_description'] = \App\Services\HtmlImageProcessor::processBase64Images($validated['treatments_description']);
+        }
+        if (isset($validated['figures']) && is_array($validated['figures'])) {
+            foreach ($validated['figures'] as &$item) {
+                if (!empty($item['label'])) $item['label'] = \App\Services\HtmlImageProcessor::processBase64Images($item['label']);
+            }
+        }
+        if (isset($validated['root_causes']) && is_array($validated['root_causes'])) {
+            foreach ($validated['root_causes'] as &$item) {
+                if (!empty($item['description'])) $item['description'] = \App\Services\HtmlImageProcessor::processBase64Images($item['description']);
+            }
+        }
+        if (isset($validated['content_blocks']) && is_array($validated['content_blocks'])) {
+            foreach ($validated['content_blocks'] as &$item) {
+                if (!empty($item['content'])) $item['content'] = \App\Services\HtmlImageProcessor::processBase64Images($item['content']);
+            }
+        }
+        
         if ($request->hasFile('hero_image_file')) {
             $file = $request->file('hero_image_file');
             $filename = time() . '_hero_' . $file->getClientOriginalName();
-            $file->move(public_path('images'), $filename);
+            $path = $file->storeAs('images', $filename, 's3');
+                    $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
             $validated['hero_image'] = $filename;
         }
         unset($validated['hero_image_file']);
@@ -104,7 +153,23 @@ class AdminEducationController extends AdminController
         $validated['figures'] = $this->cleanRepeater($request->input('figures'));
         $validated['root_causes'] = $this->cleanRepeater($request->input('root_causes'));
         $validated['treatments'] = $this->cleanRepeater($request->input('treatments'), 'bullet');
-        $validated['content_blocks'] = $this->cleanRepeater($request->input('content_blocks'));
+        
+        $contentBlocks = $this->cleanRepeater($request->input('content_blocks'));
+        if ($request->hasFile('content_blocks')) {
+            $files = $request->file('content_blocks');
+            foreach ($files as $index => $blockFiles) {
+                if (isset($blockFiles['image_file'])) {
+                    $file = $blockFiles['image_file'];
+                    $filename = time() . '_cb_' . $index . '_' . $file->getClientOriginalName();
+                    $path = $file->storeAs('images', $filename, 's3');
+                    $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
+                    if (isset($contentBlocks[$index])) {
+                        $contentBlocks[$index]['image'] = $filename;
+                    }
+                }
+            }
+        }
+        $validated['content_blocks'] = $contentBlocks;
 
         $layoutOrder = $request->input('layout_order');
         if (!empty($layoutOrder)) {
@@ -124,53 +189,106 @@ class AdminEducationController extends AdminController
             
             $textFields = ['title', 'hero_title', 'hero_description', 'author_role', 'root_causes_title', 'treatments_title', 'treatments_description'];
             
+            $fieldsToTranslate = [];
+
+            // Add top-level fields
+            foreach ($textFields as $field) {
+                if (!empty($englishPage->{$field})) {
+                    $fieldsToTranslate[$field] = $englishPage->{$field};
+                }
+            }
+
+            // Add figures
+            $figures = $englishPage->figures ?? [];
+            foreach ($figures as $idx => $fig) {
+                if (!empty($fig['label'])) $fieldsToTranslate["fig_{$idx}_label"] = $fig['label'];
+            }
+
+            // Add root causes
+            $rootCauses = $englishPage->root_causes ?? [];
+            foreach ($rootCauses as $idx => $rc) {
+                if (!empty($rc['title'])) $fieldsToTranslate["rc_{$idx}_title"] = $rc['title'];
+                if (!empty($rc['description'])) $fieldsToTranslate["rc_{$idx}_desc"] = $rc['description'];
+            }
+
+            // Add treatments
+            $treatments = $englishPage->treatments ?? [];
+            foreach ($treatments as $idx => $tr) {
+                if (!is_array($tr)) {
+                    $fieldsToTranslate["tr_{$idx}"] = $tr;
+                } elseif (!empty($tr['text'])) {
+                    $fieldsToTranslate["tr_{$idx}_text"] = $tr['text'];
+                }
+            }
+
+            // Add content blocks
+            $contentBlocks = $englishPage->content_blocks ?? [];
+            foreach ($contentBlocks as $idx => $cb) {
+                if (!empty($cb['title'])) $fieldsToTranslate["cb_{$idx}_title"] = $cb['title'];
+                if (!empty($cb['content'])) $fieldsToTranslate["cb_{$idx}_content"] = $cb['content'];
+            }
+
+            if (empty($fieldsToTranslate)) {
+                return;
+            }
+
+            $translatedPayloads = $translator->translateFields($fieldsToTranslate, $targets);
+
             foreach ($targets as $locale) {
                 $translatedData = $englishPage->toArray();
                 unset($translatedData['id'], $translatedData['created_at'], $translatedData['updated_at']);
                 $translatedData['locale'] = $locale;
                 
-                // Translate top-level text fields
+                $p = $translatedPayloads[$locale] ?? [];
+
+                // Re-apply top-level fields
                 foreach ($textFields as $field) {
-                    if (!empty($translatedData[$field])) {
-                        $translatedData[$field] = $translator->translateContent($translatedData[$field], 'en', $locale);
-                    }
+                    if (!empty($p[$field])) $translatedData[$field] = $p[$field];
                 }
-                
-                // Translate repeaters
+
+                // Re-apply figures
                 if (!empty($translatedData['figures'])) {
-                    foreach ($translatedData['figures'] as &$fig) {
-                        if (!empty($fig['label'])) $fig['label'] = $translator->translateContent($fig['label'], 'en', $locale);
+                    foreach ($translatedData['figures'] as $idx => &$fig) {
+                        if (!empty($p["fig_{$idx}_label"])) $fig['label'] = $p["fig_{$idx}_label"];
                     }
                 }
+
+                // Re-apply root causes
                 if (!empty($translatedData['root_causes'])) {
-                    foreach ($translatedData['root_causes'] as &$rc) {
-                        if (!empty($rc['title'])) $rc['title'] = $translator->translateContent($rc['title'], 'en', $locale);
-                        if (!empty($rc['description'])) $rc['description'] = $translator->translateContent($rc['description'], 'en', $locale);
+                    foreach ($translatedData['root_causes'] as $idx => &$rc) {
+                        if (!empty($p["rc_{$idx}_title"])) $rc['title'] = $p["rc_{$idx}_title"];
+                        if (!empty($p["rc_{$idx}_desc"])) $rc['description'] = $p["rc_{$idx}_desc"];
                     }
                 }
+
+                // Re-apply treatments
                 if (!empty($translatedData['treatments'])) {
-                    foreach ($translatedData['treatments'] as &$tr) {
+                    foreach ($translatedData['treatments'] as $idx => &$tr) {
                         if (!is_array($tr)) {
-                            $tr = $translator->translateContent($tr, 'en', $locale);
-                        } elseif (!empty($tr['text'])) {
-                            $tr['text'] = $translator->translateContent($tr['text'], 'en', $locale);
+                            if (!empty($p["tr_{$idx}"])) $tr = $p["tr_{$idx}"];
+                        } elseif (!empty($p["tr_{$idx}_text"])) {
+                            $tr['text'] = $p["tr_{$idx}_text"];
                         }
                     }
                 }
+
+                // Re-apply content blocks
                 if (!empty($translatedData['content_blocks'])) {
-                    foreach ($translatedData['content_blocks'] as &$cb) {
-                        if (!empty($cb['title'])) $cb['title'] = $translator->translateContent($cb['title'], 'en', $locale);
-                        if (!empty($cb['content'])) $cb['content'] = $translator->translateContent($cb['content'], 'en', $locale);
+                    foreach ($translatedData['content_blocks'] as $idx => &$cb) {
+                        if (!empty($p["cb_{$idx}_title"])) $cb['title'] = $p["cb_{$idx}_title"];
+                        if (!empty($p["cb_{$idx}_content"])) $cb['content'] = $p["cb_{$idx}_content"];
                     }
                 }
-                
-                EducationPage::updateOrCreate(
-                    ['slug' => $englishPage->slug, 'locale' => $locale],
-                    $translatedData
-                );
+
+                $actualFrPage = EducationPage::where('slug', $englishPage->slug)->where('locale', $locale)->first();
+                if ($actualFrPage) {
+                    $actualFrPage->update($translatedData);
+                } else {
+                    EducationPage::create($translatedData);
+                }
             }
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('Education translation failed: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("EducationPage syncTranslations failed: " . $e->getMessage());
         }
     }
 
@@ -223,3 +341,7 @@ class AdminEducationController extends AdminController
         return $cleaned;
     }
 }
+
+
+
+

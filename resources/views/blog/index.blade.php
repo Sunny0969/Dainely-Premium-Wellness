@@ -1,5 +1,5 @@
-@extends('layouts.app')
-@section('title', 'Wellness Blog — Back Pain, Sciatica & Posture Guides | Dainely')
+﻿@extends('layouts.app')
+@section('title', 'Wellness Blog Ã¢â‚¬â€ Back Pain, Sciatica & Posture Guides | Dainely')
 @section('meta_description', 'Expert articles on back pain relief, sciatica treatment, posture correction, and lumbar health from the Dainely medical team.')
 @section('og_image', asset('images/blog-hero-back-pain.jpg'))
 
@@ -18,7 +18,7 @@
   <div class="container-narrow relative z-10 text-center">
     <p class="eyebrow text-gold-400 mb-4">Expert Knowledge</p>
     <h1 class="font-display font-bold text-white mb-6" style="font-size:clamp(2rem,4vw,3rem);line-height:1.1">The Dainely Wellness Journal</h1>
-    <p class="text-navy-200 text-lg max-w-xl mx-auto">Clinically accurate guides on back pain, sciatica, posture, and recovery — written by our medical advisory team.</p>
+    <p class="text-navy-200 text-lg max-w-xl mx-auto">Clinically accurate guides on back pain, sciatica, posture, and recovery Ã¢â‚¬â€ written by our medical advisory team.</p>
   </div>
 </section>
 
@@ -65,7 +65,7 @@
           <h2 class="font-display font-bold text-navy-900 text-2xl lg:text-3xl mb-4 leading-tight">{{ $featuredArticle['title'] }}</h2>
           <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ $featuredArticle['excerpt'] }}</p>
           <div class="flex items-center gap-4 mb-6">
-            <img src="{{ asset('images/trust-doctor.png') }}" alt="{{ $featuredArticle['author'] }}" class="w-10 h-10 rounded-full object-cover">
+            <img src="{{ asset('images/trust-doctor.png') }}" loading="lazy" alt="{{ $featuredArticle['author'] }}" class="w-10 h-10 rounded-full object-cover">
             <div>
               <p class="text-slate-800 font-semibold text-sm">{{ $featuredArticle['author'] }}</p>
               <p class="text-slate-400 text-xs">{{ $featuredArticle['date'] }}</p>
@@ -107,10 +107,10 @@
           <p class="text-slate-500 text-sm leading-relaxed mb-4 line-clamp-3">{{ $article['excerpt'] }}</p>
           <div class="flex items-center justify-between pt-3 border-t border-slate-100">
             <div class="flex items-center gap-2">
-              <img src="{{ asset('images/trust-doctor.png') }}" alt="{{ $article['author'] }}" class="w-7 h-7 rounded-full object-cover">
+              <img src="{{ asset('images/trust-doctor.png') }}" loading="lazy" alt="{{ $article['author'] }}" class="w-7 h-7 rounded-full object-cover">
               <span class="text-slate-600 text-xs font-medium">{{ $article['author'] }}</span>
             </div>
-            <a href="{{ route('blog.show', ['locale' => $locale, 'slug' => $article['slug']]) }}" class="text-navy-600 text-sm font-semibold hover:text-navy-800 transition-colors">Read →</a>
+            <a href="{{ route('blog.show', ['locale' => $locale, 'slug' => $article['slug']]) }}" class="text-navy-600 text-sm font-semibold hover:text-navy-800 transition-colors">Read Ã¢â€ â€™</a>
           </div>
         </div>
       </article>
@@ -196,3 +196,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+

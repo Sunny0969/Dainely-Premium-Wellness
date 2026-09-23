@@ -47,7 +47,7 @@ class TestimonialSeeder extends Seeder
                 'author_location' => 'Madrid, Spain',
                 'author_avatar'   => 'testimonial-sarah.jpg',
                 'rating'          => 5,
-                'review_text'     => 'I was sceptical at first but within 10 days my sciatica pain reduced by at least 70%. This belt has given me my life back. Quality is excellent — worth every penny.',
+                'review_text'     => 'I was sceptical at first but within 10 days my Nerve Discomfort pain reduced by at least 70%. This belt has given me my life back. Quality is excellent — worth every penny.',
                 'locale'          => 'en',
                 'is_active'       => true,
                 'is_featured'     => false,

@@ -23,7 +23,7 @@
           @endif
           <div>
             <div class="font-bold">{{ $page->author_name }}</div>
-            <div class="text-slate-400 text-sm">{{ $page->author_role ?? '' }} • {{ $page->read_time ?? '' }}</div>
+            <div class="text-slate-400 text-sm">{{ $page->author_role ?? '' }} ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ {{ $page->read_time ?? '' }}</div>
           </div>
         </div>
         @endif
@@ -61,7 +61,7 @@
     </section>
     @endif
 
-    {{-- Content Blocks (e.g. What is Sciatica) --}}
+    {{-- Content Blocks (e.g. What is Nerve Discomfort) --}}
     @if($sectionName === 'content_blocks' && !empty($page->content_blocks) && is_array($page->content_blocks))
     <section class="py-16 container-site max-w-3xl">
       @foreach($page->content_blocks as $block)

@@ -15,10 +15,18 @@ class ProductBundle extends Model
     protected $table = 'product_bundles';
 
     protected $fillable = [
+        'slug',
         'bundle_shopify_product_id',
         'locale',
         'title',
         'description',
+        'images',
+        'price'
+    ];
+
+    protected $casts = [
+        'images' => 'array',
+        'price' => 'decimal:2',
     ];
 
     public function items(): HasMany

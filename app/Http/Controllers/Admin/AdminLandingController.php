@@ -22,19 +22,23 @@ class AdminLandingController extends AdminController
         'bundle',
     ];
 
-    public function index()
+    public function index(Request $request)
     {
         $this->flashIfSupabaseOffline('Landing pages manager');
 
-        $landings = SupabaseDb::run(
-            fn () => LandingPage::query()
-                ->select([
-                    'id', 'slug', 'locale', 'title', 'published', 'created_at',
-                ])
-                ->orderByDesc('created_at')
-                ->get(),
-            collect()
-        );
+        $landings = SupabaseDb::run(function () use ($request) {
+            $query = LandingPage::query()->select(['id', 'slug', 'locale', 'title', 'published', 'created_at']);
+            
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'ilike', '%' . $search . '%')
+                      ->orWhere('slug', 'ilike', '%' . $search . '%');
+                });
+            }
+
+            return $query->orderByDesc('created_at')->paginate(20)->withQueryString();
+        }, new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20));
 
         return view('admin.landings.index', compact('landings'));
     }
@@ -127,7 +131,7 @@ class AdminLandingController extends AdminController
 
             \App\Support\StorefrontCache::forgetLanding((int) $id, (string) $page->locale, (string) $page->slug);
 
-            return redirect('/dainely-admin-panel/landings/'.$id.'/edit')->with('success', 'Landing page updated successfully!');
+            return back()->with('success', 'Landing page updated successfully!');
         }, fn () => back()->with('error', 'Database operation failed.'));
     }
 
@@ -145,6 +149,8 @@ class AdminLandingController extends AdminController
                 'title' => 'nullable|string|max:255',
                 'content' => 'nullable|string',
                 'sort_order' => 'required|integer',
+                'bg_color' => 'nullable|string|max:7',
+                'text_color' => 'nullable|string|max:7',
             ]);
 
             $page->pageBlocks()->create([
@@ -177,6 +183,8 @@ class AdminLandingController extends AdminController
                 'content' => 'nullable|string',
                 'sort_order' => 'required|integer',
                 'visible' => 'required|boolean',
+                'bg_color' => 'nullable|string|max:7',
+                'text_color' => 'nullable|string|max:7',
             ]);
 
             $block->update($validated);
@@ -203,4 +211,24 @@ class AdminLandingController extends AdminController
             return back()->with('success', 'Page block deleted successfully!');
         }, fn () => back()->with('error', 'Database operation failed.'));
     }
+
+    public function delete(int $id)
+    {
+        if (! SupabaseDb::available()) {
+            return back()->with('error', 'Database offline. Cannot delete landing page.');
+        }
+
+        return SupabaseDb::run(function () use ($id) {
+            $page = LandingPage::findOrFail($id);
+            $page->pageBlocks()->delete();
+            $page->delete();
+
+            \App\Support\StorefrontCache::forgetLanding((int) $id, (string) $page->locale, (string) $page->slug);
+
+            return back()->with('success', 'Landing page deleted successfully!');
+        }, fn () => back()->with('error', 'Database operation failed.'));
+    }
 }
+
+
+

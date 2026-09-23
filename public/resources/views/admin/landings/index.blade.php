@@ -59,9 +59,16 @@
     </div>
 
     {{-- List Landing Pages --}}
-    <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 bg-slate-50 border-b border-slate-200">
+    <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-4 items-center justify-between">
             <h2 class="text-lg font-bold text-slate-800">Existing Landing Pages</h2>
+            <form action="/{{ $adminBase }}/landings" method="GET" class="flex gap-2">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search pages..." class="rounded border border-slate-300 px-3 py-1.5 text-sm">
+                <button type="submit" class="bg-slate-800 text-white px-3 py-1.5 rounded text-sm font-semibold">Search</button>
+                @if(request()->filled('search'))
+                    <a href="/{{ $adminBase }}/landings" class="text-slate-500 hover:text-slate-800 text-sm px-2 py-1.5">Clear</a>
+                @endif
+            </form>
         </div>
 
         <div class="divide-y divide-slate-200">
@@ -82,7 +89,13 @@
                         </span>
                     </div>
 
-                    <div>
+                    <div class="flex items-center gap-2">
+                        <form action="/{{ $adminBase }}/landings/{{ $landing->id }}/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this landing page? All blocks associated with it will also be deleted.')">
+                            @csrf
+                            <button type="submit" class="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 text-xs font-bold px-3 py-2 rounded transition">
+                                Delete
+                            </button>
+                        </form>
                         <a href="/{{ $adminBase }}/landings/{{ $landing->id }}/edit" class="bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold px-3 py-2 rounded transition">
                             Edit Page & Blocks
                         </a>
@@ -92,6 +105,11 @@
                 <div class="px-6 py-8 text-center text-slate-400">No landing pages created yet.</div>
             @endforelse
         </div>
+        @if(method_exists($landings, 'links') && $landings->hasPages())
+            <div class="px-6 py-4 border-t border-slate-200">
+                {{ $landings->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection

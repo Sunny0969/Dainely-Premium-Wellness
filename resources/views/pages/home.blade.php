@@ -76,7 +76,7 @@
 @endphp
 
 
-{{-- 1. HERO — split layout, mobile image first --}}
+{{-- 1. HERO â€” split layout, mobile image first --}}
 <section class="home-hero bg-stone-50 border-b border-stone-200/80" aria-label="Hero">
   <div class="container-site">
     <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center py-10 md:py-16 lg:py-20">
@@ -166,7 +166,7 @@
   </div>
 </section>
 
-{{-- 3. FEATURED PRODUCT — Dainely Belt --}}
+{{-- 3. FEATURED PRODUCT â€” Dainely Belt --}}
 <section class="section bg-stone-50/80" aria-label="Featured product">
   <div class="container-site">
     <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -227,7 +227,7 @@
       <figure class="home-lifestyle-card group">
         <div class="overflow-hidden rounded-2xl aspect-[4/5] bg-stone-100">
           <img
-            src="{{ asset('images/' . $img) }}"
+            src="{{ (\Illuminate\Support\Str::startsWith($img, ['http://', 'https://']) ? $img : asset('images/' . $img)) }}"
             alt="{{ __($captionKey) }}"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
@@ -303,10 +303,10 @@
         </div>
         <p class="text-stone-700 text-sm leading-relaxed flex-1">{{ $review }}</p>
         <div class="flex items-center gap-3 pt-4 border-t border-stone-100">
-          <img src="{{ asset('images/' . $avatar) }}" alt="{{ $name }}" class="w-10 h-10 rounded-full object-cover ring-2 ring-stone-100" loading="lazy" width="40" height="40">
+          <img src="{{ (\Illuminate\Support\Str::startsWith($avatar, ['http://', 'https://']) ? $avatar : asset('images/' . $avatar)) }}" alt="{{ $name }}" class="w-10 h-10 rounded-full object-cover ring-2 ring-stone-100" loading="lazy" width="40" height="40">
           <div>
             <p class="font-semibold text-stone-800 text-sm">{{ $name }}</p>
-            <p class="text-stone-400 text-xs">{{ $location }} · {{ __('home.reviews_verified') }}</p>
+            <p class="text-stone-400 text-xs">{{ $location }} Â· {{ __('home.reviews_verified') }}</p>
           </div>
         </div>
       </article>
@@ -315,7 +315,7 @@
   </div>
 </section>
 
-{{-- 7. IN MOTION — lifestyle use cases --}}
+{{-- 7. IN MOTION â€” lifestyle use cases --}}
 <section id="home-video" class="section bg-stone-900 text-white" aria-label="{{ __('home.video_title') }}">
   <div class="container-site">
     <div class="max-w-3xl mx-auto text-center mb-8 md:mb-10">
@@ -379,7 +379,7 @@
       <a href="{{ route('education.show', ['locale' => $locale, 'slug' => $eduPage->slug]) }}" class="group block rounded-xl overflow-hidden ring-1 ring-stone-200/80 bg-white hover:ring-stone-300 transition-all flex flex-col h-full">
         <div class="aspect-[4/3] overflow-hidden bg-stone-100 flex-shrink-0 relative">
           @if($eduPage->hero_image)
-            <img src="{{ Str::startsWith($eduPage->hero_image, ['http://', 'https://']) ? $eduPage->hero_image : asset('images/' . $eduPage->hero_image) }}" alt="{{ $eduPage->title }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
+            <img src="{{ Str::startsWith($eduPage->hero_image, ['http://', 'https://']) ? $eduPage->hero_image : (\Illuminate\Support\Str::startsWith($eduPage->hero_image, ['http://', 'https://']) ? $eduPage->hero_image : asset('images/' . $eduPage->hero_image)) }}" alt="{{ $eduPage->title }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
           @else
             <div class="absolute inset-0 flex items-center justify-center text-stone-300">
                 <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5L18.5 7H20M9 11h.01M15 11h.01M9 15h.01M15 15h.01M9 19h.01M15 19h.01"/></svg>

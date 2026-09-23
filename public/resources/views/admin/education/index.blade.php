@@ -2,12 +2,34 @@
 @section('admin_title', 'Education Pages Manager')
 
 @section('admin_content')
-<div class="mb-6 flex justify-between items-center">
+<div class="mb-6 flex justify-between items-center flex-wrap gap-4">
     <p class="text-sm text-slate-600">Create, edit, and delete database-backed education pages for your storefront.</p>
-    <a href="/dainely-admin-panel/education/create" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg text-sm flex items-center gap-1.5 shadow-sm">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        Add New Page
-    </a>
+    <div class="flex items-center gap-4">
+        <form action="/dainely-admin-panel/education" method="GET" class="flex items-center gap-2">
+            <select name="category" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+                @foreach($categories as $cat)
+                    <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>
+                        {{ $cat }}
+                    </option>
+                @endforeach
+            </select>
+            <select name="status" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                <option value="published" {{ request('status') === 'published' ? 'selected' : '' }}>Published</option>
+                <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Draft</option>
+            </select>
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search pages..." class="rounded-lg border border-slate-300 px-3 py-2 text-sm min-w-[200px]">
+            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg text-sm">Filter</button>
+            @if(request()->filled('search') || request()->filled('category') || request()->filled('status'))
+                <a href="/dainely-admin-panel/education" class="text-sm text-slate-500 hover:underline">Clear</a>
+            @endif
+        </form>
+        <a href="/dainely-admin-panel/education/create" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg text-sm flex items-center gap-1.5 shadow-sm">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add New Page
+        </a>
+    </div>
 </div>
 
 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -72,5 +94,10 @@
             </tbody>
         </table>
     </div>
+    @if(method_exists($pages, 'links') && $pages->hasPages())
+        <div class="px-6 py-4 border-t border-slate-200">
+            {{ $pages->links() }}
+        </div>
+    @endif
 </div>
 @endsection

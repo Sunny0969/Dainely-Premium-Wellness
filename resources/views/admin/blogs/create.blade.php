@@ -8,7 +8,7 @@
 @endpush
 
 <div class="mb-4">
-    <a href="/dainely-admin-panel/blogs" class="text-sm text-slate-500 hover:text-navy-700">← Back to blogs list</a>
+    <a href="/dainely-admin-panel/blogs" class="text-sm text-slate-500 hover:text-navy-700">â† Back to blogs list</a>
 </div>
 
 <form id="blog-post-form" action="/dainely-admin-panel/blogs" method="POST" enctype="multipart/form-data" class="space-y-6" x-data="{ activeLocale: 'en' }">
@@ -61,7 +61,7 @@
                             <div class="p-5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-4">
                                 <div class="flex justify-between items-center pb-2 border-b border-slate-100">
                                     <span class="text-xs font-bold text-slate-400">FAQ #<span x-text="index + 1"></span></span>
-                                    <button type="button" @click="faqs.splice(index, 1)" class="text-rose-600 hover:text-rose-800 text-xs font-bold transition">✕ Remove</button>
+                                    <button type="button" @click="faqs.splice(index, 1)" class="text-rose-600 hover:text-rose-800 text-xs font-bold transition">âœ• Remove</button>
                                 </div>
                                 <div class="space-y-3">
                                     <div>
@@ -114,7 +114,7 @@
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Cover Image</label>
                     <input type="file" name="featured_image" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-white hover:file:bg-slate-900">
-                    <p class="text-xs text-rose-500 mt-2 font-medium">⚠️ Max file size: 2MB. Please compress larger images before uploading.</p>
+                    <p class="text-xs text-rose-500 mt-2 font-medium">âš ï¸ Max file size: 2MB. Please compress larger images before uploading.</p>
                 </div>
 
                 <div class="pt-2">
@@ -143,6 +143,56 @@
 
 @push('admin_scripts')
 <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+<script src="https://unpkg.com/quill-html-edit-button@2.2.7/dist/quill.htmlEditButton.min.js"></script>
+<script>
+function selectLocalImage(quill) {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+    input.onchange = () => {
+        const file = input.files[0];
+        if (/^image\//.test(file.type)) {
+            const fd = new FormData();
+            fd.append('image', file);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            const token = csrfToken ? csrfToken.getAttribute('content') : '';
+            
+            fetch('/dainely-admin-panel/editor-upload', {
+                method: 'POST',
+                headers: { 
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: fd
+            })
+            .then(async r => {
+                if (!r.ok) {
+                    let err = await r.json().catch(() => ({}));
+                    throw new Error(err.message || 'Server error: ' + r.status);
+                }
+                return r.json();
+            })
+            .then(result => {
+                if (result.success) {
+                    const range = quill.getSelection(true) || {index: quill.getLength()};
+                    quill.insertEmbed(range.index, 'image', result.url);
+                    quill.setSelection(range.index + 1);
+                } else { 
+                    alert('Upload failed: ' + (result.message || 'Unknown error')); 
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Upload failed: ' + e.message);
+            });
+        }
+    };
+}
+            }).catch(e => alert('Upload failed'));
+        }
+    };
+}Quill.register("modules/htmlEditButton", htmlEditButton);</script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const locales = ['en', 'fr', 'de'];
@@ -152,15 +202,21 @@
             editors[loc] = new Quill('#editor-' + loc, {
                 theme: 'snow',
                 modules: {
+                    htmlEditButton: { msg: 'Edit HTML Code' },
                     table: true,
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, 4, false] }],
-                        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link', 'image', 'video'],
-                        ['table'],
-                        ['clean']
-                    ]
+                                        toolbar: {
+                        container: [
+                            [{ 'header': [1, 2, 3, 4, false] }],
+                            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            ['link', 'image', 'video'],
+                            ['table'],
+                            ['clean']
+                        ],
+                        handlers: {
+                            image: function() { selectLocalImage(this.quill); }
+                        }
+                    }
                 }
             });
         });

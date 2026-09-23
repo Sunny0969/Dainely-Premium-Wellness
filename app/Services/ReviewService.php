@@ -30,7 +30,7 @@ class ReviewService
         'dainely-comfort-belt' => [
             'dainely-belt',
             'back-belt',
-            'dainely-premium-belt-relieve-back-pain-sciatica',
+            'dainely-premium-belt-relieve-back-pain-Nerve Discomfort',
             'db',
             'belt',
             'belt-2',
@@ -191,7 +191,7 @@ class ReviewService
         'dainely™-foot-massager' => 1938085541,
         'dainely™-massager' => 1938085540,
         'dainely™-orthopedic-back-stretcher' => 376610616,
-        'dainely-premium-belt-relieve-back-pain-sciatica' => 424230411,
+        'dainely-premium-belt-relieve-back-pain-Nerve Discomfort' => 424230411,
         'dainely™-tourmaline-belt' => 389679824,
         'db' => 1938085551,
         'leg-massager' => 1938085511,

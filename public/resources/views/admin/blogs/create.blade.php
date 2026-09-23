@@ -47,7 +47,7 @@
 
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Tags / Keywords ({{ strtoupper($loc) }})</label>
-                    <input type="text" name="translations[{{ $loc }}][tags]" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:ring-navy-500 focus:border-navy-500" placeholder="sciatica, back pain, posture (comma separated)">
+                    <input type="text" name="translations[{{ $loc }}][tags]" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:ring-navy-500 focus:border-navy-500" placeholder="Nerve Discomfort, back pain, posture (comma separated)">
                 </div>
 
                 {{-- FAQs Section --}}

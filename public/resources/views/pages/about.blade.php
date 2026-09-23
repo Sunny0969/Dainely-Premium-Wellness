@@ -23,7 +23,7 @@
     <div class="text-center mb-12">
       <p class="eyebrow mb-3">What We Do · Who We Serve</p>
       <h2 class="heading-section mb-4">Empowering Lives Through Pain Relief Innovation</h2>
-      <p class="text-lead max-w-3xl mx-auto">At Dainely™, we are dedicated to empowering lives through innovative, holistic pain relief solutions. As a leading provider in the health and wellness space, our mission is to help you live pain-free and move with confidence — whether you're battling sciatica, lower back pain, or neck pain, our expertly designed products offer non-invasive, drug-free relief that enhances your quality of life.</p>
+      <p class="text-lead max-w-3xl mx-auto">At Dainely™, we are dedicated to empowering lives through innovative, holistic pain relief solutions. As a leading provider in the health and wellness space, our mission is to help you live pain-free and move with confidence — whether you're battling Nerve Discomfort, lower back pain, or neck pain, our expertly designed products offer non-invasive, drug-free relief that enhances your quality of life.</p>
     </div>
 
     <div class="grid lg:grid-cols-2 gap-6 lg:gap-8">
@@ -45,7 +45,7 @@
         <div class="space-y-5">
           @foreach([
             [
-              'title' => 'Sciatica Relief',
+              'title' => 'Nerve Discomfort Relief',
               'desc'  => 'Targeted solutions — including specialized lumbar cushions and supportive back braces — designed to alleviate sciatic nerve pain and promote proper posture.',
               'icon'  => '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>',
             ],

@@ -877,6 +877,7 @@ class ShopifyService
                 'variant_count'  => count($product['variants'] ?? []),
                 'updated_at'     => $product['updated_at'] ?? null,
                 'url'            => $handle ? "{$storeUrl}/products/{$handle}" : $storeUrl,
+                'body_html'      => $product['body_html'] ?? '',
             ];
         }, $active));
     }

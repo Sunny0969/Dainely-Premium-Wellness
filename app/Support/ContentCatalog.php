@@ -44,8 +44,8 @@ class ContentCatalog
             ],
             [
                 'id' => 2,
-                'slug' => 'science-of-sciatica',
-                'title' => 'The Science of Sciatica: Why Your Leg Hurts When Your Back Is the Problem',
+                'slug' => 'science-of-Nerve Discomfort',
+                'title' => 'The Science of Nerve Discomfort: Why Your Leg Hurts When Your Back Is the Problem',
             ],
             [
                 'id' => 3,

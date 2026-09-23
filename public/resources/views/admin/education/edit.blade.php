@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 @section('admin_title', 'Edit Education Page')
 
 @section('admin_content')
@@ -27,6 +27,17 @@
             @method('PUT')
         @endif
 
+        <div class="mb-4">
+            <label class="block text-sm font-bold mb-2">Language (Locale) *</label>
+            <select name="locale" class="w-full border rounded p-2" required>
+                <option value="en" {{ old("locale", $page->locale ?? "en") == "en" ? "selected" : "" }}>English</option>
+                <option value="fr" {{ old("locale", $page->locale) == "fr" ? "selected" : "" }}>French</option>
+                <option value="de" {{ old("locale", $page->locale) == "de" ? "selected" : "" }}>German</option>
+            </select>
+            @error('locale')
+                <p class="text-red-500 text-sm mt-1 font-bold">{{ $message }}</p>
+            @enderror
+        </div>
         {{-- Basic Info --}}
         <div>
             <h2 class="text-xl font-bold mb-4 border-b pb-2">1. Basic Info</h2>
@@ -106,7 +117,10 @@
                 </div>
                 <div>
                     <label class="block font-bold mb-1">Hero Description</label>
-                    <textarea name="hero_description" class="w-full border p-2 rounded" rows="3">{{ old('hero_description', $page->hero_description) }}</textarea>
+                    <div class="bg-white">
+                        <input type="hidden" name="hero_description" x-ref="hero_desc_input" value="{{ old('hero_description', $page->hero_description) }}">
+                        <div x-init="initTinyMCE($el, $refs.hero_desc_input)"></div>
+                    </div>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded border">
@@ -147,14 +161,23 @@
         <div>
             <h2 class="text-xl font-bold mb-4 border-b pb-2">3. Figures (e.g. 80%, #1)</h2>
             <div class="space-y-2">
-                <template x-for="(fig, index) in figures" :key="index">
-                    <div class="flex gap-4 items-center">
+                <template x-for="(fig, index) in figures" :key="fig._id">
+                    <div class="flex gap-3 items-start">
                         <input type="text" x-model="fig.value" :name="`figures[${index}][value]`" placeholder="Value (e.g. 80%)" class="border p-2 rounded w-1/3">
-                        <input type="text" x-model="fig.label" :name="`figures[${index}][label]`" placeholder="Label text" class="border p-2 rounded w-full">
-                        <button type="button" @click="figures.splice(index, 1)" class="text-red-500 font-bold">X</button>
+                        
+                        <div class="bg-white flex-1 w-full relative min-h-[100px]">
+                            <input type="hidden" x-model="fig.label" :name="`figures[${index}][label]`">
+                            <div x-init="initTinyMCE($el, $el.previousElementSibling, val => figures[index].label = val)"></div>
+                        </div>
+
+                        <div class="flex gap-2 ml-2 mt-2">
+                            <button type="button" x-show="index > 0" @click="figures.splice(index - 1, 0, figures.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">↑</button>
+                            <button type="button" x-show="index < figures.length - 1" @click="figures.splice(index + 1, 0, figures.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">↓</button>
+                            <button type="button" @click="figures.splice(index, 1)" class="text-red-500 font-bold ml-2" title="Remove">X</button>
+                        </div>
                     </div>
                 </template>
-                <button type="button" @click="figures.push({value: '', label: ''})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Figure</button>
+                <button type="button" @click="figures.push({value: '', label: '', _id: Math.random()})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Figure</button>
             </div>
         </div>
 
@@ -166,14 +189,21 @@
                 <input type="text" name="root_causes_title" value="{{ old('root_causes_title', $page->root_causes_title) }}" class="w-full border p-2 rounded">
             </div>
             <div class="space-y-4">
-                <template x-for="(cause, index) in rootCauses" :key="index">
-                    <div class="border p-4 rounded bg-gray-50 relative">
-                        <button type="button" @click="rootCauses.splice(index, 1)" class="absolute top-2 right-2 text-red-500 font-bold">Remove</button>
+                <template x-for="(cause, index) in rootCauses" :key="cause._id">
+                    <div class="border p-4 rounded bg-gray-50">
+                        <div class="flex justify-end items-center gap-4 mb-2">
+                            <button type="button" x-show="index > 0" @click="rootCauses.splice(index - 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">↑ Move Up</button>
+                            <button type="button" x-show="index < rootCauses.length - 1" @click="rootCauses.splice(index + 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">↓ Move Down</button>
+                            <button type="button" @click="rootCauses.splice(index, 1)" class="text-red-500 hover:text-red-700 font-bold text-sm">Remove</button>
+                        </div>
                         <input type="text" x-model="cause.title" :name="`root_causes[${index}][title]`" placeholder="Cause Title" class="w-full border p-2 rounded mb-2">
-                        <textarea x-model="cause.description" :name="`root_causes[${index}][description]`" placeholder="Description" class="w-full border p-2 rounded" rows="2"></textarea>
+                        <div class="bg-white">
+                            <input type="hidden" x-model="cause.description" :name="`root_causes[${index}][description]`">
+                            <div x-init="initTinyMCE($el, $el.previousElementSibling, val => rootCauses[index].description = val)"></div>
+                        </div>
                     </div>
                 </template>
-                <button type="button" @click="rootCauses.push({title: '', description: ''})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Root Cause</button>
+                <button type="button" @click="rootCauses.push({title: '', description: '', _id: Math.random()})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Root Cause</button>
             </div>
         </div>
 
@@ -186,16 +216,26 @@
             </div>
             <div class="mb-4">
                 <label class="block font-bold mb-1">Section Description</label>
-                <textarea name="treatments_description" class="w-full border p-2 rounded" rows="2">{{ old('treatments_description', $page->treatments_description) }}</textarea>
+                <div class="bg-white">
+                    <input type="hidden" name="treatments_description" x-ref="treatments_desc_input" value="{{ old('treatments_description', $page->treatments_description) }}">
+                    <div x-init="initTinyMCE($el, $refs.treatments_desc_input)"></div>
+                </div>
             </div>
             <div class="space-y-2">
-                <template x-for="(treatment, index) in treatments" :key="index">
-                    <div class="flex gap-4 items-center">
-                        <input type="text" x-model="treatment.text" :name="`treatments[${index}][text]`" placeholder="Treatment bullet point" class="border p-2 rounded w-full">
-                        <button type="button" @click="treatments.splice(index, 1)" class="text-red-500 font-bold">X</button>
+                <template x-for="(treatment, index) in treatments" :key="treatment._id">
+                    <div class="flex gap-3 items-center">
+                        <div class="bg-white w-full">
+                            <input type="hidden" x-model="treatment.text" :name="`treatments[${index}][text]`">
+                            <div x-init="initTinyMCE($el, $el.previousElementSibling, val => treatments[index].text = val)"></div>
+                        </div>
+                        <div class="flex gap-2 ml-2">
+                            <button type="button" x-show="index > 0" @click="treatments.splice(index - 1, 0, treatments.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">↑</button>
+                            <button type="button" x-show="index < treatments.length - 1" @click="treatments.splice(index + 1, 0, treatments.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">↓</button>
+                            <button type="button" @click="treatments.splice(index, 1)" class="text-red-500 font-bold ml-2" title="Remove">X</button>
+                        </div>
                     </div>
                 </template>
-                <button type="button" @click="treatments.push({text: ''})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Bullet</button>
+                <button type="button" @click="treatments.push({text: '', _id: Math.random()})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Bullet</button>
             </div>
         </div>
 
@@ -203,14 +243,42 @@
         <div>
             <h2 class="text-xl font-bold mb-4 border-b pb-2">6. Extra Text Blocks</h2>
             <div class="space-y-4">
-                <template x-for="(block, index) in contentBlocks" :key="index">
-                    <div class="border p-4 rounded bg-gray-50 relative">
-                        <button type="button" @click="contentBlocks.splice(index, 1)" class="absolute top-2 right-2 text-red-500 font-bold">Remove</button>
+                <template x-for="(block, index) in contentBlocks" :key="block._id">
+                    <div class="border p-4 rounded bg-gray-50">
+                        <div class="flex justify-end items-center gap-4 mb-2">
+                            <button type="button" x-show="index > 0" @click="contentBlocks.splice(index - 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">↑ Move Up</button>
+                            <button type="button" x-show="index < contentBlocks.length - 1" @click="contentBlocks.splice(index + 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">↓ Move Down</button>
+                            <button type="button" @click="contentBlocks.splice(index, 1)" class="text-red-500 hover:text-red-700 font-bold text-sm">Remove</button>
+                        </div>
                         <input type="text" x-model="block.title" :name="`content_blocks[${index}][title]`" placeholder="Block Heading (e.g. What is Sciatica?)" class="w-full border p-2 rounded mb-2">
-                        <textarea x-model="block.content" :name="`content_blocks[${index}][content]`" placeholder="Paragraph text..." class="w-full border p-2 rounded" rows="4"></textarea>
+                        <div class="bg-white">
+                            <input type="hidden" x-model="block.content" :name="`content_blocks[${index}][content]`">
+                            <div x-init="initTinyMCE($el, $el.previousElementSibling, val => contentBlocks[index].content = val)"></div>
+                        </div>
                     </div>
                 </template>
-                <button type="button" @click="contentBlocks.push({title: '', content: ''})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Text Block</button>
+                <button type="button" @click="contentBlocks.push({title: '', content: '', _id: Math.random()})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Text Block</button>
+            </div>
+        </div>
+
+        {{-- Related Products --}}
+        <div>
+            <h2 class="text-xl font-bold mb-4 border-b pb-2">7. Related Products</h2>
+            <div class="mb-4">
+                <label class="block font-bold mb-1">Select Products to Display</label>
+                <select name="related_products[]" multiple class="w-full border p-2 rounded" style="min-height: 120px;">
+                    @php
+                        $dbProducts = is_string($page->related_products) ? json_decode($page->related_products, true) : $page->related_products;
+                        $selectedProducts = old('related_products', $dbProducts ?? []);
+                        if (!is_array($selectedProducts)) $selectedProducts = [];
+                    @endphp
+                    @foreach($products as $product)
+                        <option value="{{ $product->id }}" {{ in_array($product->id, $selectedProducts) ? 'selected' : '' }}>
+                            {{ $product->title }}
+                        </option>
+                    @endforeach
+                </select>
+                <p class="text-sm text-gray-500 mt-1">Hold Ctrl (Windows) or Cmd (Mac) to select multiple products.</p>
             </div>
         </div>
 
@@ -224,10 +292,45 @@
 <script>
 function educationForm() {
     return {
-        figures: @json(old('figures', $page->figures ?? [])),
-        rootCauses: @json(old('root_causes', $page->root_causes ?? [])),
-        treatments: @json(old('treatments', collect($page->treatments ?? [])->map(fn($t) => ['text' => $t])->toArray())),
-        contentBlocks: @json(old('content_blocks', $page->content_blocks ?? []))
+        figures: (@json(old('figures', $page->figures ?? []))).map(i => ({...i, _id: Math.random()})),
+        rootCauses: (@json(old('root_causes', $page->root_causes ?? []))).map(i => ({...i, _id: Math.random()})),
+        treatments: (@json(old('treatments', collect($page->treatments ?? [])->map(fn($t) => ['text' => $t])->toArray()))).map(i => ({...i, _id: Math.random()})),
+        contentBlocks: (@json(old('content_blocks', $page->content_blocks ?? []))).map(i => ({...i, _id: Math.random()})),
+        initTinyMCE(container, hiddenInputEl, updateCallback) {
+            if (typeof tinymce === 'undefined') {
+                setTimeout(() => this.initTinyMCE(container, hiddenInputEl, updateCallback), 100);
+                return;
+            }
+            if (!container.id) container.id = 'tinymce_' + Math.random().toString(36).substring(7);
+
+            tinymce.init({
+                target: container,
+                license_key: 'gpl',
+                base_url: 'https://cdn.jsdelivr.net/npm/tinymce@7.6.1',
+                suffix: '.min',
+                plugins: 'lists link autoresize code',
+                toolbar: 'bold italic underline | forecolor backcolor | bullist numlist | link | removeformat | code',
+                menubar: false,
+                branding: false,
+                promotion: false,
+                statusbar: false,
+                min_height: 120,
+                setup: function (editor) {
+                    let initialVal = hiddenInputEl ? hiddenInputEl.value : '';
+                    editor.on('init', function() {
+                        if (initialVal) editor.setContent(initialVal);
+                    });
+                    editor.on('change keyup paste', function () {
+                        let html = editor.getContent();
+                        if (updateCallback) updateCallback(html);
+                        if (hiddenInputEl) {
+                            hiddenInputEl.value = html;
+                            hiddenInputEl.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    });
+                }
+            });
+        }
     }
 }
 
@@ -247,4 +350,18 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 </script>
+
+@push('admin_head')
+
+<style>
+  .ql-editor { min-height: 120px; font-family: inherit; font-size: inherit; }
+  .ql-toolbar.ql-snow { border-top-left-radius: 0.375rem; border-top-right-radius: 0.375rem; background: #f8fafc; border-color: #e2e8f0; }
+  .ql-container.ql-snow { border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; border-color: #e2e8f0; }
+</style>
+@endpush
+
+@push('admin_scripts')
+<script src="https://cdn.jsdelivr.net/npm/tinymce@7.6.1/tinymce.min.js" referrerpolicy="origin"></script>
+@endpush
 @endsection
+

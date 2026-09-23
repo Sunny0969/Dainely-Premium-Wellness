@@ -16,6 +16,9 @@ class Kernel extends ConsoleKernel
 
         // Phase 2 §8 — Retry failed Shopify webhooks every 5 minutes
         $schedule->job(new \App\Jobs\RetryFailedWebhooksJob())->everyFiveMinutes();
+
+        // Daily CMS Data Backup at 12:00 AM UK time
+        $schedule->command('cms:backup')->dailyAt('00:00')->timezone('Europe/London');
     }
 
     /**

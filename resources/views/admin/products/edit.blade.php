@@ -9,7 +9,7 @@
     <div class="flex flex-col gap-4 mb-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex border-b border-slate-200 flex-1 min-w-0">
-                @foreach(['en' => 'English', 'fr' => 'Français', 'de' => 'Deutsch (German)'] as $lang => $label)
+                @foreach(['en' => 'English', 'fr' => 'FranÃ§ais', 'de' => 'Deutsch (German)'] as $lang => $label)
                     <button type="button" @click="currentTab = '{{ $lang }}'; $nextTick(() => { if (window.tinymce) tinymce.editors.forEach(e => { try { e.fire('ResizeEditor'); } catch (_) {} }); })"
                         :class="currentTab === '{{ $lang }}' ? 'border-navy-600 text-navy-600' : 'border-transparent text-slate-500 hover:text-slate-700'"
                         class="px-5 py-3 border-b-2 font-bold text-sm transition whitespace-nowrap">
@@ -45,11 +45,11 @@
                 >
                     <svg x-show="!translating" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
                     <svg x-show="translating" x-cloak class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                    <span x-text="translating ? 'Translating… please wait' : 'Translate EN → FR & DE'"></span>
+                    <span x-text="translating ? 'Translatingâ€¦ please wait' : 'Translate EN â†’ FR & DE'"></span>
                 </button>
             </form>
             <p x-show="translating" x-cloak class="text-xs text-navy-600 lg:basis-full order-last">
-                Working… do not close this tab. Large English content can take 15–40 seconds.
+                Workingâ€¦ do not close this tab. Large English content can take 15â€“40 seconds.
             </p>
         </div>
     </div>
@@ -63,8 +63,8 @@
                 <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-2">
                     <h3 class="text-base font-bold text-slate-800">
                         @if($locale === 'en') English content
-                        @elseif($locale === 'fr') French content — editable separately
-                        @else German content — editable separately
+                        @elseif($locale === 'fr') French content â€” editable separately
+                        @else German content â€” editable separately
                         @endif
                     </h3>
                     <span class="text-[11px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-slate-100 text-slate-600">{{ strtoupper($locale) }}</span>
@@ -120,7 +120,7 @@
         @endforeach
 
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-6 border-t border-slate-100">
-            <p class="text-xs text-slate-500">Tip: Save English first, then use <strong>Translate EN → FR &amp; DE</strong>. Switch tabs to fine-tune each language.</p>
+            <p class="text-xs text-slate-500">Tip: Save English first, then use <strong>Translate EN â†’ FR &amp; DE</strong>. Switch tabs to fine-tune each language.</p>
             <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-8 py-3 rounded-lg text-sm transition">
                 Save All Locales
             </button>
@@ -180,7 +180,7 @@
 
                     <div>
                         <label class="block text-sm font-semibold text-slate-800 mb-1">Content (HTML/Markdown)</label>
-                        <textarea name="content" rows="4" class="js-admin-richtext w-full rounded-lg border border-slate-400 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400" placeholder="Customer-facing section content…"></textarea>
+                        <textarea name="content" rows="4" class="js-admin-richtext w-full rounded-lg border border-slate-400 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400" placeholder="Customer-facing section contentâ€¦"></textarea>
                     </div>
 
                     <button type="submit" class="w-full bg-navy-800 hover:bg-navy-900 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-sm" style="background-color:#1e3a5f;color:#fff;">
@@ -313,8 +313,8 @@ document.addEventListener('DOMContentLoaded', function () {
     license_key: 'gpl',
     base_url: 'https://cdn.jsdelivr.net/npm/tinymce@7.6.1',
     suffix: '.min',
-    plugins: 'lists table link autoresize',
-    toolbar: 'bold underline | bullist numlist | table tabledelete | link | removeformat',
+    plugins: 'lists table link autoresize code',
+    toolbar: 'bold underline | bullist numlist | table tabledelete | link | code | removeformat',
     menubar: false,
     branding: false,
     promotion: false,

@@ -7,5 +7,5 @@
 
 ## Éducation et connaissances
 - [Guide du mal de dos](/fr/education/back-pain) - Guide détaillé sur la mécanique et la prévention du mal de dos.
-- [Guide de la sciatique](/fr/education/sciatica) - Causes, symptoms, et options de soulagement non chirurgicales pour la sciatique.
+- [Guide de la sciatique](/fr/education/Nerve Discomfort) - Causes, symptoms, et options de soulagement non chirurgicales pour la sciatique.
 - [Correction de la posture](/fr/education/posture) - Habitudes quotidiennes et structures de soutien pour aligner votre colonne vertébrale.

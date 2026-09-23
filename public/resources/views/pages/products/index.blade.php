@@ -96,7 +96,11 @@
         $pVars       = $product['variant_count'] ?? count($product['variants'] ?? []);
         $pPrice      = (float) ($product['price'] ?? ($product['variants'][0]['price'] ?? 0));
         $pCompare    = (float) ($product['compare_at'] ?? ($product['variants'][0]['compare_at_price'] ?? 0));
-        $pUrl        = route('products.show', ['locale' => $locale, 'slug' => $pHandle]);
+        
+        $pUrl        = !empty($product['is_bundle']) 
+            ? url('/' . $locale . '/bundles/' . $pHandle) 
+            : route('products.show', ['locale' => $locale, 'slug' => $pHandle]);
+            
         $pReviewHandle = ProductSlugResolver::resolveHandle((string) $pHandle);
         $pReviewStats  = $reviewStatsByHandle[$pReviewHandle] ?? ['average_rating' => 0, 'total_reviews' => 0];
         $displayPrice   = $pPrice;

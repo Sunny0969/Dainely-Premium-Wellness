@@ -10,13 +10,25 @@ use Illuminate\Http\Request;
 
 class AdminProductController extends AdminController
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         $this->flashIfSupabaseOffline('Products manager');
 
         $products = $this->cachedProductsForSelect([
             'id', 'title', 'handle', 'sku', 'price', 'status', 'featured_image',
         ]);
+
+        if ($request->filled('search')) {
+            $search = strtolower($request->search);
+            $products = $products->filter(function($p) use ($search) {
+                return str_contains(strtolower($p->title), $search) 
+                    || str_contains(strtolower($p->handle), $search)
+                    || str_contains(strtolower($p->sku ?? ''), $search);
+            });
+        }
+
+        // Paginate collection manually since we want pagination in view ideally, or just return them all if view doesn't paginate.
+        // Actually, let's just pass the collection to view since it was returning a collection before.
 
         return view('admin.products.index', compact('products'));
     }
@@ -90,7 +102,7 @@ class AdminProductController extends AdminController
                 'contents.*.canonical_url'    => 'nullable|string|max:255',
             ]);
 
-            // Quiet model events during bulk update — search index runs once after response.
+            // Quiet model events during bulk update â€” search index runs once after response.
             ProductContent::withoutEvents(function () use ($validated, $id) {
                 $richKeys = ['overview', 'benefits', 'how_it_works', 'who_is_it_for', 'specifications', 'care'];
 
@@ -132,7 +144,7 @@ class AdminProductController extends AdminController
                 }
             })->afterResponse();
 
-            return redirect('/dainely-admin-panel/products')->with('success', 'Product local content overlay updated successfully!');
+            return back()->with('success', 'Product local content overlay updated successfully!');
         }, fn () => back()->with('error', 'Database operation failed.'));
     }
 
@@ -146,7 +158,7 @@ class AdminProductController extends AdminController
             return back()->with('error', 'Database offline. Cannot translate.');
         }
 
-        // Rich HTML × FR/DE can still take a bit; don't die mid-run on default 60s.
+        // Rich HTML Ã— FR/DE can still take a bit; don't die mid-run on default 60s.
         @set_time_limit(180);
         @ini_set('max_execution_time', '180');
 
@@ -223,7 +235,7 @@ class AdminProductController extends AdminController
             if ($filled === 0) {
                 return back()->with(
                     'error',
-                    'Nothing translated. French/German fields already have content — enable “Overwrite existing” or clear those fields first.'
+                    'Nothing translated. French/German fields already have content â€” enable â€œOverwrite existingâ€ or clear those fields first.'
                 );
             }
 
@@ -251,7 +263,7 @@ class AdminProductController extends AdminController
                 'is_global'        => 'nullable|boolean',
             ]);
 
-            // Admin writes English only — storefront auto-translates for FR/DE.
+            // Admin writes English only â€” storefront auto-translates for FR/DE.
             $nextOrder = (int) $product->pageBlocks()
                 ->where('locale', 'en')
                 ->max('sort_order');
@@ -358,7 +370,7 @@ class AdminProductController extends AdminController
             \App\Support\ProductVisibility::forgetCache();
             app(\App\Services\ShopifyService::class)->forgetCatalogCaches((string) $product->handle);
 
-            return back()->with('success', "“{$product->title}” unpublished — hidden from the live website.");
+            return back()->with('success', "â€œ{$product->title}â€ unpublished â€” hidden from the live website.");
         }, fn () => back()->with('error', 'Could not unpublish product.'));
     }
 
@@ -377,7 +389,7 @@ class AdminProductController extends AdminController
             \App\Support\ProductVisibility::forgetCache();
             app(\App\Services\ShopifyService::class)->forgetCatalogCaches((string) $product->handle);
 
-            return back()->with('success', "“{$product->title}” published — visible on the live website again.");
+            return back()->with('success', "â€œ{$product->title}â€ published â€” visible on the live website again.");
         }, fn () => back()->with('error', 'Could not publish product.'));
     }
 
@@ -420,7 +432,8 @@ class AdminProductController extends AdminController
             app(\App\Services\ShopifyService::class)->forgetCatalogCaches($handle);
 
             return redirect('/dainely-admin-panel/products')
-                ->with('success', "“{$title}” deleted from the admin catalog.");
+                ->with('success', "â€œ{$title}â€ deleted from the admin catalog.");
         }, fn () => back()->with('error', 'Could not delete product.'));
     }
 }
+

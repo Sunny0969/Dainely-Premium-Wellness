@@ -52,7 +52,7 @@ return [
     // Reviews
     'reviews_title'    => 'Real customer experiences',
     'reviews_subtitle' => 'Authentic feedback from verified customers.',
-    'reviews_featured' => '“My wife now swears by it as it does help relieve her sciatica pain. On a recent 10-hour flight she wore it the entire trip.”',
+    'reviews_featured' => '“My wife now swears by it as it does help relieve her Nerve Discomfort pain. On a recent 10-hour flight she wore it the entire trip.”',
     'reviews_featured_attribution' => 'Based on a public customer review visible on Trustpilot.',
     'reviews_tag_work'    => 'Sitting at Work',
     'reviews_tag_driving' => 'Driving',

@@ -10,17 +10,35 @@ use Illuminate\Support\Str;
 
 class AdminBlogController extends AdminController
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         if (!$this->flashIfSupabaseOffline('Blogs Manager')) {
             return redirect('/dainely-admin-panel/dashboard');
         }
 
-        $posts = BlogPost::with('translations', 'category')
-            ->orderBy('id', 'desc')
-            ->get();
+        $query = BlogPost::with(['translations' => function($q) {
+            $q->select('id', 'blog_post_id', 'locale', 'title', 'slug');
+        }, 'category'])->orderBy('id', 'desc');
+        
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('translations', function ($q) use ($search) {
+                $q->where('title', 'ilike', '%' . $search . '%');
+            });
+        }
 
-        return view('admin.blogs.index', compact('posts'));
+        if ($request->filled('category_id')) {
+            $query->where('blog_category_id', $request->category_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_published', $request->status === 'published');
+        }
+
+        $posts = $query->paginate(20)->withQueryString();
+        $categories = BlogCategory::all();
+
+        return view('admin.blogs.index', compact('posts', 'categories'));
     }
 
     public function create()
@@ -212,6 +230,12 @@ class AdminBlogController extends AdminController
             $filename = time() . '-' . Str::slug($request->input('translations.en.title', 'blog')) . '.' . $file->getClientOriginalExtension();
             $file->move(public_path('images'), $filename);
             $featuredImagePath = $filename;
+        } elseif ($request->file('featured_image')) {
+            // The file was sent but failed to upload (e.g. upload_max_filesize error)
+            return back()->with('error', 'The file was received but failed to upload. Error code: ' . $request->file('featured_image')->getError());
+        } elseif (!empty($_FILES['featured_image']['name'])) {
+            // It's in $_FILES but Laravel doesn't see it as a valid file?
+            return back()->with('error', 'File exists in $_FILES but Laravel rejected it. Error code: ' . ($_FILES['featured_image']['error'] ?? 'unknown'));
         }
 
         $wasPublished = $post->is_published;
@@ -321,7 +345,7 @@ class AdminBlogController extends AdminController
             );
         }
 
-        return redirect('/dainely-admin-panel/blogs')->with('success', 'Blog post updated successfully with automatic translation.');
+        return back()->with('success', 'Blog post updated successfully with automatic translation.');
     }
 
     public function destroy(int $id)
@@ -345,3 +369,4 @@ class AdminBlogController extends AdminController
         return redirect('/dainely-admin-panel/blogs')->with('success', 'Blog post deleted successfully.');
     }
 }
+

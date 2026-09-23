@@ -68,6 +68,7 @@ class Kernel extends HttpKernel
         'locale'   => \App\Http\Middleware\LocaleMiddleware::class,
         'webhook.shopify' => \App\Http\Middleware\VerifyShopifyWebhook::class,
         'admin.auth' => \App\Http\Middleware\AdminAuth::class,
+        'admin.log' => \App\Http\Middleware\LogAdminActionsMiddleware::class,
         'cf.cache' => \App\Http\Middleware\SetCloudflareCacheHeaders::class,
     ];
 }

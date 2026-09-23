@@ -97,7 +97,7 @@
                     @if(isset($labels[$sectionKey]))
                     <div class="bg-white border p-3 rounded shadow-sm flex items-center justify-between cursor-move" data-id="{{ $sectionKey }}">
                         <div class="flex items-center gap-3">
-                            <span class="text-gray-400">⋮⋮</span>
+                            <span class="text-gray-400">â‹®â‹®</span>
                             <span class="font-semibold">{{ $labels[$sectionKey] }}</span>
                         </div>
                     </div>
@@ -133,7 +133,7 @@
                         <label class="block font-bold mb-1">OR Upload Hero Image</label>
                         <input type="file" name="hero_image_file" class="w-full border p-1.5 bg-white rounded" accept="image/*">
                         <span class="text-xs text-gray-500">...or select a file from your computer (overrides URL)</span>
-                        <p class="text-xs text-rose-500 mt-1 font-medium">⚠️ Max file size: 2MB.</p>
+                        <p class="text-xs text-rose-500 mt-1 font-medium">âš ï¸ Max file size: 2MB.</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -171,8 +171,8 @@
                         </div>
 
                         <div class="flex gap-2 ml-2 mt-2">
-                            <button type="button" x-show="index > 0" @click="figures.splice(index - 1, 0, figures.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">↑</button>
-                            <button type="button" x-show="index < figures.length - 1" @click="figures.splice(index + 1, 0, figures.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">↓</button>
+                            <button type="button" x-show="index > 0" @click="figures.splice(index - 1, 0, figures.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">â†‘</button>
+                            <button type="button" x-show="index < figures.length - 1" @click="figures.splice(index + 1, 0, figures.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">â†“</button>
                             <button type="button" @click="figures.splice(index, 1)" class="text-red-500 font-bold ml-2" title="Remove">X</button>
                         </div>
                     </div>
@@ -192,8 +192,8 @@
                 <template x-for="(cause, index) in rootCauses" :key="cause._id">
                     <div class="border p-4 rounded bg-gray-50">
                         <div class="flex justify-end items-center gap-4 mb-2">
-                            <button type="button" x-show="index > 0" @click="rootCauses.splice(index - 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">↑ Move Up</button>
-                            <button type="button" x-show="index < rootCauses.length - 1" @click="rootCauses.splice(index + 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">↓ Move Down</button>
+                            <button type="button" x-show="index > 0" @click="rootCauses.splice(index - 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">â†‘ Move Up</button>
+                            <button type="button" x-show="index < rootCauses.length - 1" @click="rootCauses.splice(index + 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">â†“ Move Down</button>
                             <button type="button" @click="rootCauses.splice(index, 1)" class="text-red-500 hover:text-red-700 font-bold text-sm">Remove</button>
                         </div>
                         <input type="text" x-model="cause.title" :name="`root_causes[${index}][title]`" placeholder="Cause Title" class="w-full border p-2 rounded mb-2">
@@ -229,8 +229,8 @@
                             <div x-init="initQuill($el, $el.previousElementSibling, val => treatments[index].text = val)"></div>
                         </div>
                         <div class="flex gap-2 ml-2">
-                            <button type="button" x-show="index > 0" @click="treatments.splice(index - 1, 0, treatments.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">↑</button>
-                            <button type="button" x-show="index < treatments.length - 1" @click="treatments.splice(index + 1, 0, treatments.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">↓</button>
+                            <button type="button" x-show="index > 0" @click="treatments.splice(index - 1, 0, treatments.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">â†‘</button>
+                            <button type="button" x-show="index < treatments.length - 1" @click="treatments.splice(index + 1, 0, treatments.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">â†“</button>
                             <button type="button" @click="treatments.splice(index, 1)" class="text-red-500 font-bold ml-2" title="Remove">X</button>
                         </div>
                     </div>
@@ -246,8 +246,8 @@
                 <template x-for="(block, index) in contentBlocks" :key="block._id">
                     <div class="border p-4 rounded bg-gray-50">
                         <div class="flex justify-end items-center gap-4 mb-2">
-                            <button type="button" x-show="index > 0" @click="contentBlocks.splice(index - 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">↑ Move Up</button>
-                            <button type="button" x-show="index < contentBlocks.length - 1" @click="contentBlocks.splice(index + 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">↓ Move Down</button>
+                            <button type="button" x-show="index > 0" @click="contentBlocks.splice(index - 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">â†‘ Move Up</button>
+                            <button type="button" x-show="index < contentBlocks.length - 1" @click="contentBlocks.splice(index + 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">â†“ Move Down</button>
                             <button type="button" @click="contentBlocks.splice(index, 1)" class="text-red-500 hover:text-red-700 font-bold text-sm">Remove</button>
                         </div>
                         <input type="text" x-model="block.title" :name="`content_blocks[${index}][title]`" placeholder="Block Heading (e.g. What is Sciatica?)" class="w-full border p-2 rounded mb-2">
@@ -290,6 +290,54 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
+function selectLocalImage(quill) {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+    input.onchange = () => {
+        const file = input.files[0];
+        if (/^image\//.test(file.type)) {
+            const fd = new FormData();
+            fd.append('image', file);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            const token = csrfToken ? csrfToken.getAttribute('content') : '';
+            
+            fetch('/dainely-admin-panel/editor-upload', {
+                method: 'POST',
+                headers: { 
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: fd
+            })
+            .then(async r => {
+                if (!r.ok) {
+                    let err = await r.json().catch(() => ({}));
+                    throw new Error(err.message || 'Server error: ' + r.status);
+                }
+                return r.json();
+            })
+            .then(result => {
+                if (result.success) {
+                    const range = quill.getSelection(true) || {index: quill.getLength()};
+                    quill.insertEmbed(range.index, 'image', result.url);
+                    quill.setSelection(range.index + 1);
+                } else { 
+                    alert('Upload failed: ' + (result.message || 'Unknown error')); 
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Upload failed: ' + e.message);
+            });
+        }
+    };
+}
+            }).catch(e => alert('Upload failed'));
+        }
+    };
+}
 function educationForm() {
     return {
         figures: (@json(old('figures', $page->figures ?? []))).map(i => ({...i, _id: Math.random()})),
@@ -301,9 +349,11 @@ function educationForm() {
                 setTimeout(() => this.initQuill(container, hiddenInputEl, updateCallback), 100);
                 return;
             }
+            Quill.register('modules/htmlEditButton', htmlEditButton);
             let quill = new Quill(container, {
                 theme: 'snow',
                 modules: {
+                    htmlEditButton: { msg: 'Edit HTML Code' },
                     toolbar: [
                         ['bold', 'italic', 'underline'],
                         [{ 'list': 'ordered'}, { 'list': 'bullet' }],
@@ -358,5 +408,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 @push('admin_scripts')
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script src="https://unpkg.com/quill-html-edit-button@2.2.7/dist/quill.htmlEditButton.min.js"></script>
 @endpush
 @endsection

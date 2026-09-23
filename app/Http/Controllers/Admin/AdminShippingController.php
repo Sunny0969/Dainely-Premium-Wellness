@@ -31,12 +31,13 @@ class AdminShippingController extends AdminController
         // Drop cached shipping quotes so checkout uses the new threshold immediately.
         Cache::forget(\App\Services\ShopifyService::CATALOG_CACHE_KEY);
         try {
-            // File/redis: best-effort clear of rate keys is not required — keys include threshold.
+            // File/redis: best-effort clear of rate keys is not required â€” keys include threshold.
         } catch (\Throwable) {
             // ignore
         }
 
-        return redirect('/dainely-admin-panel/shipping')
+        return back()
             ->with('success', 'Free shipping threshold updated to $'.number_format($amount, 2).'. Customers will see this on the site and at checkout.');
     }
 }
+

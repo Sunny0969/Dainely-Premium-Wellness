@@ -642,21 +642,42 @@
 
 {{-- Standard product hero --}}
 <section class="bg-white pt-4 sm:pt-5 pb-12 md:pb-16 product-landing" aria-label="Product detail">
-  <div class="container-site">
+    <div class="container-site py-8 sm:py-12 lg:py-16">
+@php
+function getCustomAltText($url, $default) {
+    if (!is_string($url)) return $default;
+    if (strpos($url, 'Whisk_62d7eaf0776e71dab844b2f07ef3b0a5dr.png') !== false) return 'Dainely back support belt';
+    if (strpos($url, '1.jpg') !== false) return 'Dainely lumbar support belt';
+    if (strpos($url, '7.jpg') !== false) return 'Belt for pickleball support';
+    if (strpos($url, '5.5.jpg') !== false) return 'Dainely belt support features';
+    if (strpos($url, '4.jpg') !== false) return 'Adjustable Dainely support belt';
+    if (strpos($url, '8.jpg') !== false) return 'Dainely belt for men';
+    if (strpos($url, '3.jpg') !== false) return 'back support belt for women';
+    return $default;
+}
+
+$galleryAlts = [];
+foreach ($galleryUrls as $gUrl) {
+    $galleryAlts[] = getCustomAltText($gUrl, $title);
+}
+@endphp
     <div class="grid lg:grid-cols-2 gap-8 lg:gap-20 items-start">
 
       {{-- Left: Image --}}
+      <div x-data="{ alts: @js($galleryAlts) }" class="contents">
       <div x-data="productGallery(@js($galleryUrls))" class="min-w-0 lg:sticky lg:top-24">
         <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-50 shadow-md mb-4">
           @if(!empty($galleryUrls))
           <img
-            src="{{ $galleryUrls[0] }}"
-            alt="{{ $title }}"
-            class="w-full aspect-square object-contain transition-all duration-500"
+            src="{{ \App\Support\ProductLandingAssets::cdnSized($galleryUrls[0], 800) }}"
+            alt="{{ getCustomAltText($galleryUrls[0] ?? '', $title) }}"
             loading="eager"
-            width="640"
-            height="640"
+            fetchpriority="high"
+            width="800"
+            height="800"
+            class="w-full aspect-square object-contain transition-all duration-500"
             x-bind:src="images.length ? images[active] : @js($galleryUrls[0])"
+            x-bind:alt="alts[active] || '{{ $title }}'"
           >
           @else
           <div class="w-full aspect-square flex items-center justify-center bg-slate-100">
@@ -673,9 +694,9 @@
         @if(count($images) > 1)
         <div class="flex gap-2 overflow-x-auto pb-2 lg:grid lg:grid-cols-5">
           <template x-for="(img, i) in images" :key="i">
-            <button @click="setActive(i)" :class="active === i ? 'ring-2 ring-navy-600 ring-offset-2' : 'ring-1 ring-slate-200 hover:ring-navy-300'" class="rounded-xl overflow-hidden aspect-square w-14 h-14 flex-shrink-0 lg:w-auto lg:h-auto">
-              <img :src="img" :alt="'View ' + (i+1)" class="w-full h-full object-contain">
-            </button>
+              <button @click="setActive(i)" :class="active === i ? 'ring-2 ring-navy-600 ring-offset-2' : 'ring-1 ring-slate-200 hover:ring-navy-300'" class="rounded-xl overflow-hidden aspect-square w-14 h-14 flex-shrink-0 lg:w-auto lg:h-auto">
+                <img :src="img" :alt="alts[i] || 'View ' + (i+1)" loading="lazy" width="100" height="100" class="w-full h-full object-contain">
+              </button>
           </template>
         </div>
         @endif
@@ -695,7 +716,8 @@
         </div>
       </div>
 
-      {{-- Right: Info --}}
+      </div>
+      {{-- Right: Product Details --}}
       <div class="min-w-0">
         @if($vendor)<p class="eyebrow mb-3 break-anywhere">{{ $vendor }}</p>@endif
         <h1 class="font-display font-bold text-navy-950 mb-4 text-2xl sm:text-3xl lg:text-4xl leading-tight break-anywhere">{{ $title }}</h1>

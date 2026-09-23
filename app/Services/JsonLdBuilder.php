@@ -146,49 +146,145 @@ class JsonLdBuilder
     /**
      * Backward-compatible string helper used by ProductController / FAQ page.
      */
-    public function buildProductSchema(Product $product, ?ProductContent $content = null): string
+    public function buildProductSchema(Product $product, ?ProductContent $content = null, array $shopifyProduct = []): string
     {
         $locale = app()->getLocale();
+        $productUrl = route('products.show', ['locale' => $locale, 'slug' => $product->handle]);
 
-        // Prefer fresh overlay passed from the controller (avoids stale 24h cache after Admin edits)
-        if ($content !== null) {
-            $productUrl = route('products.show', ['locale' => $locale, 'slug' => $product->handle]);
-            $description = (is_string($content->seo_description) && trim($content->seo_description) !== '')
-                ? trim($content->seo_description)
-                : ((is_string($content->overview) && trim($content->overview) !== '')
-                    ? trim($content->overview)
-                    : (string) $product->title);
-            $name = (is_string($content->seo_title) && trim($content->seo_title) !== '')
-                ? trim($content->seo_title)
-                : (string) $product->title;
+        // 1. Get base organization config from json_ld_schemas if it exists
+        $orgName = 'Dainely';
+        $orgLogo = 'https://dainely.com/images/Dainelycut.png';
+        $brandName = 'Dainely';
 
-            $schema = [
-                '@context' => 'https://schema.org',
-                '@graph' => array_values(array_filter([
-                    $this->makeProductSchema($product, $content, $productUrl, $description, $locale),
-                    $this->makeWebPageSchema($product, $content, $productUrl, $description, $locale),
-                    $this->makeBreadcrumbSchema($product, $productUrl, $locale),
-                    $this->makeOrganizationSchema(),
-                ])),
+        $filePath = storage_path('app/json_ld_schemas.json');
+        if (file_exists($filePath)) {
+            $schemas = json_decode(file_get_contents($filePath), true) ?: [];
+            $first = $schemas[0] ?? [];
+            if (!empty($first['org_name'])) $orgName = $first['org_name'];
+            if (!empty($first['org_logo'])) $orgLogo = $first['org_logo'];
+            if (!empty($first['brand'])) $brandName = $first['brand'];
+        }
+
+        // 2. Automate Product data extraction
+        $description = (is_string($content?->seo_description) && trim($content->seo_description) !== '')
+            ? trim($content->seo_description)
+            : ((is_string($content?->overview) && trim($content->overview) !== '')
+                ? trim($content->overview)
+                : (string) $product->title);
+        $name = (is_string($content?->seo_title) && trim($content->seo_title) !== '')
+            ? trim($content->seo_title)
+            : (string) $product->title;
+
+        // Generate Offers
+        $offers = [];
+        $variants = $shopifyProduct['variants'] ?? [];
+        if (empty($variants) && $product->price !== null) {
+            $offers[] = [
+                '@type'         => 'Offer',
+                'name'          => $name,
+                'url'           => $productUrl,
+                'priceCurrency' => config('shopify.shop_currency', 'USD'),
+                'price'         => (string) $product->price,
+                'itemCondition' => 'https://schema.org/NewCondition',
+                'availability'  => $product->status === 'active' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                'seller'        => ['@id' => 'https://dainely.com/#organization']
             ];
+        } else {
+            foreach ($variants as $v) {
+                $offers[] = [
+                    '@type'         => 'Offer',
+                    'name'          => trim($name . ' - ' . ($v['title'] ?? '')),
+                    'url'           => $productUrl,
+                    'priceCurrency' => config('shopify.shop_currency', 'USD'),
+                    'price'         => (string) ($v['price'] ?? 0),
+                    'itemCondition' => 'https://schema.org/NewCondition',
+                    'availability'  => 'https://schema.org/InStock',
+                    'seller'        => ['@id' => 'https://dainely.com/#organization']
+                ];
+            }
+        }
 
-            // Keep Product name in sync with overlay SEO title when set
-            foreach ($schema['@graph'] as &$node) {
-                if (($node['@type'] ?? null) === 'Product' && $name !== '') {
-                    $node['name'] = $name;
-                }
-                if (($node['@type'] ?? null) === 'WebPage' && $name !== '') {
-                    $node['name'] = $name;
+        $graph = [
+            [
+                '@type' => 'Organization',
+                '@id' => 'https://dainely.com/#organization',
+                'name' => $orgName,
+                'url' => 'https://dainely.com',
+                'logo' => $orgLogo
+            ],
+            [
+                '@type' => 'WebSite',
+                '@id' => 'https://dainely.com/#website',
+                'url' => 'https://dainely.com',
+                'name' => $orgName,
+                'publisher' => ['@id' => 'https://dainely.com/#organization']
+            ],
+            [
+                '@type' => 'Brand',
+                '@id' => 'https://dainely.com/#brand',
+                'name' => $brandName
+            ],
+            [
+                '@type' => 'WebPage',
+                '@id' => $productUrl . '#webpage',
+                'url' => $productUrl,
+                'name' => $name,
+                'description' => strip_tags((string) $description),
+                'isPartOf' => ['@id' => 'https://dainely.com/#website'],
+                'mainEntity' => ['@id' => $productUrl . '#product'],
+                'inLanguage' => $locale
+            ],
+            [
+                '@type' => 'Product',
+                '@id' => $productUrl . '#product',
+                'name' => $name,
+                'description' => strip_tags((string) $description),
+                'sku' => $product->sku ?: $product->handle,
+                'url' => $productUrl,
+                'image' => $product->featured_image ? [$product->featured_image] : [],
+                'brand' => ['@id' => 'https://dainely.com/#brand'],
+                'category' => !empty($shopifyProduct['product_type']) ? $shopifyProduct['product_type'] : 'Wellness Products',
+                'material' => 'Breathable, Lightweight Stretch Support Fabric',
+                'color' => 'Black',
+                'mainEntityOfPage' => ['@id' => $productUrl . '#webpage'],
+                'offers' => $offers
+            ],
+            [
+                '@type' => 'BreadcrumbList',
+                '@id' => $productUrl . '#breadcrumb',
+                'itemListElement' => [
+                    [ '@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => route('home', ['locale' => $locale]) ],
+                    [ '@type' => 'ListItem', 'position' => 2, 'name' => 'Products', 'item' => route('products.index', ['locale' => $locale]) ],
+                    [ '@type' => 'ListItem', 'position' => 3, 'name' => $name, 'item' => $productUrl ]
+                ]
+            ]
+        ];
+
+        $rating = $this->makeAggregateRatingSchema($product->handle ?? '');
+        if ($rating !== null) {
+            foreach ($graph as &$node) {
+                if (($node['@type'] ?? null) === 'Product') {
+                    $node['aggregateRating'] = $rating;
+                    break;
                 }
             }
             unset($node);
-
-            return json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         }
 
-        $schema = $this->buildForProduct($product, $locale);
+        $faqPage = $this->makeFaqPageSchemaFromProduct($product, $locale);
+        if ($faqPage !== null) {
+            // Fix ID of FAQ page to match product structure
+            $faqPage['@id'] = $productUrl . '#faq';
+            $faqPage['url'] = $productUrl . '#faq';
+            $graph[] = $faqPage;
+        }
 
-        return json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@graph' => $graph
+        ];
+
+        return json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     public function buildFaqSchema(Collection $faqs): string
@@ -211,10 +307,10 @@ class JsonLdBuilder
     {
         return [
             '@type' => 'Organization',
-            '@id'   => rtrim(config('app.url'), '/') . '/#organization',
-            'name'  => config('app.name', 'Dainely'),
-            'url'   => config('app.url'),
-            'logo'  => rtrim(config('app.url'), '/') . '/images/logo.png',
+            '@id'   => 'https://dainely.com/#organization',
+            'name'  => 'Dainely',
+            'url'   => 'https://dainely.com',
+            'logo'  => 'https://dainely.com/images/logo.png',
         ];
     }
 
@@ -274,7 +370,7 @@ class JsonLdBuilder
             'url'         => $productUrl,
             'name'        => $content?->seo_title ?: $product->title,
             'description' => strip_tags((string) $description),
-            'isPartOf'    => ['@id' => rtrim(config('app.url'), '/') . '/#website'],
+            'isPartOf'    => ['@id' => 'https://dainely.com/#website'],
             'about'       => ['@id' => $productUrl . '#product'],
             'inLanguage'  => $locale,
         ];
@@ -330,20 +426,7 @@ class JsonLdBuilder
             return null;
         }
 
-        $faqs = SupabaseDb::run(
-            fn () => $product->faqs()
-                ->approved()
-                ->forLocale($locale)
-                ->orderBy('sort_order')
-                ->get(),
-            collect()
-        );
-
         $entities = [];
-        $faqSchema = $this->makeFaqPageSchema($faqs, $locale);
-        if ($faqSchema) {
-            $entities = $faqSchema['mainEntity'];
-        }
 
         $signals = SupabaseDb::run(
             fn () => ProductKnowledgeSignal::query()
@@ -365,7 +448,7 @@ class JsonLdBuilder
             ];
         }
 
-        if ($entities === []) {
+        if (empty($entities)) {
             return null;
         }
 

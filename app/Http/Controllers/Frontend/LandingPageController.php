@@ -29,21 +29,49 @@ class LandingPageController extends Controller
             StorefrontCache::cmsTtlSeconds(),
             function () use ($slug, $locale) {
                 return SupabaseDb::run(function () use ($slug, $locale) {
-                    $page = LandingPage::query()
+                    $page = LandingPage::with([
+                        'pageBlocks' => fn($q) => $q->where('locale', $locale)->visible()->orderBy('sort_order')
+                    ])
                         ->where('slug', $slug)
                         ->where('locale', $locale)
                         ->where('published', true)
                         ->first();
 
                     if (! $page) {
-                        return null;
+                        $page = LandingPage::with([
+                            'pageBlocks' => fn($q) => $q->where('locale', 'en')->visible()->orderBy('sort_order')
+                        ])
+                            ->where('slug', $slug)
+                            ->where('locale', 'en')
+                            ->where('published', true)
+                            ->first();
+
+                        if (! $page) {
+                            return null;
+                        }
+
+                        if ($locale !== 'en') {
+                            try {
+                                $translator = app(\App\Services\ContentTranslationService::class);
+                                $page->title = $translator->translateContent($page->title, 'en', $locale);
+                                if ($page->seo_title) {
+                                    $page->seo_title = $translator->translateContent($page->seo_title, 'en', $locale);
+                                }
+                                if ($page->seo_description) {
+                                    $page->seo_description = $translator->translateContent($page->seo_description, 'en', $locale);
+                                }
+                            } catch (\Exception $e) {
+                                \Illuminate\Support\Facades\Log::warning("Failed to translate landing page: " . $e->getMessage());
+                            }
+                        }
                     }
 
-                    $blocks = $page->pageBlocks()
-                        ->where('locale', $locale)
-                        ->visible()
-                        ->orderBy('sort_order')
-                        ->get();
+                    $blocks = $page->pageBlocks;
+
+                    // If we fell back to EN page, the blocks will be EN blocks. We need to translate them.
+                    if ($locale !== 'en' && $blocks->isNotEmpty() && $blocks->first()->locale === 'en') {
+                        $blocks = app(\App\Services\PageBlockLocalizationService::class)->forLocale($blocks, $locale);
+                    }
 
                     return [
                         'page' => $page,

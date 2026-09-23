@@ -130,7 +130,21 @@ class BlogController extends Controller
             ];
         });
 
-        if (!$articleData) {
+                if (!$articleData) {
+            // Language switcher fallback: check if this slug exists in ANY other locale
+            $fallbackPost = BlogPost::with('translations')
+                ->where('is_published', true)
+                ->whereHas('translations', function($q) use ($slug) {
+                    $q->where('slug', $slug);
+                })
+                ->first();
+                
+            if ($fallbackPost) {
+                $targetTranslation = $fallbackPost->translation($locale);
+                if ($targetTranslation && !empty($targetTranslation->slug) && $targetTranslation->slug !== $slug) {
+                    return redirect()->route('blog.show', ['locale' => $locale, 'slug' => $targetTranslation->slug], 301);
+                }
+            }
             abort(404);
         }
 

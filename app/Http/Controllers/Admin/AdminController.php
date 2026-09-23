@@ -29,7 +29,7 @@ abstract class AdminController extends Controller
         if (! SupabaseDb::enabled()) {
             session()->flash(
                 'error',
-                '⚠️ Supabase is disabled (FEATURES_SUPABASE=false). '.$managerLabel.' offline.'
+                'âš ï¸ Supabase is disabled (FEATURES_SUPABASE=false). '.$managerLabel.' offline.'
             );
 
             return false;
@@ -38,7 +38,7 @@ abstract class AdminController extends Controller
         if (! SupabaseDb::driverLoaded()) {
             session()->flash(
                 'error',
-                '⚠️ PHP extension pdo_pgsql is not installed/enabled on this server. '
+                'âš ï¸ PHP extension pdo_pgsql is not installed/enabled on this server. '
                 .'Ask hosting to enable pgsql for PHP '.PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION.'. '
                 .$managerLabel.' offline.'
             );
@@ -57,7 +57,7 @@ abstract class AdminController extends Controller
                 ]);
             }
 
-            // Stale "online" while tcp_fail is set → empty CMS data. Force retry.
+            // Stale "online" while tcp_fail is set â†’ empty CMS data. Force retry.
             if (Cache::get('supabase.tcp_fail') === true) {
                 Cache::forget('admin.supabase_ping_ok');
             } else {
@@ -66,11 +66,11 @@ abstract class AdminController extends Controller
         }
 
         // After a failed connect, skip probing briefly so every Admin click does
-        // not wait on a hung TCP handshake — but allow ?retry_supabase=1 to force.
+        // not wait on a hung TCP handshake â€” but allow ?retry_supabase=1 to force.
         if (Cache::get('admin.supabase_ping_fail') === true && ! request()->boolean('retry_supabase')) {
             session()->flash(
                 'error',
-                '⚠️ Supabase database temporarily unreachable. '.$managerLabel.' offline. '
+                'âš ï¸ Supabase database temporarily unreachable. '.$managerLabel.' offline. '
                 .(SupabaseDb::failureReason())
                 .' Reload with ?retry_supabase=1 to try again.'
             );
@@ -98,7 +98,7 @@ abstract class AdminController extends Controller
 
         session()->flash(
             'error',
-            '⚠️ Supabase database connection failed. '.$managerLabel.' offline. '.SupabaseDb::failureReason()
+            'âš ï¸ Supabase database connection failed. '.$managerLabel.' offline. '.SupabaseDb::failureReason()
         );
 
         return false;
@@ -122,7 +122,7 @@ abstract class AdminController extends Controller
             collect()
         );
 
-        // Never cache empty results — they often mean a failed/offline fetch.
+        // Never cache empty results â€” they often mean a failed/offline fetch.
         if (SupabaseDb::available() && $rows->isNotEmpty()) {
             Cache::put($key, $rows, self::CATALOG_CACHE_TTL);
         }

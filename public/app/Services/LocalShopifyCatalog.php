@@ -152,7 +152,6 @@ class LocalShopifyCatalog
         if (SupabaseDb::available()) {
             try {
                 $rows = Product::query()
-                    ->where('status', '!=', ProductVisibility::STATUS_UNPUBLISHED)
                     ->orderBy('title')
                     ->limit(250)
                     ->get();

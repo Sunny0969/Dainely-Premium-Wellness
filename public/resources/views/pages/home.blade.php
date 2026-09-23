@@ -28,8 +28,8 @@
     {
       "@type": "Organization",
       "name": "Dainely",
-      "url": @json(rtrim((string) config('app.url'), '/') ?: url('/')),
-      "logo": @json(asset('images/Dainelycut.png'))
+      "url": "https://dainely.com",
+      "logo": "https://dainely.com/images/Dainelycut.png"
     }
     @if($schemaProduct && !empty($schemaProduct['title']))
     ,{
@@ -375,19 +375,18 @@
       </a>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-12">
-      @foreach([
-        [__('nav.back_pain'), route('education.show', ['locale' => $locale, 'slug' => 'back-pain']), 'lifestyle-everyday-movement.webp'],
-        [__('nav.sciatica'), route('education.show', ['locale' => $locale, 'slug' => 'sciatica']), 'sciatica-edu.png'],
-        [__('nav.posture'), route('education.show', ['locale' => $locale, 'slug' => 'posture']), 'posture-edu.png'],
-        [__('nav.neck_pain'), route('education.show', ['locale' => $locale, 'slug' => 'neck-pain']), 'neck-pain-edu.png'],
-        [__('nav.mobility'), route('education.show', ['locale' => $locale, 'slug' => 'mobility']), 'mobility-edu.png'],
-        [__('nav.recovery'), route('education.show', ['locale' => $locale, 'slug' => 'recovery']), 'recovery-edu.webp'],
-      ] as [$label, $href, $img])
-      <a href="{{ $href }}" class="group block rounded-xl overflow-hidden ring-1 ring-stone-200/80 bg-white hover:ring-stone-300 transition-all">
-        <div class="aspect-[4/3] overflow-hidden bg-stone-100">
-          <img src="{{ asset('images/' . $img) }}" alt="{{ $label }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" width="200" height="150">
+      @foreach($educationPages as $eduPage)
+      <a href="{{ route('education.show', ['locale' => $locale, 'slug' => $eduPage->slug]) }}" class="group block rounded-xl overflow-hidden ring-1 ring-stone-200/80 bg-white hover:ring-stone-300 transition-all flex flex-col h-full">
+        <div class="aspect-[4/3] overflow-hidden bg-stone-100 flex-shrink-0 relative">
+          @if($eduPage->hero_image)
+            <img src="{{ Str::startsWith($eduPage->hero_image, ['http://', 'https://']) ? $eduPage->hero_image : asset('images/' . $eduPage->hero_image) }}" alt="{{ $eduPage->title }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
+          @else
+            <div class="absolute inset-0 flex items-center justify-center text-stone-300">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5L18.5 7H20M9 11h.01M15 11h.01M9 15h.01M15 15h.01M9 19h.01M15 19h.01"/></svg>
+            </div>
+          @endif
         </div>
-        <span class="block text-xs font-medium text-stone-700 p-2.5 text-center">{{ $label }}</span>
+        <span class="block text-xs font-medium text-stone-700 p-2.5 text-center flex-grow flex items-center justify-center">{{ $eduPage->title }}</span>
       </a>
       @endforeach
     </div>

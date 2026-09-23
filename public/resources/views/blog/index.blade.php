@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Wellness Blog — Back Pain, Sciatica & Posture Guides | Dainely')
-@section('meta_description', 'Expert articles on back pain relief, sciatica treatment, posture correction, and lumbar health from the Dainely medical team.')
+@section('title', 'Wellness Blog — Back Pain, Nerve Discomfort & Posture Guides | Dainely')
+@section('meta_description', 'Expert articles on back pain relief, Nerve Discomfort treatment, posture correction, and lumbar health from the Dainely medical team.')
 @section('og_image', asset('images/blog-hero-back-pain.jpg'))
 
 @section('content')
@@ -18,7 +18,7 @@
   <div class="container-narrow relative z-10 text-center">
     <p class="eyebrow text-gold-400 mb-4">Expert Knowledge</p>
     <h1 class="font-display font-bold text-white mb-6" style="font-size:clamp(2rem,4vw,3rem);line-height:1.1">The Dainely Wellness Journal</h1>
-    <p class="text-navy-200 text-lg max-w-xl mx-auto">Clinically accurate guides on back pain, sciatica, posture, and recovery — written by our medical advisory team.</p>
+    <p class="text-navy-200 text-lg max-w-xl mx-auto">Clinically accurate guides on back pain, Nerve Discomfort, posture, and recovery — written by our medical advisory team.</p>
   </div>
 </section>
 
@@ -129,7 +129,7 @@
   <div class="container-narrow text-center">
     <p class="eyebrow text-gold-400 mb-4">Free Wellness Insights</p>
     <h2 class="heading-section text-white mb-4">Get Expert Back Health Tips Every Week</h2>
-    <p class="text-navy-300 mb-8">Join 12,000+ subscribers receiving our weekly clinical insights on back pain, sciatica, and spinal health.</p>
+    <p class="text-navy-300 mb-8">Join 12,000+ subscribers receiving our weekly clinical insights on back pain, Nerve Discomfort, and spinal health.</p>
     <form class="flex gap-3 max-w-md mx-auto" onsubmit="return false;">
       <input type="email" placeholder="Enter your email" class="form-input flex-1 bg-white/10 border-white/20 text-white placeholder-navy-400">
       <button type="submit" class="btn-gold-lg whitespace-nowrap">Subscribe Free</button>

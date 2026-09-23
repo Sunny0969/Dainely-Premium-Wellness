@@ -10,13 +10,25 @@ use Illuminate\Http\Request;
 
 class AdminProductController extends AdminController
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         $this->flashIfSupabaseOffline('Products manager');
 
         $products = $this->cachedProductsForSelect([
             'id', 'title', 'handle', 'sku', 'price', 'status', 'featured_image',
         ]);
+
+        if ($request->filled('search')) {
+            $search = strtolower($request->search);
+            $products = $products->filter(function($p) use ($search) {
+                return str_contains(strtolower($p->title), $search) 
+                    || str_contains(strtolower($p->handle), $search)
+                    || str_contains(strtolower($p->sku ?? ''), $search);
+            });
+        }
+
+        // Paginate collection manually since we want pagination in view ideally, or just return them all if view doesn't paginate.
+        // Actually, let's just pass the collection to view since it was returning a collection before.
 
         return view('admin.products.index', compact('products'));
     }
@@ -132,7 +144,7 @@ class AdminProductController extends AdminController
                 }
             })->afterResponse();
 
-            return redirect('/dainely-admin-panel/products')->with('success', 'Product local content overlay updated successfully!');
+            return back()->with('success', 'Product local content overlay updated successfully!');
         }, fn () => back()->with('error', 'Database operation failed.'));
     }
 
@@ -424,3 +436,4 @@ class AdminProductController extends AdminController
         }, fn () => back()->with('error', 'Could not delete product.'));
     }
 }
+

@@ -154,7 +154,7 @@
             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-navy-600 hover:bg-slate-50 transition-all"
             aria-label="Switch language"
           >
-            <span class="text-base">{{ app()->getLocale() === 'fr' ? 'FR - Français' : (app()->getLocale() === 'de' ? 'DE - Deutsch' : 'US - English') }}</span>
+            <span class="text-base">{{ app()->getLocale() === 'fr' ? 'FR - FranÃƒÂ§ais' : (app()->getLocale() === 'de' ? 'DE - Deutsch' : 'US - English') }}</span>
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
           <div
@@ -165,14 +165,14 @@
             x-transition:enter-end="opacity-100 scale-100"
             class="absolute top-full right-0 mt-1 w-40 bg-white rounded-2xl shadow-medium border border-slate-100 p-1.5 z-50"
           >
-            <a href="{{ '/en'.preg_replace('#^/(en|fr|de)(/|$)#', '/', request()->getPathInfo()) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-slate-50 transition-colors {{ app()->getLocale() === 'en' ? 'font-semibold text-navy-700 bg-navy-50' : 'text-slate-700' }}">
-              <span>🇺🇸</span> US - English
+            <a href="{{ get_localized_url_for_dainely('en', Route::currentRouteName(), Route::current() ? Route::current()->parameters() : []) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-slate-50 transition-colors {{ app()->getLocale() === 'en' ? 'font-semibold text-navy-700 bg-navy-50' : 'text-slate-700' }}">
+              <span>Ã°Å¸â€¡ÂºÃ°Å¸â€¡Â¸</span> US - English
             </a>
-            <a href="{{ '/fr'.preg_replace('#^/(en|fr|de)(/|$)#', '/', request()->getPathInfo()) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-slate-50 transition-colors {{ app()->getLocale() === 'fr' ? 'font-semibold text-navy-700 bg-navy-50' : 'text-slate-700' }}">
-              <span>🇫🇷</span> FR - Français
+            <a href="{{ get_localized_url_for_dainely('fr', Route::currentRouteName(), Route::current() ? Route::current()->parameters() : []) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-slate-50 transition-colors {{ app()->getLocale() === 'fr' ? 'font-semibold text-navy-700 bg-navy-50' : 'text-slate-700' }}">
+              <span>Ã°Å¸â€¡Â«Ã°Å¸â€¡Â·</span> FR - FranÃƒÂ§ais
             </a>
-            <a href="{{ '/de'.preg_replace('#^/(en|fr|de)(/|$)#', '/', request()->getPathInfo()) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-slate-50 transition-colors {{ app()->getLocale() === 'de' ? 'font-semibold text-navy-700 bg-navy-50' : 'text-slate-700' }}">
-              <span>🇩🇪</span> DE - Deutsch
+            <a href="{{ get_localized_url_for_dainely('de', Route::currentRouteName(), Route::current() ? Route::current()->parameters() : []) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-slate-50 transition-colors {{ app()->getLocale() === 'de' ? 'font-semibold text-navy-700 bg-navy-50' : 'text-slate-700' }}">
+              <span>Ã°Å¸â€¡Â©Ã°Å¸â€¡Âª</span> DE - Deutsch
             </a>
           </div>
         </div>

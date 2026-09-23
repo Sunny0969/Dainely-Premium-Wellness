@@ -9,7 +9,7 @@ return [
     'daily_relief_desc' => 'Complete wellness protocol for back pain',
     'education'         => 'Education',
     'back_pain'         => 'Back Pain',
-    'sciatica'          => 'Sciatica',
+    'Nerve Discomfort'          => 'Nerve Discomfort',
     'posture'           => 'Posture',
     'neck_pain'         => 'Neck Pain',
     'mobility'          => 'Mobility',

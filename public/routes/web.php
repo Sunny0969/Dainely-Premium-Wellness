@@ -143,12 +143,17 @@ Route::middleware(['api'])->prefix('webhooks')->group(function () {
 });
 
 // ── XML Sitemap ─────────────────────────────────────────────────────
-// XML sitemaps - one master, one per locale
-Route::get('/sitemap.xml',       [PageController::class, 'sitemapIndex'])->middleware('cf.cache')->name('sitemap.index');
-Route::get('/{locale}/sitemap.xml', [PageController::class, 'sitemap'])
-    ->middleware('cf.cache')
-    ->where('locale', 'en|fr|de')
-    ->name('sitemap.locale');
+// XML sitemaps - fallback to serve static file
+Route::get('/sitemap.xml', function() {
+    return response(file_get_contents(base_path('public/sitemap.xml')), 200, [
+        'Content-Type' => 'text/xml'
+    ]);
+});
+// Route::get('/sitemap.xml',       [PageController::class, 'sitemapIndex'])->middleware('cf.cache')->name('sitemap.index');
+// Route::get('/{locale}/sitemap.xml', [PageController::class, 'sitemap'])
+//     ->middleware('cf.cache')
+//     ->where('locale', 'en|fr|de')
+//     ->name('sitemap.locale');
 
 // ── Admin CMS Panel (Lightweight CRUD) ──────────────────────────────
 Route::prefix('dainely-admin-panel')->group(function () {

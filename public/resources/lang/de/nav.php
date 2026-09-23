@@ -9,7 +9,7 @@ return [
     'daily_relief_desc' => 'Vollständiges Wellness-Protokoll für Rückenschmerzen',
     'education'         => 'Bildung',
     'back_pain'         => 'Rückenschmerzen',
-    'sciatica'          => 'Ischias',
+    'Nerve Discomfort'          => 'Ischias',
     'posture'           => 'Haltung',
     'neck_pain'         => 'Nackenschmerzen',
     'mobility'          => 'Mobilität',

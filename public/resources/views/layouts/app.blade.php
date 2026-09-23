@@ -25,8 +25,8 @@
   </script>
 
   {{-- SEO Meta --}}
-  <title>@yield('title', 'Dainely — Premium Wellness for Back Pain & Sciatica Relief')</title>
-  <meta name="description" content="@yield('meta_description', 'Clinically developed wellness solutions for back pain, sciatica, and posture. Trusted by thousands worldwide.')">
+  <title>@yield('title', 'Dainely â€” Premium Wellness for Back Pain & Nerve Discomfort Relief')</title>
+  <meta name="description" content="@yield('meta_description', 'Clinically developed wellness solutions for back pain, Nerve Discomfort, and posture. Trusted by thousands worldwide.')">
   @if (View::hasSection('meta_canonical'))
     @yield('meta_canonical')
   @else
@@ -38,27 +38,51 @@
     $supportedLocales = ['en', 'fr', 'de'];
     $currentRouteName = Route::currentRouteName();
     $currentRouteParams = Route::current() ? Route::current()->parameters() : [];
+    
+    if (!function_exists('get_localized_url_for_dainely')) {
+        function get_localized_url_for_dainely($targetLocale, $routeName, $params) {
+            if ($routeName === 'blog.show' && isset($params['slug'])) {
+                $article = \App\Models\BlogPost::with('translations')->whereHas('translations', function($q) use ($params) {
+                    $q->where('slug', $params['slug']);
+                })->first();
+                if ($article) {
+                    $trans = $article->translation($targetLocale);
+                    if ($trans && !empty($trans->slug)) {
+                        return route('blog.show', ['locale' => $targetLocale, 'slug' => $trans->slug]);
+                    }
+                }
+            }
+            if ($routeName) {
+                try {
+                    return route($routeName, array_merge($params, ['locale' => $targetLocale]));
+                } catch (\Exception $e) {
+                    // Fallback if route fails
+                }
+            }
+            return '/' . $targetLocale . preg_replace('#^/(en|fr|de)(/|$)#', '/', request()->getPathInfo());
+        }
+    }
   @endphp
   @if($currentRouteName)
     @foreach($supportedLocales as $lang)
-      <link rel="alternate" hreflang="{{ $lang }}" href="{{ route($currentRouteName, array_merge($currentRouteParams, ['locale' => $lang])) }}">
+      <link rel="alternate" hreflang="{{ $lang }}" href="{{ get_localized_url_for_dainely($lang, $currentRouteName, $currentRouteParams) }}">
     @endforeach
-    <link rel="alternate" hreflang="x-default" href="{{ route($currentRouteName, array_merge($currentRouteParams, ['locale' => 'en'])) }}">
+    <link rel="alternate" hreflang="x-default" href="{{ get_localized_url_for_dainely('en', $currentRouteName, $currentRouteParams) }}">
   @endif
 
   @yield('meta_schema')
 
   {{-- Open Graph --}}
   <meta property="og:type" content="@yield('og_type', 'website')">
-  <meta property="og:title" content="@yield('og_title', 'Dainely — Premium Wellness')">
-  <meta property="og:description" content="@yield('og_description', 'Clinically developed wellness solutions for back pain and sciatica.')">
+  <meta property="og:title" content="@yield('og_title', 'Dainely â€” Premium Wellness')">
+  <meta property="og:description" content="@yield('og_description', 'Clinically developed wellness solutions for back pain and Nerve Discomfort.')">
   <meta property="og:image" content="@yield('og_image', asset('images/og-default.jpg'))">
   <meta property="og:url" content="{{ url()->current() }}">
   <meta property="og:site_name" content="Dainely">
 
   {{-- Twitter Card --}}
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="@yield('og_title', 'Dainely — Premium Wellness')">
+  <meta name="twitter:title" content="@yield('og_title', 'Dainely â€” Premium Wellness')">
   <meta name="twitter:description" content="@yield('og_description', 'Clinically developed wellness solutions.')">
   <meta name="twitter:image" content="@yield('og_image', asset('images/og-default.jpg'))">
 
@@ -68,6 +92,7 @@
   <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
   <link rel="dns-prefetch" href="https://cdn.shopify.com">
   <link rel="dns-prefetch" href="https://judge.me">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
 
   {{-- Critical fallback styles if the Vite CSS bundle fails to load --}}

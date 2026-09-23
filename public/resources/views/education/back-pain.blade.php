@@ -71,7 +71,7 @@
 
         <h2 style="font-size:1.75rem;font-weight:700;color:#0f172a;margin-bottom:1rem">What Is Chronic Back Pain?</h2>
         <p>Back pain becomes chronic when it persists for more than 12 weeks — even after the initial cause has been treated. At this point, the nervous system has often adapted to a pain state, making recovery more complex than simply addressing the original injury.</p>
-        <p>The lumbar spine — the lower five vertebrae (L1–L5) — bears the majority of the body's mechanical load. When disc integrity, vertebral alignment, or surrounding musculature is compromised, the cascade of effects can extend far beyond local pain, causing referred pain down the legs (sciatica), reduced mobility, and significant quality-of-life impact.</p>
+        <p>The lumbar spine — the lower five vertebrae (L1–L5) — bears the majority of the body's mechanical load. When disc integrity, vertebral alignment, or surrounding musculature is compromised, the cascade of effects can extend far beyond local pain, causing referred pain down the legs (Nerve Discomfort), reduced mobility, and significant quality-of-life impact.</p>
 
         <div class="not-prose bg-navy-50 rounded-2xl p-6 my-8">
           <div class="flex gap-4">
@@ -88,7 +88,7 @@
 
         @foreach([
           ['Intervertebral Disc Degeneration', 'The discs between vertebrae act as shock absorbers. When they lose water content and height with age or overuse, vertebrae compress closer together — reducing space for spinal nerves and increasing pain signals.'],
-          ['Disc Herniation', 'When a disc\'s outer ring cracks, the softer inner nucleus can protrude and press directly on spinal nerves. This is a primary cause of sciatica — the shooting leg pain many back pain sufferers experience.'],
+          ['Disc Herniation', 'When a disc\'s outer ring cracks, the softer inner nucleus can protrude and press directly on spinal nerves. This is a primary cause of Nerve Discomfort — the shooting leg pain many back pain sufferers experience.'],
           ['Muscular Imbalance & Weakness', 'Modern sedentary lifestyles create predictable patterns of muscular imbalance: tight hip flexors, weak glutes, and overstressed lumbar erectors. This alters spinal loading in ways that accelerate disc degeneration.'],
           ['Spinal Stenosis', 'A narrowing of the spinal canal that compresses nerve roots, causing pain, numbness, and weakness — especially in older adults. Often presents alongside degenerative disc disease.'],
           ['Poor Postural Habits', 'Extended periods of flexion-dominant posture (desk work, driving, phone use) create sustained compressive forces on lumbar discs and habituate the spinal extensors into a weakened, lengthened state.'],
@@ -148,7 +148,7 @@
         <div class="card p-5">
           <h4 class="font-semibold text-navy-900 mb-3">Related Topics</h4>
           <div class="space-y-2">
-            @foreach(['Sciatica Relief', 'Posture Correction', 'Neck Pain', 'Lumbar Decompression', 'Recovery Protocol'] as $topic)
+            @foreach(['Nerve Discomfort Relief', 'Posture Correction', 'Neck Pain', 'Lumbar Decompression', 'Recovery Protocol'] as $topic)
             <a href="#" class="flex items-center justify-between py-2 text-sm text-slate-600 hover:text-navy-700 border-b border-slate-50 last:border-0 transition-colors">
               {{ $topic }}
               <svg class="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>

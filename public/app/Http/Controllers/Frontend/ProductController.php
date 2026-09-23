@@ -32,6 +32,66 @@ class ProductController extends Controller
             )
             : [];
 
+        // --- INJECT BUNDLES ---
+        $bundles = \App\Support\SupabaseDb::run(function () use ($locale) {
+            // Fetch bundles matching the requested locale or fallback to English
+            $found = \App\Models\Supabase\ProductBundle::where('locale', $locale)->get();
+            if ($found->isEmpty() && $locale !== 'en') {
+                $found = \App\Models\Supabase\ProductBundle::where('locale', 'en')->get();
+                
+                // Translate EN bundles dynamically
+                if (config('services.auto_translate.enabled', true)) {
+                    $translator = app(\App\Services\ContentTranslationService::class);
+                    foreach ($found as $bundle) {
+                        try {
+                            $bundle->title = $translator->translateContent($bundle->title, 'en', $locale);
+                            if ($bundle->description) {
+                                $bundle->description = $translator->translateContent($bundle->description, 'en', $locale);
+                            }
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::warning("Failed to translate bundle on products page: " . $e->getMessage());
+                        }
+                    }
+                }
+            }
+            return $found;
+        }, collect());
+
+        foreach ($bundles as $bundle) {
+            $imageUrl = null;
+            $imgs = $bundle->images;
+            if (is_string($imgs)) {
+                $decoded = json_decode($imgs, true);
+                if (is_array($decoded)) {
+                    $imgs = $decoded;
+                }
+            }
+
+            if (!empty($imgs) && is_array($imgs)) {
+                if (isset($imgs['url'])) {
+                    $imageUrl = $imgs['url'];
+                } elseif (isset($imgs[0]['url'])) {
+                    $imageUrl = $imgs[0]['url'];
+                } elseif (isset($imgs[0]) && is_string($imgs[0])) {
+                    $imageUrl = $imgs[0];
+                }
+            }
+            
+            $products[] = [
+                'id' => 'bundle_' . $bundle->id,
+                'title' => $bundle->title,
+                'handle' => $bundle->slug,
+                'status' => 'active',
+                'image' => $imageUrl,
+                'price' => $bundle->price ?? 0,
+                'compare_at' => null,
+                'variants' => [],
+                'variant_count' => 1,
+                'updated_at' => $bundle->updated_at->toIso8601String(),
+                'is_bundle' => true,
+            ];
+        }
+
         $error = $result['success'] ? null : ($result['error'] ?? 'Could not load products from Shopify.');
 
         // --- Search / Filter (client-side params, server-side filtering) ---
@@ -194,7 +254,7 @@ class ProductController extends Controller
 
         // §6.2–6.3 JSON-LD @graph (cached 24h) — prefer locale CMS, else EN for schema only
         $schemaContent = $dbContent ?? ($overlay['content_en'] ?? null);
-        $productJsonLd = $jsonLdBuilder->buildProductSchema($dbProduct, $schemaContent);
+        $productJsonLd = $jsonLdBuilder->buildProductSchema($dbProduct, $schemaContent, $product);
 
         $relatedLinks = collect();
         $breadcrumbs = app(\App\Services\BreadcrumbBuilder::class)->forProduct(

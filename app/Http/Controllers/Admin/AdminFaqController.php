@@ -255,7 +255,7 @@ class AdminFaqController extends AdminController
     }
 
     /**
-     * Explicit "Save & Publish" — clears storefront cache so customer page matches admin.
+     * Explicit "Save & Publish" â€” clears storefront cache so customer page matches admin.
      */
     public function publish(Request $request)
     {

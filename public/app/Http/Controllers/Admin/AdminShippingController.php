@@ -36,7 +36,8 @@ class AdminShippingController extends AdminController
             // ignore
         }
 
-        return redirect('/dainely-admin-panel/shipping')
+        return back()
             ->with('success', 'Free shipping threshold updated to $'.number_format($amount, 2).'. Customers will see this on the site and at checkout.');
     }
 }
+

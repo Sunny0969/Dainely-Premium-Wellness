@@ -1,12 +1,22 @@
 @props(['title' => null, 'content' => null])
 @php
-    $raw = trim((string) $content);
-    $url = $raw;
-    // Allow bare YouTube/Vimeo URL or full iframe HTML
-    if (! str_contains($raw, '<iframe') && preg_match('~(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([\w\-]+)~i', $raw, $m)) {
-        $url = 'https://www.youtube.com/embed/' . $m[1];
-    } elseif (! str_contains($raw, '<iframe') && preg_match('~vimeo\.com/(?:video/)?(\d+)~i', $raw, $m)) {
+    $contentStr = trim((string) $content);
+    $url = '';
+    $rawIframe = '';
+
+    if (str_contains(strtolower($contentStr), '<iframe')) {
+        $rawIframe = $contentStr;
+    } elseif (preg_match('~(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([\w\-]+)~i', $contentStr, $m)) {
+        $url = 'https://www.youtube.com/embed/' . $m[1] . '?rel=0';
+    } elseif (preg_match('~vimeo\.com/(?:video/)?(\d+)~i', $contentStr, $m)) {
         $url = 'https://player.vimeo.com/video/' . $m[1];
+    } else {
+        $stripped = trim(strip_tags($contentStr));
+        if (preg_match('~(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([\w\-]+)~i', $stripped, $m)) {
+            $url = 'https://www.youtube.com/embed/' . $m[1] . '?rel=0';
+        } elseif (preg_match('~vimeo\.com/(?:video/)?(\d+)~i', $stripped, $m)) {
+            $url = 'https://player.vimeo.com/video/' . $m[1];
+        }
     }
 @endphp
 <section class="video-block py-12 bg-slate-50 border-t border-gray-100">
@@ -15,9 +25,9 @@
             <h2 class="text-3xl font-bold text-navy-800 mb-6 text-center">{{ $title }}</h2>
         @endif
         <div class="relative w-full overflow-hidden rounded-2xl shadow-lg bg-black aspect-video">
-            @if(str_contains($raw, '<iframe'))
+            @if($rawIframe !== '')
                 <div class="absolute inset-0 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0">
-                    {!! $raw !!}
+                    {!! $rawIframe !!}
                 </div>
             @elseif($url !== '')
                 <iframe
@@ -27,6 +37,7 @@
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen
                     loading="lazy"
+                    referrerpolicy="strict-origin-when-cross-origin"
                 ></iframe>
             @else
                 <div class="absolute inset-0 flex items-center justify-center text-white/70 text-sm">
@@ -36,3 +47,4 @@
         </div>
     </div>
 </section>
+

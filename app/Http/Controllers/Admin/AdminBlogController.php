@@ -10,17 +10,35 @@ use Illuminate\Support\Str;
 
 class AdminBlogController extends AdminController
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         if (!$this->flashIfSupabaseOffline('Blogs Manager')) {
             return redirect('/dainely-admin-panel/dashboard');
         }
 
-        $posts = BlogPost::with('translations', 'category')
-            ->orderBy('id', 'desc')
-            ->get();
+        $query = BlogPost::with(['translations' => function($q) {
+            $q->select('id', 'blog_post_id', 'locale', 'title', 'slug');
+        }, 'category'])->orderBy('id', 'desc');
+        
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('translations', function ($q) use ($search) {
+                $q->where('title', 'ilike', '%' . $search . '%');
+            });
+        }
 
-        return view('admin.blogs.index', compact('posts'));
+        if ($request->filled('category_id')) {
+            $query->where('blog_category_id', $request->category_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_published', $request->status === 'published');
+        }
+
+        $posts = $query->paginate(20)->withQueryString();
+        $categories = BlogCategory::all();
+
+        return view('admin.blogs.index', compact('posts', 'categories'));
     }
 
     public function create()
@@ -55,7 +73,8 @@ class AdminBlogController extends AdminController
         if ($request->hasFile('featured_image')) {
             $file = $request->file('featured_image');
             $filename = time() . '-' . Str::slug($request->input('translations.en.title')) . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('images'), $filename);
+            $path = $file->storeAs('images', $filename, 's3');
+            $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
             $featuredImagePath = $filename;
         }
 
@@ -71,6 +90,12 @@ class AdminBlogController extends AdminController
         ]);
 
         $submittedTranslations = $request->input('translations', []);
+        foreach ($submittedTranslations as &$t) {
+            if (isset($t['content'])) {
+                $t['content'] = \App\Services\HtmlImageProcessor::processBase64Images($t['content']);
+            }
+        }
+        unset($t);
         $enFeaturedImageAlt = $request->input('translations.en.featured_image_alt');
 
         // Automatic translation for FR & DE
@@ -210,7 +235,8 @@ class AdminBlogController extends AdminController
             }
             $file = $request->file('featured_image');
             $filename = time() . '-' . Str::slug($request->input('translations.en.title', 'blog')) . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('images'), $filename);
+            $path = $file->storeAs('images', $filename, 's3');
+            $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
             $featuredImagePath = $filename;
         } elseif ($request->file('featured_image')) {
             // The file was sent but failed to upload (e.g. upload_max_filesize error)
@@ -235,6 +261,12 @@ class AdminBlogController extends AdminController
         ]);
 
         $submittedTranslations = $request->input('translations', []);
+        foreach ($submittedTranslations as &$t) {
+            if (isset($t['content'])) {
+                $t['content'] = \App\Services\HtmlImageProcessor::processBase64Images($t['content']);
+            }
+        }
+        unset($t);
         $enFeaturedImageAlt = $request->input('translations.en.featured_image_alt');
 
         // Automatic translation for FR & DE on Update
@@ -327,7 +359,7 @@ class AdminBlogController extends AdminController
             );
         }
 
-        return redirect('/dainely-admin-panel/blogs')->with('success', 'Blog post updated successfully with automatic translation.');
+        return back()->with('success', 'Blog post updated successfully with automatic translation.');
     }
 
     public function destroy(int $id)
@@ -351,3 +383,7 @@ class AdminBlogController extends AdminController
         return redirect('/dainely-admin-panel/blogs')->with('success', 'Blog post deleted successfully.');
     }
 }
+
+
+
+

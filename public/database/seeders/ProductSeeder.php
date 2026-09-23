@@ -37,8 +37,8 @@ class ProductSeeder extends Seeder
             'slug'             => 'dainely-belt',
             'short_description'=> 'Medical-grade lumbar decompression belt targeting sciatic nerve relief and posture correction.',
             'description'      => '<p>A medical-grade lumbar decompression belt developed with board-certified physiotherapists. Engineered to decompress vertebrae, relieve sciatic pressure, and restore natural spinal alignment — not just mask pain.</p>',
-            'meta_title'       => 'Dainely Belt — Medical-Grade Lumbar Support for Back Pain & Sciatica',
-            'meta_description' => 'The Dainely Belt is a clinically developed lumbar decompression belt. Relieves sciatica, corrects posture. Free shipping over $29.99. 30-day guarantee.',
+            'meta_title'       => 'Dainely Belt — Medical-Grade Lumbar Support for Back Pain & Nerve Discomfort',
+            'meta_description' => 'The Dainely Belt is a clinically developed lumbar decompression belt. Relieves Nerve Discomfort, corrects posture. Free shipping over $29.99. 30-day guarantee.',
             'benefits'         => "Decompresses lumbar vertebrae\nReduces sciatic nerve pressure\nRestores natural posture\nBreathable all-day wear\nClinically developed with spine specialists",
         ]);
         ProductTranslation::create([

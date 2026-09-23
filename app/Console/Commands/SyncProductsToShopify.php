@@ -44,7 +44,7 @@ class SyncProductsToShopify extends Command
                 'body_html'    => $translation->description ?? '<p>' . $translation->short_description . '</p>',
                 'vendor'       => 'Dainely',
                 'product_type' => ucfirst($product->type),
-                'tags'         => 'dainely,wellness,back-pain,sciatica',
+                'tags'         => 'dainely,wellness,back-pain,Nerve Discomfort',
                 'status'       => 'active',
                 'variants'     => $this->buildVariants($product),
                 'images'       => array_values(array_filter($imageObjects)),

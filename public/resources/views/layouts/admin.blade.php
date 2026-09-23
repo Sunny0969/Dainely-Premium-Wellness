@@ -48,8 +48,11 @@
             <a href="/dainely-admin-panel/faqs" class="flex items-center px-4 py-2.5 rounded-lg font-medium hover:bg-slate-800 hover:text-white transition duration-150 {{ request()->is('dainely-admin-panel/faqs*') ? 'bg-slate-800 text-white' : '' }}">
                 FAQs Manager
             </a>
-            <a href="/dainely-admin-panel/signals" class="flex items-center px-4 py-2.5 rounded-lg font-medium hover:bg-slate-800 hover:text-white transition duration-150 {{ request()->is('dainely-admin-panel/signals*') ? 'bg-slate-800 text-white' : '' }}">
+            <a href="/dainely-admin-panel/signals" class="flex items-center px-4 py-2.5 rounded-lg font-medium hover:bg-slate-800 hover:text-white transition duration-150 {{ request()->is('dainely-admin-panel/signals') ? 'bg-slate-800 text-white' : '' }}">
                 Knowledge Signals
+            </a>
+            <a href="/dainely-admin-panel/signals/json-ld" class="flex items-center px-4 py-2.5 rounded-lg font-medium hover:bg-slate-800 hover:text-white transition duration-150 {{ request()->is('dainely-admin-panel/signals/json-ld*') ? 'bg-slate-800 text-white' : '' }}">
+                JSON-LD Schemas
             </a>
             <a href="/dainely-admin-panel/related" class="flex items-center px-4 py-2.5 rounded-lg font-medium hover:bg-slate-800 hover:text-white transition duration-150 {{ request()->is('dainely-admin-panel/related*') ? 'bg-slate-800 text-white' : '' }}">
                 Internal Links
@@ -59,6 +62,9 @@
             </a>
             <a href="/dainely-admin-panel/shipping" class="flex items-center px-4 py-2.5 rounded-lg font-medium hover:bg-slate-800 hover:text-white transition duration-150 {{ request()->is('dainely-admin-panel/shipping*') ? 'bg-slate-800 text-white' : '' }}">
                 Free Shipping
+            </a>
+            <a href="/dainely-admin-panel/backups" class="flex items-center px-4 py-2.5 rounded-lg font-medium hover:bg-slate-800 hover:text-white transition duration-150 {{ request()->is('dainely-admin-panel/backups*') ? 'bg-slate-800 text-white' : '' }}">
+                CMS Backups
             </a>
             <div class="pt-6 border-t border-slate-800 mt-6 space-y-2">
                 <a href="/" class="flex items-center px-4 py-2.5 rounded-lg font-medium text-slate-400 hover:text-white transition duration-150">
@@ -121,5 +127,41 @@
 
     @stack('admin_head')
     @stack('admin_scripts')
+
+    {{-- Global Admin Page Loader --}}
+    <div id="admin-global-loader" class="fixed inset-0 z-[999] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center hidden" aria-hidden="true">
+        <svg class="animate-spin w-14 h-14 text-white" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loader = document.getElementById('admin-global-loader');
+            
+            // Show on navigation
+            window.addEventListener('beforeunload', function() {
+                loader.classList.remove('hidden');
+            });
+
+            // Show on form submit
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    // Don't show loader if opening in a new tab or if JS prevents default
+                    if (this.getAttribute('target') !== '_blank' && !e.defaultPrevented) {
+                        loader.classList.remove('hidden');
+                    }
+                });
+            });
+        });
+
+        // Hide when page is restored from browser cache (back button)
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted) {
+                document.getElementById('admin-global-loader').classList.add('hidden');
+            }
+        });
+    </script>
 </body>
 </html>

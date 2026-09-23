@@ -9,8 +9,8 @@ class SeoService
     protected array $data = [];
 
     protected array $defaults = [
-        'title'       => 'Dainely — Premium Wellness Solutions for Back Pain & Sciatica',
-        'description' => 'Discover Dainely\'s medical-grade wellness products. Clinically developed for back pain, sciatica, posture correction and lasting mobility.',
+        'title'       => 'Dainely — Premium Wellness Solutions for Back Pain & Nerve Discomfort',
+        'description' => 'Discover Dainely\'s medical-grade wellness products. Clinically developed for back pain, Nerve Discomfort, posture correction and lasting mobility.',
         'image'       => '/images/og-default.jpg',
         'type'        => 'website',
     ];

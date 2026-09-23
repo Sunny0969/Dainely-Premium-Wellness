@@ -3,12 +3,34 @@
 @section('admin_title', 'Blogs Manager')
 
 @section('admin_content')
-<div class="mb-6 flex justify-between items-center">
+<div class="mb-6 flex justify-between items-center flex-wrap gap-4">
     <p class="text-sm text-slate-600">Create, edit, and delete database-backed blog posts for your storefront.</p>
-    <a href="/dainely-admin-panel/blogs/create" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg text-sm flex items-center gap-1.5 shadow-sm">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        Create Blog Post
-    </a>
+    <div class="flex items-center gap-4">
+        <form action="/dainely-admin-panel/blogs" method="GET" class="flex items-center gap-2">
+            <select name="category_id" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                        {{ $category->name }}
+                    </option>
+                @endforeach
+            </select>
+            <select name="status" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                <option value="published" {{ request('status') === 'published' ? 'selected' : '' }}>Published</option>
+                <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Draft</option>
+            </select>
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search title..." class="rounded-lg border border-slate-300 px-3 py-2 text-sm min-w-[200px]">
+            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg text-sm">Filter</button>
+            @if(request()->filled('search') || request()->filled('category_id') || request()->filled('status'))
+                <a href="/dainely-admin-panel/blogs" class="text-sm text-slate-500 hover:underline">Clear</a>
+            @endif
+        </form>
+        <a href="/dainely-admin-panel/blogs/create" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg text-sm flex items-center gap-1.5 shadow-sm">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Create Blog Post
+        </a>
+    </div>
 </div>
 
 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -83,5 +105,10 @@
             </tbody>
         </table>
     </div>
+    @if(method_exists($posts, 'links') && $posts->hasPages())
+        <div class="px-6 py-4 border-t border-slate-200">
+            {{ $posts->links() }}
+        </div>
+    @endif
 </div>
 @endsection

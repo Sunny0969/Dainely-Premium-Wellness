@@ -34,7 +34,11 @@
     </div>
 
     @foreach($blocks as $block)
-        <div class="page-block-wrapper my-6" id="block-{{ $block->id }}">
+        <div class="page-block-wrapper my-6 {{ !empty($block->bg_color) ? 'p-6 rounded-xl' : '' }}" id="block-{{ $block->id }}" 
+            @if(!empty($block->bg_color) || !empty($block->text_color)) 
+                style="{{ !empty($block->bg_color) ? 'background-color: ' . $block->bg_color . ';' : '' }} {{ !empty($block->text_color) ? 'color: ' . $block->text_color . ';' : '' }}"
+            @endif
+        >
             @includeIf('components.blocks.' . $block->block_type, [
                 'title' => $block->title,
                 'content' => $block->content,

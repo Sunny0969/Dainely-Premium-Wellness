@@ -34,12 +34,10 @@ class HomeController extends Controller
         $shopifyProductsError = $shopifyResult['success'] ? null : ($shopifyResult['error'] ?? null);
         $shopifyProductsSource = $shopifyResult['source'] ?? null;
 
-        // Reuse the same list — no extra Shopify round-trips for hero CTAs.
+        // Reuse the same list â€” no extra Shopify round-trips for hero CTAs.
         $featuredBelt = $this->findMappedProduct($mapped, ProductSlugResolver::resolveHandle('dainely-belt'), $locale);
         $dailyRelief  = $this->findMappedProduct($mapped, ProductSlugResolver::resolveHandle('daily-relief-system'), $locale);
-        $heroVideo    = is_file(public_path('videos/day-in-motion.mp4'))
-            ? asset('videos/day-in-motion.mp4')
-            : null;
+        $heroVideo    = \App\Models\Supabase\Setting::getValue('home_video_url');
 
         $educationPages = \App\Models\Catalog\EducationPage::where('is_active', true)
             ->orderBy('id', 'asc') // or created_at desc

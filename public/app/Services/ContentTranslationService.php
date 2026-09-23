@@ -12,7 +12,7 @@ use Throwable;
  * Translates admin overlay content from English into FR / DE.
  * Prefers DeepL when DEEPL_API_KEY is set; otherwise MyMemory (free, rate-limited).
  *
- * Optimized for admin "Translate EN → FR & DE": caches results, dedupes text
+ * Optimized for admin "Translate EN â†’ FR & DE": caches results, dedupes text
  * nodes, and runs MyMemory requests in parallel so the button does not hang
  * for minutes on rich HTML fields.
  */
@@ -66,7 +66,7 @@ class ContentTranslationService
             }
         }
 
-        // Translate every unique snippet → each target locale (cached + pooled).
+        // Translate every unique snippet â†’ each target locale (cached + pooled).
         $translations = $this->translateSnippetsToLocales(array_values($uniqueSnippets), $targets);
 
         foreach ($fieldPlans as $key => $plan) {
@@ -108,7 +108,7 @@ class ContentTranslationService
             return $content;
         }
 
-        if (! in_array($to, ['fr', 'de'], true)) {
+        if (! in_array($to, ['fr', 'de', 'nl'], true)) {
             throw new \InvalidArgumentException("Unsupported target locale: {$to}");
         }
 
@@ -199,8 +199,8 @@ class ContentTranslationService
             $responses = Http::pool(function (Pool $pool) use ($batch) {
                 foreach ($batch as $i => $job) {
                     $req = $pool->as((string) $i)
-                        ->timeout(8)
-                        ->connectTimeout(5);
+                        ->timeout(30)
+                        ->connectTimeout(10);
 
                     if ($this->shouldSkipSslVerify()) {
                         $req = $req->withoutVerifying();
@@ -297,7 +297,7 @@ class ContentTranslationService
         }
 
         // Skip pure whitespace / punctuation-only chunks.
-        if (preg_match('/^[\s\d\W]+$/u', $chunk) && ! preg_match('/[A-Za-zÀ-ÿ]/u', $chunk)) {
+        if (preg_match('/^[\s\d\W]+$/u', $chunk) && ! preg_match('/[A-Za-zÃ€-Ã¿]/u', $chunk)) {
             return false;
         }
 
@@ -419,7 +419,7 @@ class ContentTranslationService
 
     protected function http(): \Illuminate\Http\Client\PendingRequest
     {
-        $client = Http::timeout(8)->connectTimeout(5);
+        $client = Http::timeout(30)->connectTimeout(10);
 
         if ($this->shouldSkipSslVerify()) {
             $client = $client->withoutVerifying();

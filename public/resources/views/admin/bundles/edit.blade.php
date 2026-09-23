@@ -3,103 +3,191 @@
 @section('admin_title', 'Edit Bundle Components: ' . $bundle->title)
 
 @section('admin_content')
-<div class="space-y-8">
+<div class="space-y-6">
+    {{-- Back Button --}}
+    <div>
+        <a href="/{{ $adminBase ?? 'dainely-admin-panel' }}/bundles" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-navy-600 transition-colors bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm hover:shadow">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Back to Bundles
+        </a>
+    </div>
+
     {{-- Bundle Info --}}
     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <h2 class="text-lg font-bold text-slate-800 mb-6">Bundle Settings</h2>
-        <form action="/{{ $adminBase }}/bundles/{{ $bundle->id }}/update" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            @csrf
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Bundle Title</label>
-                <input type="text" name="title" value="{{ $bundle->title }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
-            </div>
+        <form id="bundle-edit-form" action="/{{ $adminBase }}/bundles/{{ $bundle->id }}/update" method="POST" enctype="multipart/form-data">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @csrf
+                <input type="hidden" name="bundle_shopify_product_id" value="{{ $bundle->bundle_shopify_product_id }}">
 
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Shopify Bundle Product GID</label>
-                <input type="text" name="bundle_shopify_product_id" value="{{ $bundle->bundle_shopify_product_id }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
-            </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Bundle Title</label>
+                    <input type="text" name="title" value="{{ $bundle->title }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Price ($)</label>
+                    <input type="number" name="price" value="{{ $bundle->price }}" step="0.01" min="0" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Bundle Image</label>
+                    <div class="flex items-center gap-4">
+                        <input type="file" name="image" accept="image/*" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-navy-50 file:text-navy-700 hover:file:bg-navy-100">
+                        @php
+                            $imgUrl = null;
+                            if (is_array($bundle->images) && isset($bundle->images['url'])) {
+                                $imgUrl = $bundle->images['url'];
+                            } elseif (is_string($bundle->images)) {
+                                $decoded = json_decode($bundle->images, true);
+                                if (is_array($decoded) && isset($decoded['url'])) $imgUrl = $decoded['url'];
+                            }
+                        @endphp
+                        @if($imgUrl)
+                            <img src="{{ $imgUrl }}" alt="Bundle Image" class="h-10 w-10 object-cover rounded shadow-sm border border-slate-200">
+                        @endif
+                    </div>
+                </div>
 
             <div class="md:col-span-2">
                 <label class="block text-sm font-semibold text-slate-700 mb-1">Description</label>
-                <textarea name="description" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">{{ $bundle->description }}</textarea>
+                <input type="hidden" name="description" id="hidden-description" value="{{ $bundle->description }}">
+                <div id="editor-description" class="bg-white rounded-b-lg border-x border-b border-slate-300" style="min-height: 200px;">
+                    {!! $bundle->description !!}
+                </div>
             </div>
 
-            <div class="md:col-span-2 flex justify-end">
-                <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition">
-                    Save Settings
+            <div class="md:col-span-2 mt-6">
+                <label class="block text-lg font-bold text-slate-800 mb-4 border-b pb-2">Bundle Components</label>
+                
+                <div id="components-container" class="space-y-4">
+                    @forelse($bundle->items as $index => $item)
+                        <div class="component-row space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-lg mt-4 relative">
+                            <button type="button" class="remove-row-btn absolute top-2 right-2 px-2 py-1 bg-rose-100 text-rose-600 rounded text-xs hover:bg-rose-200">Remove</button>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Product</label>
+                                <select name="components[{{ $index }}][product_id]" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" required>
+                                    <option value="">Select Component Product</option>
+                                    @foreach($products as $prod)
+                                        <option value="{{ $prod->id }}" {{ $item->product_id == $prod->id ? 'selected' : '' }}>{{ $prod->title }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Quantity</label>
+                                <input type="number" name="components[{{ $index }}][quantity]" value="{{ $item->quantity }}" min="1"  required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Qty">
+                            </div>
+                        </div>
+                    @empty
+                        <div class="component-row space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Product</label>
+                                <select name="components[0][product_id]" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" required>
+                                    <option value="">Select Component Product</option>
+                                    @foreach($products as $prod)
+                                        <option value="{{ $prod->id }}">{{ $prod->title }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Quantity</label>
+                                <input type="number" name="components[0][quantity]" value="1" min="1"  required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Qty">
+                            </div>
+                        </div>
+                    @endforelse
+                </div>
+                
+                <div class="mt-4 flex justify-center">
+                    <button type="button" id="add-component-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-bold py-2 px-4 rounded shadow-sm text-sm transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        Add Another Product
+                    </button>
+                </div>
+            </div>
+
+            <div class="md:col-span-2 flex justify-between items-center mt-6 pt-6 border-t border-slate-200">
+                <button type="button" onclick="if(confirm('Are you sure you want to permanently delete this bundle? This action cannot be undone.')) { document.getElementById('delete-bundle-form').submit(); }" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold px-6 py-3 rounded-lg shadow-sm transition">
+                    Delete Bundle
+                </button>
+                <button type="submit" class="bg-navy-600 hover:bg-navy-700 text-white font-bold px-8 py-3 rounded-lg shadow-sm transition">
+                    Save All Changes
                 </button>
             </div>
         </form>
-    </div>
-
-    {{-- Bundle Components list & Add Component form --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {{-- Add Component Product Form --}}
-        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-fit">
-            <h2 class="text-lg font-bold text-slate-800 mb-6">Add Component Product</h2>
-            <form action="/{{ $adminBase }}/bundles/{{ $bundle->id }}/items" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Select Product</label>
-                    <select name="product_id" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
-                        @foreach($products as $prod)
-                            <option value="{{ $prod->id }}">{{ $prod->title }} ({{ $prod->handle }})</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Quantity</label>
-                    <input type="number" name="quantity" value="1" min="1" max="10" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
-                </div>
-
-                <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-sm transition">
-                    Add Product Component
-                </button>
-            </form>
-        </div>
-
-        {{-- Existing Components list --}}
-        <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200">
-                <h2 class="text-lg font-bold text-slate-800">Component Products</h2>
-            </div>
-
-            <div class="divide-y divide-slate-200">
-                @forelse($bundle->items as $item)
-                    <div class="p-6 flex justify-between items-center gap-4">
-                        <div class="flex items-center gap-3">
-                            @if($item->product && $item->product->featured_image)
-                                <img src="{{ $item->product->featured_image }}" class="w-12 h-12 object-cover rounded-lg border border-slate-200">
-                            @else
-                                <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">
-                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                                </div>
-                            @endif
-                            <div>
-                                <strong class="block text-slate-900 text-base">
-                                    {{ $item->product ? $item->product->title : 'Deleted Product' }}
-                                </strong>
-                                <span class="text-sm text-slate-500">
-                                    Quantity: {{ $item->quantity }} | Price: ${{ number_format(($item->product ? $item->product->price : 0), 2) }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div>
-                            <form action="/{{ $adminBase }}/bundles/{{ $bundle->id }}/items/{{ $item->id }}/delete" method="POST" onsubmit="return confirm('Are you sure you want to remove this product component?');">
-                                @csrf
-                                <button type="submit" class="text-rose-600 hover:text-rose-800 text-sm font-bold">
-                                    Remove
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                @empty
-                    <div class="px-6 py-8 text-center text-slate-400">No product components added yet.</div>
-                @endforelse
-            </div>
-        </div>
+        <form id="delete-bundle-form" action="/{{ $adminBase }}/bundles/{{ $bundle->id }}/delete" method="POST" class="hidden">
+            @csrf
+        </form>
     </div>
 </div>
+
+@push('admin_scripts')
+<link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const editorElement = document.getElementById('editor-description');
+        if (editorElement && typeof Quill !== 'undefined') {
+            const quill = new Quill('#editor-description', {
+                theme: 'snow',
+                modules: {
+                    table: true,
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, 4, false] }],
+                        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['link', 'image', 'video'],
+                        ['table'],
+                        ['clean']
+                    ]
+                }
+            });
+
+            const form = document.getElementById('bundle-edit-form');
+            if (form) {
+                form.addEventListener('submit', function () {
+                    const hiddenDesc = document.getElementById('hidden-description');
+                    if (hiddenDesc) {
+                        hiddenDesc.value = quill.root.innerHTML;
+                    }
+                });
+            }
+        }
+        
+        // Dynamic components script
+        const addBtn = document.getElementById('add-component-btn');
+        const container = document.getElementById('components-container');
+        if(addBtn && container) {
+            let rowCount = {{ max(count($bundle->items), 1) }};
+            addBtn.addEventListener('click', function() {
+                const row = document.createElement('div');
+                row.className = 'component-row space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-lg mt-4 relative';
+                row.innerHTML = `
+                    <button type="button" class="remove-row-btn absolute top-2 right-2 px-2 py-1 bg-rose-100 text-rose-600 rounded text-xs hover:bg-rose-200">Remove</button>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Product</label>
+                        <select name="components[${rowCount}][product_id]" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" required>
+                            <option value="">Select Component Product</option>
+                            @foreach($products as $product)
+                                <option value="{{ $product->id }}">{{ str_replace("'", "\\'", $product->title) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Quantity</label>
+                        <input type="number" name="components[${rowCount}][quantity]" value="1" min="1"  required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Qty">
+                    </div>
+                `;
+                container.appendChild(row);
+                rowCount++;
+            });
+
+            container.addEventListener('click', function(e) {
+                if(e.target.classList.contains('remove-row-btn')) {
+                    e.target.closest('.component-row').remove();
+                }
+            });
+        }
+    });
+</script>
+@endpush
 @endsection

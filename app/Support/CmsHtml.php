@@ -26,8 +26,8 @@ class CmsHtml
         }
 
         // Strip media that should never appear in product overlay fields.
-        $html = preg_replace('/<img\b[^>]*>/i', '', $html) ?? $html;
-        $html = preg_replace('/<\/?picture\b[^>]*>/i', '', $html) ?? $html;
+// Image stripping removed
+// Picture stripping removed
 
         // Drop pasted Word/TinyMCE font overrides so the storefront stays one typeface.
         $html = preg_replace('/\s*face\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html) ?? $html;
@@ -64,7 +64,7 @@ class CmsHtml
             $html
         ) ?? $html;
 
-        // Plain text → real paragraphs (double newline = new paragraph).
+        // Plain text Ã¢â€ â€™ real paragraphs (double newline = new paragraph).
         if ($html === strip_tags($html)) {
             return self::plainToParagraphs($html);
         }
