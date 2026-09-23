@@ -1,0 +1,36 @@
+﻿{
+  "ci": {
+    "collect": {
+      "url": [
+        "https://dainely.com/",
+        "https://dainely.com/products/example-product",
+        "https://dainely.com/pages/landing-page",
+        "https://dainely.com/education",
+        "https://dainely.com/blog"
+      ],
+      "numberOfRuns": 1,
+      "settings": {
+        "formFactor": "mobile",
+        "throttlingMethod": "simulate",
+        "screenEmulation": {
+          "mobile": true,
+          "width": 360,
+          "height": 640,
+          "deviceScaleFactor": 2,
+          "disabled": false
+        }
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["warn", {"minScore": 0.8}],
+        "largest-contentful-paint": ["warn", {"maxNumericValue": 2500}],
+        "cumulative-layout-shift": ["error", {"maxNumericValue": 0.1}],
+        "total-byte-weight": ["warn", {"maxNumericValue": 2000000}]
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}

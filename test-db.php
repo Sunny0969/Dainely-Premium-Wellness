@@ -1,0 +1,1 @@
+<?php require 'vendor/autoload.php'; \ = require_once 'bootstrap/app.php'; \ = \->make(Illuminate\Contracts\Console\Kernel::class); \->bootstrap(); \ = new App\Models\Supabase\WebhookLog(); \->source = 'Admin Panel'; \->event_type = 'test'; \->payload = ['test' => 'yes']; \->status = 'processed'; \->processed_at = now(); \->save(); var_dump(\->id);
