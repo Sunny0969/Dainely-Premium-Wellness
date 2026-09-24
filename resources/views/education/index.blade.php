@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Education & Resources | Dainely')
-@section('meta_description', 'Explore our comprehensive library of education and wellness resources.')
+@section('title', 'Health and Wellness Education Guides | Dainely')
+@section('meta_description', 'Learn practical ways to support movement, mobility, posture and recovery with educational resources designed to help you stay comfortable, active and well.')
 
 @section('content')
 

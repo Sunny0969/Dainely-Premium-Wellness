@@ -311,3 +311,63 @@ Route::get('/clear-brace-cache', function () {
 
 
 
+
+Route::get("/fix-german-issue", function () {
+    $fixedBlocks = 0;
+    if (class_exists(\App\Models\Supabase\PageBlock::class)) {
+        $blocks = \App\Models\Supabase\PageBlock::where("locale", "en")
+            ->where("title", "like", "%Medizinischer%")
+            ->get();
+        foreach ($blocks as $block) {
+            $block->title = "Medical Disclaimer";
+            $block->content = "<p><em>The information provided on this site is for general educational and informational purposes only. It is not intended to diagnose, treat, cure, or prevent any disease, condition, or injury, and it should not be considered medical advice.</em></p><p><em>Physical activity and exercise needs vary from person to person. Consult a qualified healthcare professional if you have a medical condition, recent injury, significant mobility or balance concerns, or questions about the appropriate type or amount of activity for you.</em></p><p><em>Dainely products are designed for general support and comfort and are not intended to replace professional medical evaluation, diagnosis, or treatment.</em></p>";
+            $block->save();
+            $fixedBlocks++;
+        }
+    }
+    
+    $fixedPages = 0;
+    if (class_exists(\App\Models\Catalog\EducationPage::class)) {
+        $pages = \App\Models\Catalog\EducationPage::where("locale", "en")->get();
+        foreach ($pages as $page) {
+            $needsSave = false;
+            if ($page->content_blocks) {
+                $cb = $page->content_blocks;
+                foreach ($cb as &$block) {
+                    if (isset($block["title"]) && str_contains($block["title"], "Medizinischer")) {
+                        $block["title"] = "Medical Disclaimer";
+                        $block["content"] = "<p><em>The information provided on this site is for general educational and informational purposes only. It is not intended to diagnose, treat, cure, or prevent any disease, condition, or injury, and it should not be considered medical advice.</em></p><p><em>Physical activity and exercise needs vary from person to person. Consult a qualified healthcare professional if you have a medical condition, recent injury, significant mobility or balance concerns, or questions about the appropriate type or amount of activity for you.</em></p><p><em>Dainely products are designed for general support and comfort and are not intended to replace professional medical evaluation, diagnosis, or treatment.</em></p>";
+                        $needsSave = true;
+                    }
+                }
+                if ($needsSave) {
+                    $page->content_blocks = $cb;
+                    $page->save();
+                    $fixedPages++;
+                }
+            }
+        }
+    }
+
+    \Illuminate\Support\Facades\Artisan::call("cache:clear");
+    \Illuminate\Support\Facades\Artisan::call("view:clear");
+    return "Fixed $fixedBlocks page blocks and $fixedPages education pages. Cache cleared. Please refresh the page.";
+});
+
+
+Route::get('/fix-recovery-seo', function () {
+    \App\Models\Catalog\EducationPage::where('slug', 'recovery-relaxation')->update([
+        'meta_title' => 'Recovery and Relaxation Guide for Active Lifestyles | Dainely',
+        'meta_description' => 'Learn practical recovery and relaxation habits covering sleep, movement, hydration, nutrition and rest to help build a sustainable active lifestyle routine.'
+    ]);
+    \Illuminate\Support\Facades\Cache::flush();
+    return 'SEO updated for recovery-relaxation! Now visit /en/education/recovery-relaxation';
+});
+
+Route::get('/fix-recovery-seo', function () {
+    \App\Models\Catalog\EducationPage::where('slug', 'recovery-relaxation')->update([
+        'title' => 'Recovery and Relaxation Guide for Active Lifestyles | Dainely'
+    ]);
+    \Illuminate\Support\Facades\Cache::flush();
+    return 'Title updated!';
+});

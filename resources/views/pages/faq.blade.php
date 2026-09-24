@@ -1,6 +1,6 @@
-@extends('layouts.app')
-@section('title', 'FAQ — Frequently Asked Questions | Dainely')
-@section('meta_description', 'Find answers to common questions about the Dainely Belt, shipping, returns, sizing, and how our products work to relieve back pain and sciatica.')
+﻿@extends('layouts.app')
+@section('title', 'Dainely FAQs About Products, Support and Wellness')
+@section('meta_description', 'Get answers about Dainely products, sizing, shipping, returns, guarantees and product use with practical information to help you choose and use products.')
 
 @section('content')
 
@@ -32,25 +32,25 @@ $freeShipFaqAmount = app(\App\Services\CurrencyService::class)->formatForLocale(
 );
 $faqs = [
   'Product & Science' => [
-    ['How does the Dainely Belt relieve back pain?', 'The Dainely Belt uses targeted lumbar decompression — inflatable air cells gently separate the vertebrae, reducing disc pressure and sciatic nerve compression. This addresses the root cause rather than masking symptoms.'],
-    ['How quickly will I see results?', 'Most customers report meaningful pain reduction within 7–14 days of consistent daily use (2–3 hours per day). 87% of users report measurable improvement within 4 weeks.'],
+    ['How does the Dainely Belt relieve back pain?', 'The Dainely Belt uses targeted lumbar decompression â€” inflatable air cells gently separate the vertebrae, reducing disc pressure and sciatic nerve compression. This addresses the root cause rather than masking symptoms.'],
+    ['How quickly will I see results?', 'Most customers report meaningful pain reduction within 7â€“14 days of consistent daily use (2â€“3 hours per day). 87% of users report measurable improvement within 4 weeks.'],
     ['Is the Dainely Belt clinically validated?', 'Yes. The belt was co-developed with board-certified physiotherapists over 3 years. Our design is based on peer-reviewed research on lumbar support mechanics and sciatica nerve decompression.'],
-    ['Can I wear it while working at a desk?', 'Absolutely. The belt is designed for extended wear — the breathable fabric and adjustable compression make it comfortable for 2–4 hours of seated use. Many customers wear it during their work day.'],
+    ['Can I wear it while working at a desk?', 'Absolutely. The belt is designed for extended wear â€” the breathable fabric and adjustable compression make it comfortable for 2â€“4 hours of seated use. Many customers wear it during their work day.'],
     ['Does it work for sciatica specifically?', 'Yes. By reducing lumbar disc pressure, the belt directly alleviates the nerve compression that causes sciatic pain. Many customers with diagnosed sciatica report significant relief within 2 weeks.'],
   ],
   'Sizing & Fit' => [
-    ['How do I choose my size?', 'Measure your waist circumference at the belly button level. S/M fits 28"–36", L/XL fits 37"–44", 2XL fits 45"–52", 3XL fits 53"+. When in doubt, size up for comfort.'],
-    ['What if the size doesn\'t fit?', 'We offer free exchanges within 60 days of purchase. Simply contact support with your order number and preferred size — we handle the rest.'],
+    ['How do I choose my size?', 'Measure your waist circumference at the belly button level. S/M fits 28"â€“36", L/XL fits 37"â€“44", 2XL fits 45"â€“52", 3XL fits 53"+. When in doubt, size up for comfort.'],
+    ['What if the size doesn\'t fit?', 'We offer free exchanges within 60 days of purchase. Simply contact support with your order number and preferred size â€” we handle the rest.'],
     ['Can I wash the Dainely Belt?', 'Yes. Hand wash in cold water with mild detergent and air dry. Do not machine wash or tumble dry, as this may affect the air cell integrity.'],
   ],
   'Shipping & Delivery' => [
     ['Where do you ship to?', 'We ship worldwide. Free standard shipping is available on all orders over '.$freeShipFaqAmount.'. Express and tracked options are available at checkout.'],
-    ['How long does delivery take?', 'USA & Canada: 3–5 business days. Europe: 5–8 business days. Rest of World: 7–14 business days. Expedited options available at checkout.'],
-    ['Do you ship to my country?', 'We ship to 80+ countries. All available shipping destinations are shown at checkout. If yours is not listed, contact support — we can usually arrange delivery.'],
+    ['How long does delivery take?', 'USA & Canada: 3â€“5 business days. Europe: 5â€“8 business days. Rest of World: 7â€“14 business days. Expedited options available at checkout.'],
+    ['Do you ship to my country?', 'We ship to 80+ countries. All available shipping destinations are shown at checkout. If yours is not listed, contact support â€” we can usually arrange delivery.'],
   ],
   'Returns & Guarantee' => [
-    ['What is your return policy?', 'We offer a full 30-day money-back guarantee. If you are not completely satisfied, contact our support team within 60 days of delivery for a full refund — no questions asked.'],
-    ['How do I start a return?', 'Email ' . config('company.email') . ' with your order number and reason (optional). We will send a prepaid return label within 24 hours and process your refund within 3–5 business days of receiving the item.'],
+    ['What is your return policy?', 'We offer a full 30-day money-back guarantee. If you are not completely satisfied, contact our support team within 60 days of delivery for a full refund â€” no questions asked.'],
+    ['How do I start a return?', 'Email ' . config('company.email') . ' with your order number and reason (optional). We will send a prepaid return label within 24 hours and process your refund within 3â€“5 business days of receiving the item.'],
     ['Are there any conditions on the guarantee?', 'The only requirement is that the product is returned in resalable condition (original packaging). We do not require proof of defect or explanation for the refund.'],
   ],
 ];
@@ -102,7 +102,7 @@ $faqJsonLd = $jsonLd->buildFaqSchema($flatFaqs);
     <div class="mt-12 bg-navy-50 rounded-3xl p-8 text-center">
       <svg class="w-12 h-12 text-navy-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
       <h3 class="heading-card mb-2">Still Have Questions?</h3>
-      <p class="text-body mb-6">Our wellness specialists are available Monday–Friday, 9am–6pm EST.</p>
+      <p class="text-body mb-6">Our wellness specialists are available Mondayâ€“Friday, 9amâ€“6pm EST.</p>
       <div class="flex flex-wrap justify-center gap-4">
         <a href="#" class="btn-primary">Chat with Us</a>
         <a href="mailto:{{ config('company.email') }}" class="btn-outline">Email Support</a>
@@ -124,3 +124,4 @@ function filterFAQ(query) {
 @endpush
 
 @endsection
+

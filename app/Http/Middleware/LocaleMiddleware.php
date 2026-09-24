@@ -17,9 +17,7 @@ class LocaleMiddleware
 
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->getHost() === '127.0.0.1' && app()->environment('local') && $request->isMethod('GET')) {
-            return redirect()->to(str_replace('127.0.0.1', 'localhost', $request->fullUrl()));
-        }
+        /* 127.0.0.1 redirect removed */
 
         $routeLocale = $request->route('locale');
         $locale      = is_string($routeLocale) && in_array($routeLocale, $this->supported, true)
@@ -108,3 +106,4 @@ class LocaleMiddleware
             ->withCookie(cookie('locale', $locale, 525600));
     }
 }
+

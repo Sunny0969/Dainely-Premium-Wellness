@@ -1,5 +1,8 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 @section('title', $page->title)
+@if($page->slug === 'recovery-relaxation')
+@section('meta_description', 'Learn practical recovery and relaxation habits covering sleep, movement, hydration, nutrition and rest to help build a sustainable active lifestyle routine.')
+@endif
 
 @section('content')
 <main class="min-h-screen bg-slate-50">

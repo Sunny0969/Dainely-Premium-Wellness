@@ -90,6 +90,17 @@
 
   {{-- JSON-LD Structured Data Stack --}}
   @stack('json-ld')
+  {{-- Google Site Verification --}}
+  <meta name="google-site-verification" content="KLOG-bpPUFkGi-gjAIf48JcXX2otS8n3xQVhCla8bGc" />
+
+  {{-- Google Analytics (gtag.js) --}}
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-56C8977Q6N"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-56C8977Q6N');
+  </script>
 </head>
 <body class="min-h-screen flex flex-col" x-data="scrollTop()">
 <script>

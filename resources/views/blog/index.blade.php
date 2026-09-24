@@ -1,6 +1,6 @@
 ﻿@extends('layouts.app')
-@section('title', 'Wellness Blog Ã¢â‚¬â€ Back Pain, Sciatica & Posture Guides | Dainely')
-@section('meta_description', 'Expert articles on back pain relief, sciatica treatment, posture correction, and lumbar health from the Dainely medical team.')
+@section('title', 'Wellness Blog for Back Health and Mobility | Dainely')
+@section('meta_description', 'Read expert wellness guides on back pain, nerve discomfort, posture, mobility and recovery, with practical tips to help you stay active and move with confidence.')
 @section('og_image', asset('images/blog-hero-back-pain.jpg'))
 
 @section('content')
@@ -196,4 +196,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+
 

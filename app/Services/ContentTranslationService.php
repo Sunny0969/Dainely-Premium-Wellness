@@ -297,7 +297,7 @@ class ContentTranslationService
         }
 
         // Skip pure whitespace / punctuation-only chunks.
-        if (preg_match('/^[\s\d\W]+$/u', $chunk) && ! preg_match('/[A-Za-zÃ€-Ã¿]/u', $chunk)) {
+        if (preg_match('/^[\s\d\W]+$/u', $chunk) && ! preg_match('/\p{L}/u', $chunk)) {
             return false;
         }
 
