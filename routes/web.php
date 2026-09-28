@@ -165,7 +165,7 @@ Route::prefix('dainely-admin-panel')->group(function () {
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
     // Protected Admin Panel Routes
-    Route::middleware(['admin.auth'])->group(function () {
+    Route::middleware(['admin.auth', \App\Http\Middleware\ClearCacheOnAdminSave::class])->group(function () {
         Route::post('/editor-upload', [\App\Http\Controllers\Admin\AdminMediaController::class, 'uploadEditorImage']);
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 
