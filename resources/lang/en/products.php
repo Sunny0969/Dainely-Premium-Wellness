@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 return [
     'meta_title'       => 'Wellness and Support Products for Everyday Life | Dainely',

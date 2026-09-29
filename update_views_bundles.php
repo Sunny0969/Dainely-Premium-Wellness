@@ -1,4 +1,4 @@
-﻿
+
 <?php
 $views = new RecursiveIteratorIterator(new RecursiveDirectoryIterator("resources/views"));
 foreach ($views as $view) {

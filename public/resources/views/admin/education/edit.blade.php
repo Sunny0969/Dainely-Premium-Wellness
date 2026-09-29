@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 @section('admin_title', 'Edit Education Page')
 
 @section('admin_content')

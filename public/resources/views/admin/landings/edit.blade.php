@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('admin_title', 'Edit Landing Page: ' . $page->title)
 
