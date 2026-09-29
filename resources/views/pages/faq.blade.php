@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 @section('title', 'Dainely FAQs About Products, Support and Wellness')
 @section('meta_description', 'Get answers about Dainely products, sizing, shipping, returns, guarantees and product use with practical information to help you choose and use products.')
 

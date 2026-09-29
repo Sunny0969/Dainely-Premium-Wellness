@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 @section('title', 'Wellness Blog for Back Health and Mobility | Dainely')
 @section('meta_description', 'Read expert wellness guides on back pain, nerve discomfort, posture, mobility and recovery, with practical tips to help you stay active and move with confidence.')
 @section('og_image', asset('images/blog-hero-back-pain.jpg'))

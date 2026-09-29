@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 @section('title', 'About Dainely â€" Keep Moving. Keep Doing What You Love.')
 @section('meta_description', 'At Dainely, we create thoughtfully designed products, movement resources, and everyday wellness solutions to help adults stay comfortable and active.')
 

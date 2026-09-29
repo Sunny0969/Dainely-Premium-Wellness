@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 @section('title', ($article['meta_title'] ?? $article['title']) . ' | Dainely')
 @section('meta_description', $article['meta_description'] ?? $article['excerpt'] ?? '')
 @section('content')

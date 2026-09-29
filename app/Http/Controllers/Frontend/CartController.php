@@ -54,7 +54,7 @@ class CartController extends Controller
             $validated['handle'] ?? null,
         )) {
             $message = __('products.select_option');
-            if ($request->wantsJson()) {
+            if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => $message], 422);
             }
 
@@ -126,7 +126,7 @@ class CartController extends Controller
                         }
                     })->afterResponse();
 
-                    if ($request->wantsJson()) {
+                    if ($request->expectsJson()) {
                         return response()->json([
                             'success'      => true,
                             'message'      => $message,
@@ -145,7 +145,7 @@ class CartController extends Controller
             }
         }
 
-        if ($request->wantsJson()) {
+        if ($request->expectsJson()) {
             return response()->json([
                 'success'      => true,
                 'message'      => $message,
@@ -178,7 +178,7 @@ class CartController extends Controller
             CheckoutCart::updateQuantities($validated['line_quantities']);
         }
 
-        if (!$request->wantsJson()) {
+        if (!$request->expectsJson()) {
             return redirect()->back();
         }
 
@@ -186,7 +186,7 @@ class CartController extends Controller
     }
 
     /**
-     * Fast cart snapshot for async checkout hydrate (session only — no Shopify wait).
+     * Fast cart snapshot for async checkout hydrate (session only â€” no Shopify wait).
      */
     public function summary(): JsonResponse
     {
@@ -241,3 +241,4 @@ class CartController extends Controller
         return (string) (int) $variantId;
     }
 }
+

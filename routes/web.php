@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ProductController;
@@ -370,4 +370,30 @@ Route::get('/fix-recovery-seo', function () {
     ]);
     \Illuminate\Support\Facades\Cache::flush();
     return 'Title updated!';
+});
+
+Route::get('/fix-bom', function () {
+    $file = app_path('Http/Controllers/Frontend/CartController.php');
+    $content = file_get_contents($file);
+    $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
+    $content = ltrim($content);
+    file_put_contents($file, $content);
+    return 'BOM and spaces removed from CartController.php! You can now test Add to Cart.';
+});
+
+Route::get('/fix-all-boms', function () {
+    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(base_path()));
+    $count = 0;
+    foreach ($it as $file) {
+        if ($file->getExtension() === 'php') {
+            $path = $file->getPathname();
+            if (str_contains($path, 'vendor')) continue;
+            $c = file_get_contents($path);
+            if (str_starts_with($c, "\xEF\xBB\xBF")) {
+                file_put_contents($path, substr($c, 3));
+                $count++;
+            }
+        }
+    }
+    return 'BOMs removed from ' . $count . ' files! Cart JSON responses should now work properly.' ;
 });

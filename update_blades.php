@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $views = new RecursiveIteratorIterator(new RecursiveDirectoryIterator('resources/views'));
 foreach ($views as $view) {
     if ($view->isFile() && $view->getExtension() === 'php') {

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $dir = new RecursiveDirectoryIterator('resources/views');
 $ite = new RecursiveIteratorIterator($dir);
 foreach($ite as $file) {
