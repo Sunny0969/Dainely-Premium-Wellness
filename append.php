@@ -1,0 +1,1 @@
+<?php file_put_contents("routes/web.php", "\nRoute::get(\"/clear-cache\", function () {\n    \$out1 = shell_exec(\"composer dump-autoload 2>&1\");\n    \Illuminate\Support\Facades\Artisan::call(\"optimize:clear\");\n    return \"<pre>\" . \$out1 . \"\\nOptimize Clear:\\n\" . \Illuminate\Support\Facades\Artisan::output() . \"</pre>\";\n});\n", FILE_APPEND);

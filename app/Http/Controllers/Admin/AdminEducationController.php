@@ -140,7 +140,7 @@ class AdminEducationController extends AdminController
         if ($request->hasFile('hero_image_file')) {
             $file = $request->file('hero_image_file');
             $filename = time() . '_hero_' . $file->getClientOriginalName();
-            $path = $file->storeAs('images', $filename, 's3');
+            $path = $file->storePubliclyAs('dainely/media/education', $filename, 's3');
                     $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
             $validated['hero_image'] = $filename;
         }
@@ -161,7 +161,7 @@ class AdminEducationController extends AdminController
                 if (isset($blockFiles['image_file'])) {
                     $file = $blockFiles['image_file'];
                     $filename = time() . '_cb_' . $index . '_' . $file->getClientOriginalName();
-                    $path = $file->storeAs('images', $filename, 's3');
+                    $path = $file->storePubliclyAs('dainely/media/education', $filename, 's3');
                     $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
                     if (isset($contentBlocks[$index])) {
                         $contentBlocks[$index]['image'] = $filename;

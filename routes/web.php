@@ -397,3 +397,103 @@ Route::get('/fix-all-boms', function () {
     }
     return 'BOMs removed from ' . $count . ' files! Cart JSON responses should now work properly.' ;
 });
+
+Route::get('/fix-s3-images', function () {
+    try {
+        $files = \Illuminate\Support\Facades\Storage::disk('s3')->files('optimized/editor');
+        $count = 0;
+        foreach ($files as $file) {
+            \Illuminate\Support\Facades\Storage::disk('s3')->setVisibility($file, 'public');
+            $count++;
+        }
+        return 'Successfully made ' . $count . ' images public!';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
+
+Route::get('/run-composer', function () {
+    $output = shell_exec('composer require league/flysystem-aws-s3-v3 2>&1');
+    return '<pre>' . $output . '</pre>';
+});
+
+Route::get("/clear-cache", function () {
+    $out1 = shell_exec("composer dump-autoload 2>&1");
+    \Illuminate\Support\Facades\Artisan::call("optimize:clear");
+    return "<pre>" . $out1 . "\nOptimize Clear:\n" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
+});
+
+Route::get("/run-composer-fix", function () {
+    chdir(base_path());
+    $out = shell_exec("composer require league/flysystem-aws-s3-v3 2>&1");
+    return "<pre>" . $out . "</pre>";
+});
+
+Route::get("/fix-blog-images", function () {
+    $postTranslation = App\Models\BlogPostTranslation::where("slug", "why-mobility-matters-after-50-7-simple-ways-to-keep-moving-with-confidence")->first();
+    if ($postTranslation) {
+        $content = $postTranslation->content;
+        $content = preg_replace("/https:\/\/media\.dainely\.com\/dainely-media\/optimized\/editor\/1789759755-[^\.]+\.jpg/", "/images/women-walking.jpg", $content);
+        $content = preg_replace("/https:\/\/media\.dainely\.com\/dainely-media\/optimized\/editor\/1789759756-[^\.]+\.jpg/", "/images/lifestyle-everyday-movement.webp", $content);
+        $content = preg_replace("/https:\/\/media\.dainely\.com\/dainely-media\/optimized\/editor\/1789759757-[^\.]+\.jpg/", "/images/lifestyle-dainely-in-motion.png", $content);
+        $content = preg_replace("/https:\/\/media\.dainely\.com\/dainely-media\/optimized\/editor\/[^\"]+?\.jpg/", "/images/hero-lifestyle.png", $content);
+        $postTranslation->content = $content;
+        $postTranslation->save();
+        return "Images replaced successfully!";
+    }
+    return "Post not found.";
+});
+
+Route::get("/flush-all-cache", function() { \Illuminate\Support\Facades\Cache::flush(); return "Cache flushed completely!"; });
+
+Route::get("/migrate-old-images", function () {
+    $log = [];
+    try {
+        // 1. Migrate Blogs
+        $blogs = App\Models\BlogPostTranslation::all();
+        foreach ($blogs as $blog) {
+            $changed = false;
+            $html = $blog->content;
+            
+            // Find all optimized/editor images in blog content
+            if (preg_match_all("/\/optimized\/editor\/([a-zA-Z0-9_.-]+)/", $html, $matches)) {
+                foreach ($matches[1] as $filename) {
+                    $oldPath = "optimized/editor/" . $filename;
+                    $newPath = "dainely/media/blogs/" . $filename;
+                    if (Storage::disk("s3")->exists($oldPath)) {
+                        Storage::disk("s3")->copy($oldPath, $newPath);
+                        $html = str_replace("optimized/editor/" . $filename, "dainely/media/blogs/" . $filename, $html);
+                        $changed = true;
+                        $log[] = "Copied $oldPath to $newPath";
+                    }
+                }
+            }
+            // Find all images/ in blog content
+            if (preg_match_all("/\/images\/([a-zA-Z0-9_.-]+)/", $html, $matches)) {
+                foreach ($matches[1] as $filename) {
+                    // Avoid matching /images/ (local) vs S3
+                    // The S3 ones have dainely-media/images/
+                    if (strpos($html, "dainely-media/images/" . $filename) !== false) {
+                        $oldPath = "images/" . $filename;
+                        $newPath = "dainely/media/blogs/" . $filename;
+                        if (Storage::disk("s3")->exists($oldPath)) {
+                            Storage::disk("s3")->copy($oldPath, $newPath);
+                            $html = str_replace("images/" . $filename, "dainely/media/blogs/" . $filename, $html);
+                            $changed = true;
+                            $log[] = "Copied $oldPath to $newPath";
+                        }
+                    }
+                }
+            }
+            
+            if ($changed) {
+                $blog->content = $html;
+                $blog->save();
+            }
+        }
+        
+        return "Migration complete! Log: <br>" . implode("<br>", $log);
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
