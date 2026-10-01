@@ -1,7 +1,15 @@
 <?php
-require __DIR__.'/vendor/autoload.php';
-$app = require_once __DIR__.'/bootstrap/app.php';
+require "vendor/autoload.php";
+$app = require_once "bootstrap/app.php";
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
-$tables = \Illuminate\Support\Facades\DB::select("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
-foreach($tables as $t) { echo $t->table_name . "\n"; }
+
+$postTranslation = App\Models\BlogPostTranslation::where("slug", "why-mobility-matters-after-50-7-simple-ways-to-keep-moving-with-confidence")->first();
+if ($postTranslation) {
+    if (strpos($postTranslation->content, "media.dainely.com") !== false) {
+        echo "YES! Still contains media.dainely.com!";
+    } else {
+        echo "NO! Successfully replaced in DB!";
+    }
+}
+

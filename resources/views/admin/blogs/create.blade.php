@@ -155,6 +155,7 @@ function selectLocalImage(quill) {
         if (/^image\//.test(file.type)) {
             const fd = new FormData();
             fd.append('image', file);
+            fd.append('folder_type', 'blogs');
             const csrfToken = document.querySelector('meta[name="csrf-token"]');
             const token = csrfToken ? csrfToken.getAttribute('content') : '';
             

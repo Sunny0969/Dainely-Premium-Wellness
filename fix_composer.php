@@ -1,0 +1,1 @@
+<?php file_put_contents("routes/web.php", "\nRoute::get(\"/run-composer-fix\", function () {\n    chdir(base_path());\n    \$out = shell_exec(\"composer require league/flysystem-aws-s3-v3 2>&1\");\n    return \"<pre>\" . \$out . \"</pre>\";\n});\n", FILE_APPEND);

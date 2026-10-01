@@ -28,8 +28,10 @@ class AdminMediaController extends Controller
 
             $filename = time() . '-' . Str::random(10) . '.' . $file->getClientOriginalExtension();
             
-            // Upload directly to S3 (E2)
-            $path = $file->storeAs('optimized/editor', $filename, 's3');
+            $folderType = $request->input('folder_type', 'optimized/editor');
+            $allowed = ['education', 'landing', 'blogs'];
+            $baseFolder = in_array($folderType, $allowed) ? "dainely/media/{$folderType}" : "optimized/editor";
+            $path = $file->storePubliclyAs($baseFolder, $filename, 's3');
             
             if (!$path) {
                 return response()->json(['success' => 0, 'message' => 'Failed to store image on the remote E2 server.'], 500);
