@@ -30,7 +30,16 @@ class AdminMediaController extends Controller
             
             $folderType = $request->input('folder_type', 'optimized/editor');
             $allowed = ['education', 'landing', 'blogs'];
-            $baseFolder = in_array($folderType, $allowed) ? "dainely/media/{$folderType}" : "optimized/editor";
+            
+            if (in_array($folderType, $allowed)) {
+                if ($folderType === 'landing') {
+                    $baseFolder = "landing-pages/general";
+                } else {
+                    $baseFolder = $folderType; // 'blogs' or 'education'
+                }
+            } else {
+                $baseFolder = "optimized/editor";
+            }
             $path = $file->storePubliclyAs($baseFolder, $filename, 's3');
             
             if (!$path) {

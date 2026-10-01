@@ -153,6 +153,10 @@ class AdminLandingController extends AdminController
                 'text_color' => 'nullable|string|max:7',
             ]);
 
+            if (!empty($validated['content'])) {
+                $validated['content'] = \App\Services\HtmlImageProcessor::processBase64Images($validated['content'], 'landing-pages/' . $page->slug);
+            }
+
             $page->pageBlocks()->create([
                 'locale' => $page->locale,
                 'block_type' => $validated['block_type'],
@@ -186,6 +190,10 @@ class AdminLandingController extends AdminController
                 'bg_color' => 'nullable|string|max:7',
                 'text_color' => 'nullable|string|max:7',
             ]);
+
+            if (!empty($validated['content'])) {
+                $validated['content'] = \App\Services\HtmlImageProcessor::processBase64Images($validated['content'], 'landing-pages/' . $page->slug);
+            }
 
             $block->update($validated);
 

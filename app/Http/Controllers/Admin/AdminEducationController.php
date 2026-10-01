@@ -116,24 +116,24 @@ class AdminEducationController extends AdminController
     {
         // PROCESS ALL BASE64 IMAGES FROM QUILL EDITOR FIRST
         if (!empty($validated['hero_description'])) {
-            $validated['hero_description'] = \App\Services\HtmlImageProcessor::processBase64Images($validated['hero_description']);
+            $validated['hero_description'] = \App\Services\HtmlImageProcessor::processBase64Images($validated['hero_description'], 'education');
         }
         if (!empty($validated['treatments_description'])) {
-            $validated['treatments_description'] = \App\Services\HtmlImageProcessor::processBase64Images($validated['treatments_description']);
+            $validated['treatments_description'] = \App\Services\HtmlImageProcessor::processBase64Images($validated['treatments_description'], 'education');
         }
         if (isset($validated['figures']) && is_array($validated['figures'])) {
             foreach ($validated['figures'] as &$item) {
-                if (!empty($item['label'])) $item['label'] = \App\Services\HtmlImageProcessor::processBase64Images($item['label']);
+                if (!empty($item['label'])) $item['label'] = \App\Services\HtmlImageProcessor::processBase64Images($item['label'], 'education');
             }
         }
         if (isset($validated['root_causes']) && is_array($validated['root_causes'])) {
             foreach ($validated['root_causes'] as &$item) {
-                if (!empty($item['description'])) $item['description'] = \App\Services\HtmlImageProcessor::processBase64Images($item['description']);
+                if (!empty($item['description'])) $item['description'] = \App\Services\HtmlImageProcessor::processBase64Images($item['description'], 'education');
             }
         }
         if (isset($validated['content_blocks']) && is_array($validated['content_blocks'])) {
             foreach ($validated['content_blocks'] as &$item) {
-                if (!empty($item['content'])) $item['content'] = \App\Services\HtmlImageProcessor::processBase64Images($item['content']);
+                if (!empty($item['content'])) $item['content'] = \App\Services\HtmlImageProcessor::processBase64Images($item['content'], 'education');
             }
         }
         

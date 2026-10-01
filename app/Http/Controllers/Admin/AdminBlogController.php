@@ -92,7 +92,7 @@ class AdminBlogController extends AdminController
         $submittedTranslations = $request->input('translations', []);
         foreach ($submittedTranslations as &$t) {
             if (isset($t['content'])) {
-                $t['content'] = \App\Services\HtmlImageProcessor::processBase64Images($t['content']);
+                $t['content'] = \App\Services\HtmlImageProcessor::processBase64Images($t['content'], 'blogs');
             }
         }
         unset($t);
@@ -263,7 +263,7 @@ class AdminBlogController extends AdminController
         $submittedTranslations = $request->input('translations', []);
         foreach ($submittedTranslations as &$t) {
             if (isset($t['content'])) {
-                $t['content'] = \App\Services\HtmlImageProcessor::processBase64Images($t['content']);
+                $t['content'] = \App\Services\HtmlImageProcessor::processBase64Images($t['content'], 'blogs');
             }
         }
         unset($t);
