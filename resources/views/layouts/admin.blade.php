@@ -64,6 +64,9 @@
                 <a href="/" class="flex items-center px-4 py-2.5 rounded-lg font-medium text-slate-400 hover:text-white transition duration-150">
                     ← Back to Storefront
                 </a>
+                <a href="/dainely-admin-panel/profile" class="flex items-center px-4 py-2.5 rounded-lg font-medium text-slate-400 hover:text-white transition duration-150">
+                    ⚙️ Admin Settings
+                </a>
                 <form action="/dainely-admin-panel/logout" method="POST">
                     @csrf
                     <button type="submit" class="w-full flex items-center px-4 py-2.5 rounded-lg font-medium text-rose-400 hover:bg-rose-950 hover:text-rose-200 transition duration-150 text-left">

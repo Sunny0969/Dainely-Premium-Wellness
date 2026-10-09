@@ -38,6 +38,7 @@
                 <p class="text-red-500 text-sm mt-1 font-bold">{{ $message }}</p>
             @enderror
         </div>
+        
         {{-- Basic Info --}}
         <div>
             <h2 class="text-xl font-bold mb-4 border-b pb-2">1. Basic Info</h2>
@@ -72,6 +73,25 @@
             </div>
         </div>
 
+        {{-- SEO Info --}}
+        <div>
+            <h2 class="text-xl font-bold mb-4 border-b pb-2">SEO Info</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-bold mb-1">Meta Title</label>
+                    <input type="text" name="meta_title" value="{{ old('meta_title', $page->meta_title) }}" class="w-full border p-2 rounded">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Canonical URL</label>
+                    <input type="text" name="canonical_url" value="{{ old('canonical_url', $page->canonical_url) }}" class="w-full border p-2 rounded">
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="block font-bold mb-1">Meta Description</label>
+                <textarea name="meta_description" class="w-full border p-2 rounded" rows="3">{{ old('meta_description', $page->meta_description) }}</textarea>
+            </div>
+        </div>
+
         {{-- Layout Order --}}
         <div>
             <h2 class="text-xl font-bold mb-4 border-b pb-2">Layout Ordering</h2>
@@ -92,15 +112,14 @@
                         'content_blocks' => 'Extra Text Blocks'
                     ];
                 @endphp
-                
-                @foreach($currentOrder as $sectionKey)
-                    @if(isset($labels[$sectionKey]))
-                    <div class="bg-white border p-3 rounded shadow-sm flex items-center justify-between cursor-move" data-id="{{ $sectionKey }}">
-                        <div class="flex items-center gap-3">
-                            <span class="text-gray-400">â‹®â‹®</span>
-                            <span class="font-semibold">{{ $labels[$sectionKey] }}</span>
+                @foreach($currentOrder as $item)
+                    @if(isset($labels[$item]))
+                        <div class="bg-white border p-3 rounded cursor-move flex items-center justify-between shadow-sm" data-id="{{ $item }}">
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-400">☰</span>
+                                <span class="font-medium text-sm text-slate-700">{{ $labels[$item] }}</span>
+                            </div>
                         </div>
-                    </div>
                     @endif
                 @endforeach
             </div>
@@ -130,15 +149,21 @@
                         <span class="text-xs text-gray-500">Provide an external URL...</span>
                     </div>
                     <div>
+                        <label class="block font-bold mb-1">OR Media Library ID</label>
+                        <input type="number" name="hero_media_id" value="{{ old('hero_media_id', $page->hero_media_id) }}" class="w-full border p-2 rounded" placeholder="e.g. 15">
+                        <span class="text-xs text-gray-500">Overrides URL</span>
+                    </div>
+                    <div>
                         <label class="block font-bold mb-1">OR Upload Hero Image</label>
                         <input type="file" name="hero_image_file" class="w-full border p-1.5 bg-white rounded" accept="image/*">
                         <span class="text-xs text-gray-500">...or select a file from your computer (overrides URL)</span>
-                        <p class="text-xs text-rose-500 mt-1 font-medium">âš ï¸ Max file size: 2MB.</p>
+                        <p class="text-xs text-rose-500 mt-1 font-medium">⚠️ Max file size: 2MB.</p>
                     </div>
                 </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-bold mb-1">Author Name (e.g. Dr. Reinholt)</label>
+                        <label class="block font-bold mb-1">Author Name (e.g. Dr. Reinhalt)</label>
                         <input type="text" name="author_name" value="{{ old('author_name', $page->author_name) }}" class="w-full border p-2 rounded">
                     </div>
                     <div>
@@ -162,7 +187,7 @@
             <h2 class="text-xl font-bold mb-4 border-b pb-2">3. Figures (e.g. 80%, #1)</h2>
             <div class="space-y-2">
                 <template x-for="(fig, index) in figures" :key="fig._id">
-                    <div class="flex gap-3 items-start">
+                    <div class="flex gap-2 items-center">
                         <input type="text" x-model="fig.value" :name="`figures[${index}][value]`" placeholder="Value (e.g. 80%)" class="border p-2 rounded w-1/3">
                         
                         <div class="bg-white flex-1 w-full relative min-h-[100px]">
@@ -171,13 +196,13 @@
                         </div>
 
                         <div class="flex gap-2 ml-2 mt-2">
-                            <button type="button" x-show="index > 0" @click="figures.splice(index - 1, 0, figures.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">â†‘</button>
-                            <button type="button" x-show="index < figures.length - 1" @click="figures.splice(index + 1, 0, figures.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">â†“</button>
-                            <button type="button" @click="figures.splice(index, 1)" class="text-red-500 font-bold ml-2" title="Remove">X</button>
+                            <button type="button" x-show="index > 0" @click="figures.splice(index - 1, 0, figures.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">↑</button>
+                            <button type="button" x-show="index < figures.length - 1" @click="figures.splice(index + 1, 0, figures.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">↓</button>
+                            <button type="button" @click="figures.splice(index, 1)" class="text-red-600 hover:text-red-800 text-xl font-bold">&times;</button>
                         </div>
                     </div>
                 </template>
-                <button type="button" @click="figures.push({value: '', label: '', _id: Math.random()})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Figure</button>
+                <button type="button" @click="figures.push({value: '', label: '', _id: Math.random()})" class="text-sm text-blue-600 hover:underline">+ Add Figure</button>
             </div>
         </div>
 
@@ -190,20 +215,23 @@
             </div>
             <div class="space-y-4">
                 <template x-for="(cause, index) in rootCauses" :key="cause._id">
-                    <div class="border p-4 rounded bg-gray-50">
-                        <div class="flex justify-end items-center gap-4 mb-2">
-                            <button type="button" x-show="index > 0" @click="rootCauses.splice(index - 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">â†‘ Move Up</button>
-                            <button type="button" x-show="index < rootCauses.length - 1" @click="rootCauses.splice(index + 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">â†“ Move Down</button>
-                            <button type="button" @click="rootCauses.splice(index, 1)" class="text-red-500 hover:text-red-700 font-bold text-sm">Remove</button>
-                        </div>
+                    <div class="flex gap-3 items-start p-4 border rounded relative bg-gray-50 mb-4 group">
+                        <div class="flex-1 w-full">
                         <input type="text" x-model="cause.title" :name="`root_causes[${index}][title]`" placeholder="Cause Title" class="w-full border p-2 rounded mb-2">
                         <div class="bg-white">
                             <input type="hidden" x-model="cause.description" :name="`root_causes[${index}][description]`">
                             <div x-init="initQuill($el, $el.previousElementSibling, val => rootCauses[index].description = val)"></div>
                         </div>
                     </div>
+                    
+                    <div class="flex gap-2 ml-2">
+                        <button type="button" x-show="index > 0" @click="rootCauses.splice(index - 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">↑</button>
+                        <button type="button" x-show="index < rootCauses.length - 1" @click="rootCauses.splice(index + 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">↓</button>
+                        <button type="button" @click="rootCauses.splice(index, 1)" class="text-red-600 hover:text-red-800 text-xl font-bold">&times;</button>
+                    </div>
+                </div>
                 </template>
-                <button type="button" @click="rootCauses.push({title: '', description: '', _id: Math.random()})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Root Cause</button>
+                <button type="button" @click="rootCauses.push({title: '', description: '', _id: Math.random()})" class="text-sm text-blue-600 hover:underline">+ Add Root Cause</button>
             </div>
         </div>
 
@@ -229,35 +257,38 @@
                             <div x-init="initQuill($el, $el.previousElementSibling, val => treatments[index].text = val)"></div>
                         </div>
                         <div class="flex gap-2 ml-2">
-                            <button type="button" x-show="index > 0" @click="treatments.splice(index - 1, 0, treatments.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">â†‘</button>
-                            <button type="button" x-show="index < treatments.length - 1" @click="treatments.splice(index + 1, 0, treatments.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">â†“</button>
-                            <button type="button" @click="treatments.splice(index, 1)" class="text-red-500 font-bold ml-2" title="Remove">X</button>
+                            <button type="button" x-show="index > 0" @click="treatments.splice(index - 1, 0, treatments.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">↑</button>
+                            <button type="button" x-show="index < treatments.length - 1" @click="treatments.splice(index + 1, 0, treatments.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">↓</button>
+                            <button type="button" @click="treatments.splice(index, 1)" class="text-red-600 hover:text-red-800 text-xl font-bold">&times;</button>
                         </div>
                     </div>
                 </template>
-                <button type="button" @click="treatments.push({text: '', _id: Math.random()})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Bullet</button>
+                <button type="button" @click="treatments.push({text: '', _id: Math.random()})" class="text-sm text-blue-600 hover:underline">+ Add Bullet</button>
             </div>
         </div>
 
-        {{-- Extra Content Blocks --}}
+        {{-- Content Blocks --}}
         <div>
             <h2 class="text-xl font-bold mb-4 border-b pb-2">6. Extra Text Blocks</h2>
             <div class="space-y-4">
                 <template x-for="(block, index) in contentBlocks" :key="block._id">
-                    <div class="border p-4 rounded bg-gray-50">
-                        <div class="flex justify-end items-center gap-4 mb-2">
-                            <button type="button" x-show="index > 0" @click="contentBlocks.splice(index - 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">â†‘ Move Up</button>
-                            <button type="button" x-show="index < contentBlocks.length - 1" @click="contentBlocks.splice(index + 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">â†“ Move Down</button>
-                            <button type="button" @click="contentBlocks.splice(index, 1)" class="text-red-500 hover:text-red-700 font-bold text-sm">Remove</button>
-                        </div>
+                    <div class="flex gap-3 items-start p-4 border rounded relative bg-gray-50 mb-4 group">
+                        <div class="flex-1 w-full">
                         <input type="text" x-model="block.title" :name="`content_blocks[${index}][title]`" placeholder="Block Heading (e.g. What is Sciatica?)" class="w-full border p-2 rounded mb-2">
                         <div class="bg-white">
                             <input type="hidden" x-model="block.content" :name="`content_blocks[${index}][content]`">
                             <div x-init="initQuill($el, $el.previousElementSibling, val => contentBlocks[index].content = val)"></div>
                         </div>
                     </div>
+                    
+                    <div class="flex gap-2 ml-2">
+                        <button type="button" x-show="index > 0" @click="contentBlocks.splice(index - 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">↑</button>
+                        <button type="button" x-show="index < contentBlocks.length - 1" @click="contentBlocks.splice(index + 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">↓</button>
+                        <button type="button" @click="contentBlocks.splice(index, 1)" class="text-red-600 hover:text-red-800 text-xl font-bold">&times;</button>
+                    </div>
+                </div>
                 </template>
-                <button type="button" @click="contentBlocks.push({title: '', content: '', _id: Math.random()})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Text Block</button>
+                <button type="button" @click="contentBlocks.push({title: '', content: '', _id: Math.random()})" class="text-sm text-blue-600 hover:underline">+ Add Text Block</button>
             </div>
         </div>
 
@@ -335,10 +366,7 @@ function selectLocalImage(quill) {
         }
     };
 }
-            }).catch(e => alert('Upload failed'));
-        }
-    };
-}
+
 function educationForm() {
     return {
         figures: (@json(old('figures', $page->figures ?? []))).map(i => ({...i, _id: Math.random()})),
@@ -355,11 +383,18 @@ function educationForm() {
                 theme: 'snow',
                 modules: {
                     htmlEditButton: { msg: 'Edit HTML Code' },
-                    toolbar: [
-                        ['bold', 'italic', 'underline'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link', 'clean']
-                    ]
+                    toolbar: {
+                        container: [
+                            ['bold', 'italic', 'underline'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            ['link', 'clean', 'image']
+                        ],
+                        handlers: {
+                            image: function() {
+                                selectLocalImage(this.quill);
+                            }
+                        }
+                    }
                 }
             });
             

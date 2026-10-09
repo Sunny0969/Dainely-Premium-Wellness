@@ -140,7 +140,7 @@ class AdminEducationController extends AdminController
         if ($request->hasFile('hero_image_file')) {
             $file = $request->file('hero_image_file');
             $filename = time() . '_hero_' . $file->getClientOriginalName();
-            $path = $file->storePubliclyAs('dainely/media/education', $filename, 's3');
+            $path = $file->storePubliclyAs('dainely/media/Education', $filename, 's3');
                     $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
             $validated['hero_image'] = $filename;
         }
@@ -161,7 +161,7 @@ class AdminEducationController extends AdminController
                 if (isset($blockFiles['image_file'])) {
                     $file = $blockFiles['image_file'];
                     $filename = time() . '_cb_' . $index . '_' . $file->getClientOriginalName();
-                    $path = $file->storePubliclyAs('dainely/media/education', $filename, 's3');
+                    $path = $file->storePubliclyAs('dainely/media/Education', $filename, 's3');
                     $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
                     if (isset($contentBlocks[$index])) {
                         $contentBlocks[$index]['image'] = $filename;
@@ -298,10 +298,14 @@ class AdminEducationController extends AdminController
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255',
             'category' => 'nullable|string|max:255',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'canonical_url' => 'nullable|string|max:255',
             'hero_title' => 'nullable|string|max:255',
             'hero_description' => 'nullable|string',
             'hero_image' => 'nullable|string',
             'hero_image_file' => 'nullable|image|max:4096',
+            'hero_media_id' => 'nullable|integer',
             'author_image' => 'nullable|string',
             'author_name' => 'nullable|string|max:255',
             'author_role' => 'nullable|string|max:255',
