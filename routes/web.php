@@ -165,7 +165,9 @@ Route::prefix('dainely-admin-panel')->group(function () {
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
     // Protected Admin Panel Routes
-    Route::middleware(['admin.auth', \App\Http\Middleware\ClearCacheOnAdminSave::class])->group(function () {
+Route::middleware(['admin.auth', \App\Http\Middleware\ClearCacheOnAdminSave::class])->group(function () {
+Route::get('/profile', [AdminAuthController::class, 'profile'])->name('admin.profile');
+        Route::post('/profile', [AdminAuthController::class, 'updateProfile']);
         Route::post('/editor-upload', [\App\Http\Controllers\Admin\AdminMediaController::class, 'uploadEditorImage']);
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 
@@ -493,6 +495,118 @@ Route::get("/migrate-old-images", function () {
         }
         
         return "Migration complete! Log: <br>" . implode("<br>", $log);
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
+
+
+Route::get("/test-unsplash", function () {
+    try {
+        $url = "https://images.unsplash.com/photo-1664286074176-5206ee5dc878?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8YmVsdHLlbnwwfHwwfHx8Mg3D%CD";
+        $contents = file_get_contents($url);
+        $filename = "dummy-test-" . time() . ".jpg";
+        $path = "dainely/media/Landing page/" . $filename;
+        \Illuminate\Support\Facades\Storage::disk("s3")->put($path, $contents, "public");
+        $s3Url = \Illuminate\Support\Facades\Storage::disk("s3")->url($path);
+        
+        return "Success! Unsplash image uploaded to Landing page folder. URL: <a href=\"$s3Url\" target=\"_blank\">$s3Url</a>";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
+
+
+Route::get("/organize-all-media", function () {
+    $log = [];
+    
+    function processModel($model, $type, &$log, $slug = null) {
+        $changed = false;
+        $patterns = [
+            "blog" => "/(optimized\\/editor|images|dainely\\/media\\/blogs)\\/([^\s\\\"\\'\\<\\>]+)/i",
+            "edu" => "/(optimized\\/editor|images|dainely\\/media\\/education)\\/([^\s\\\"\\\'\\<\\>]+)/i",
+            "landing" => "/(optimized\\/editor|Landing Pages|Lanfing%20Pages|images|dainely\\/media\\/landing|dainely\\/media\\/Landing page)\\/([^\s\\\"\\\'\\<\\>]+)/i"
+        ];
+        $dest = [
+            "blog" => "dainely/blogs/",
+            "edu" => "dainely/media/Education/",
+            "landing" => "dainely/media/Landing page/"
+        ];
+        
+        $attrs = $model->getAttributes();
+        foreach ($attrs as $key => $val) {
+            if (is_string($val)) {
+                if (preg_match_all($patterns[$type], $val, $matches, PREG_SET_ORDER)) {
+                    foreach ($matches as $match) {
+                        $oldPath = $match[1] . "/" . $match[2];
+                        $newPath = $dest[$type];
+                        if ($slug) $newPath .= $slug . "/";
+                        $newPath .= $match[2];
+                        
+                        $copyOld = urldecode($oldPath);
+                        $copyNew = urldecode($newPath);
+
+                        if ($oldPath !== $newPath) {
+                            try {
+                                if (\Illuminate\Support\Facades\Storage::disk("s3")->exists($copyOld)) {
+                                    \Illuminate\Support\Facades\Storage::disk("s3")->copy($copyOld, $copyNew);
+                                } else {
+                                    // Try without urldecode
+                                    if (\Illuminate\Support\Facades\Storage::disk("s3")->exists($oldPath)) {
+                                        \Illuminate\Support\Facades\Storage::disk("s3")->copy($oldPath, $newPath);
+                                    }
+                                }
+                                $val = str_replace($oldPath, $newPath, $val);
+                                $val = str_replace(addcslashes($oldPath, "/"), addcslashes($newPath, "/"), $val);
+                                $changed = true;
+                                $log[] = "Moved $oldPath -> $newPath";
+                            } catch (\Exception $e) {
+                                $log[] = "Copy error for $oldPath: " . $e->getMessage();
+                            }
+                        }
+                    }
+                }
+                $attrs[$key] = $val;
+            }
+        }
+        
+        if ($changed) {
+            $model->setRawAttributes($attrs);
+            $model->save();
+        }
+    }
+
+    try {
+        // 1. Blogs
+        foreach (\App\Models\BlogPostTranslation::all() as $m) processModel($m, "blog", $log);
+        
+        // 2. Education
+        foreach (\App\Models\Catalog\EducationPage::all() as $m) processModel($m, "edu", $log);
+        
+        // 3. Landing Pages
+        foreach (\App\Models\Supabase\PageBlock::all() as $m) {
+            $slug = null;
+            if ($m->blockable_type === 'App\\Models\\Supabase\\LandingPage' && $m->blockable) {
+                $slug = $m->blockable->slug;
+            }
+            processModel($m, "landing", $log, $slug);
+        }
+        
+        return "Done! Log:<br>" . implode("<br>", $log);
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage() . " at line " . $e->getLine();
+    }
+});
+
+Route::get("/debug-media", function () {
+    $html = "<h2>Landing Page Blocks</h2><ul>";
+    try {
+        $blocks = \App\Models\Supabase\PageBlock::all();
+        foreach ($blocks as $b) {
+            $html .= "<li><b>Block {$b->id}</b>: " . htmlspecialchars($b->content) . "</li>";
+        }
+        $html .= "</ul>";
+        return $html;
     } catch (\Exception $e) {
         return "Error: " . $e->getMessage();
     }

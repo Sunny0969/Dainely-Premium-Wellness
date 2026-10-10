@@ -1,25 +1,8 @@
 <?php
-require __DIR__.'/vendor/autoload.php';
-$app = require_once __DIR__.'/bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
-$kernel->bootstrap();
-
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-
-$email = env('ADMIN_EMAIL');
-$password = env('ADMIN_PASSWORD');
-
-if ($email && $password) {
-    $user = User::updateOrCreate(
-        ['email' => $email],
-        [
-            'name' => 'Admin User',
-            'password' => Hash::make($password),
-            'email_verified_at' => now()
-        ]
-    );
-    echo "Success! Email: {$user->email}, Hash: {$user->password}";
-} else {
-    echo "Error: ADMIN_EMAIL or ADMIN_PASSWORD not found in .env";
-}
+$file = "resources/views/layouts/admin.blade.php";
+$content = file_get_contents($file);
+$content = str_replace(
+    "<form action=\"/dainely-admin-panel/logout\" method=\"POST\">",
+    "<a href=\"/dainely-admin-panel/profile\" class=\"flex/items-center px-4 py-2.5 rounded-lg font-medium text-slate-400 hover:text-white transition duration-150\">&#x9269; Admin Settings</a>\n                <form action=\"/dainely-admin-panel/logout\" method=\"POST\">",
+    $content
+N¬ô•±ï}¡’—}çΩπ—ïπ—Ã†ëô•±î∞ÄëçΩπ—ïπ–§

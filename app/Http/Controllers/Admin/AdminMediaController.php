@@ -28,18 +28,14 @@ class AdminMediaController extends Controller
 
             $filename = time() . '-' . Str::random(10) . '.' . $file->getClientOriginalExtension();
             
-            $folderType = $request->input('folder_type', 'optimized/editor');
-            $allowed = ['education', 'landing', 'blogs'];
-            
-            if (in_array($folderType, $allowed)) {
-                if ($folderType === 'landing') {
-                    $baseFolder = "landing-pages/general";
-                } else {
-                    $baseFolder = $folderType; // 'blogs' or 'education'
-                }
-            } else {
-                $baseFolder = "optimized/editor";
-            }
+$folderType = $request->input('folder_type', 'others');
+            $folderMap = [
+                'blogs' => 'dainely/blogs',
+                'education' => 'dainely/media/Education',
+                'landing' => 'dainely/media/Landing page',
+                'others' => 'dainely/media/others'
+            ];
+            $baseFolder = $folderMap[$folderType] ?? 'dainely/media/others';
             $path = $file->storePubliclyAs($baseFolder, $filename, 's3');
             
             if (!$path) {
