@@ -38,12 +38,30 @@ class BlogPost extends Model
 
     public function resolveFeaturedImage(): string
     {
-        $img = $this->featured_image;
+        $img = trim((string) $this->featured_image);
 
         if (empty($img)) {
-            return 'blog-hero-back-pain.jpg';
+            return asset('images/blog-hero-back-pain.jpg');
         }
 
-        return $img;
+        if (\Illuminate\Support\Str::startsWith($img, ['http://', 'https://', '//'])) {
+            return $img;
+        }
+
+        if (\Illuminate\Support\Str::startsWith($img, 'images/')) {
+            return asset($img);
+        }
+
+        if (file_exists(public_path('images/' . $img))) {
+            return asset('images/' . $img);
+        }
+
+        try {
+            if (\Illuminate\Support\Facades\Storage::disk('s3')->exists('blogs/' . $img)) {
+                return \Illuminate\Support\Facades\Storage::disk('s3')->url('blogs/' . $img);
+            }
+        } catch (\Throwable $e) {}
+
+        return asset('images/' . $img);
     }
 }

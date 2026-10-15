@@ -33,12 +33,18 @@
         @endif
     </div>
 
-    @foreach($blocks as $block)
-        <div class="page-block-wrapper my-6 {{ !empty($block->bg_color) ? 'p-6 rounded-xl' : '' }}" id="block-{{ $block->id }}" 
-            @if(!empty($block->bg_color) || !empty($block->text_color)) 
-                style="{{ !empty($block->bg_color) ? 'background-color: ' . $block->bg_color . ';' : '' }} {{ !empty($block->text_color) ? 'color: ' . $block->text_color . ';' : '' }}"
-            @endif
-        >
+    @foreach($blocks as $index => $block)
+        @php
+            $customBg = $block->bg_color;
+            $bgClass = '';
+            $styleAttr = '';
+            if (!empty($customBg)) {
+                $styleAttr = 'background-color: ' . e($customBg) . ';';
+            } else {
+                $bgClass = ($index % 2 === 0) ? 'bg-white' : 'bg-slate-50 border-y border-slate-100';
+            }
+        @endphp
+        <div class="page-block-wrapper py-6 {{ $bgClass }}" style="{{ $styleAttr }}" id="block-{{ $block->id }}">
             @includeIf('components.blocks.' . $block->block_type, [
                 'title' => $block->title,
                 'content' => $block->content,

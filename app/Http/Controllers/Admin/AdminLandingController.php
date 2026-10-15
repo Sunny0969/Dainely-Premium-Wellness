@@ -159,6 +159,8 @@ class AdminLandingController extends AdminController
                 'title' => $validated['title'],
                 'content' => $validated['content'],
                 'sort_order' => $validated['sort_order'],
+                'bg_color' => $validated['bg_color'] ?? null,
+                'text_color' => $validated['text_color'] ?? null,
                 'visible' => true,
             ]);
 

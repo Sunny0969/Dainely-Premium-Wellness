@@ -117,13 +117,26 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Block Content (Markdown or HTML)</label>
-                    <textarea name="content" rows="4" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></textarea>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Block Content (Markdown, HTML, or Image/Video URL)</label>
+                    <textarea name="content" rows="4" placeholder="Enter content, video URL, or HTML..." class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></textarea>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Sort Order</label>
-                    <input type="number" name="sort_order" value="0" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Background Style</label>
+                        <select name="bg_color" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                            <option value="">Default (Alternating)</option>
+                            <option value="#ffffff">White (#ffffff)</option>
+                            <option value="#f8fafc">Light Slate (#f8fafc)</option>
+                            <option value="#f1f5f9">Soft Gray (#f1f5f9)</option>
+                            <option value="#0f172a">Dark Navy (#0f172a)</option>
+                            <option value="#1e293b">Slate Navy (#1e293b)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Sort Order</label>
+                        <input type="number" name="sort_order" value="0" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                    </div>
                 </div>
 
                 <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-sm transition">
@@ -178,7 +191,18 @@
                                     <label class="block text-xs font-bold text-slate-500 mb-1">Block Content</label>
                                     <textarea name="content" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" rows="3">{{ $block->content }}</textarea>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">Background Style</label>
+                                        <select name="bg_color" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs">
+                                            <option value="" {{ empty($block->bg_color) ? 'selected' : '' }}>Default (Alternating)</option>
+                                            <option value="#ffffff" {{ $block->bg_color === '#ffffff' ? 'selected' : '' }}>White</option>
+                                            <option value="#f8fafc" {{ $block->bg_color === '#f8fafc' ? 'selected' : '' }}>Light Slate</option>
+                                            <option value="#f1f5f9" {{ $block->bg_color === '#f1f5f9' ? 'selected' : '' }}>Soft Gray</option>
+                                            <option value="#0f172a" {{ $block->bg_color === '#0f172a' ? 'selected' : '' }}>Dark Navy</option>
+                                            <option value="#1e293b" {{ $block->bg_color === '#1e293b' ? 'selected' : '' }}>Slate Navy</option>
+                                        </select>
+                                    </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 mb-1">Sort Order</label>
                                         <input type="number" name="sort_order" value="{{ $block->sort_order }}" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm">

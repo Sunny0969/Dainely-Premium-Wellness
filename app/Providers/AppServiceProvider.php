@@ -18,11 +18,16 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Fail-fast Postgres connects (Supabase) — avoid 30s PHP fatal on hung TCP.
-        $this->app->bind('db.connector.pgsql', \App\Database\PostgresConnector::class);
+        if (class_exists(\App\Database\PostgresConnector::class)) {
+            $this->app->bind('db.connector.pgsql', \App\Database\PostgresConnector::class);
+        }
 
         // PG boolean bindings: keep true/false (not 0/1) for emulate-prepares / pooler.
         \Illuminate\Database\Connection::resolverFor('pgsql', function ($connection, $database, $prefix, $config) {
-            return new \App\Database\SupabasePostgresConnection($connection, $database, $prefix, $config);
+            if (class_exists(\App\Database\SupabasePostgresConnection::class)) {
+                return new \App\Database\SupabasePostgresConnection($connection, $database, $prefix, $config);
+            }
+            return new \Illuminate\Database\PostgresConnection($connection, $database, $prefix, $config);
         });
 
         // Hosting: subdomain docroot is dev.dainelylab.com/ or dainely.com/ (not public/).
@@ -76,7 +81,6 @@ class AppServiceProvider extends ServiceProvider
             static $shared = null;
 
             if ($shared === null) {
-                /** @var ShopifyService $shopify */
                 $shopify = app(ShopifyService::class);
 
                 $cacheKey = 'header_shopify_products_v2';
@@ -114,7 +118,6 @@ class AppServiceProvider extends ServiceProvider
                 });
 
                 $locale = app()->getLocale();
-                /** @var ProductTranslationService $productTranslations */
                 $productTranslations = app(ProductTranslationService::class);
                 $products = $productTranslations->applyMany($payload['products'] ?? [], $locale);
                 $featured = $payload['featured'] ?? null;
@@ -133,4 +136,3 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 }
-

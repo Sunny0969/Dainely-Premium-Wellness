@@ -73,7 +73,7 @@ class AdminBlogController extends AdminController
         if ($request->hasFile('featured_image')) {
             $file = $request->file('featured_image');
             $filename = time() . '-' . Str::slug($request->input('translations.en.title')) . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('dainely/blogs', $filename, 's3');
+            $path = $file->storePubliclyAs('blogs', $filename, 's3');
             $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
             $featuredImagePath = $filename;
         }
@@ -235,7 +235,7 @@ class AdminBlogController extends AdminController
             }
             $file = $request->file('featured_image');
             $filename = time() . '-' . Str::slug($request->input('translations.en.title', 'blog')) . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('dainely/blogs', $filename, 's3');
+            $path = $file->storePubliclyAs('blogs', $filename, 's3');
             $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
             $featuredImagePath = $filename;
         } elseif ($request->file('featured_image')) {

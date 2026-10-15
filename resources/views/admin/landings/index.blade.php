@@ -92,6 +92,11 @@
                 <div class="px-6 py-8 text-center text-slate-400">No landing pages created yet.</div>
             @endforelse
         </div>
+        @if(method_exists($landings, 'hasPages') && $landings->hasPages())
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200">
+                {{ $landings->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection

@@ -7,8 +7,20 @@
         <h1 class="text-2xl font-bold">{{ $page->exists ? 'Edit: ' . $page->title : 'Create New Education Page' }}</h1>
         <div class="flex items-center gap-4">
             <a href="{{ url('dainely-admin-panel/education') }}" class="text-gray-500 hover:text-gray-700">Back</a>
-            <button type="button" onclick="document.getElementById('education-form').submit();" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2 rounded-lg text-sm shadow-sm">
-                Save / Publish
+            <button type="button" 
+                    @click="submitForm()" 
+                    :disabled="submitting"
+                    class="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 disabled:cursor-not-allowed text-white font-bold px-6 py-2 rounded-lg text-sm shadow-sm inline-flex items-center gap-2 transition duration-150">
+                <template x-if="submitting">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </template>
+                <template x-if="!submitting">
+                    <span>&#9203;</span>
+                </template>
+                <span x-text="submitting ? 'Saving & Translating (FR, DE)... Please wait' : 'Save / Publish'"></span>
             </button>
         </div>
     </div>
@@ -21,22 +33,26 @@
         </div>
     @endif
 
-    <form id="education-form" action="{{ $page->exists ? url('dainely-admin-panel/education/'.$page->id) : url('dainely-admin-panel/education') }}" method="POST" enctype="multipart/form-data" class="space-y-8 bg-white p-6 shadow rounded">
+    <form id="education-form" @submit="submitting = true" action="{{ $page->exists ? url('dainely-admin-panel/education/'.$page->id) : url('dainely-admin-panel/education') }}" method="POST" enctype="multipart/form-data" class="space-y-8 bg-white p-6 shadow rounded">
         @csrf
         @if($page->exists)
             @method('PUT')
         @endif
 
-        <div class="mb-4">
-            <label class="block text-sm font-bold mb-2">Language (Locale) *</label>
-            <select name="locale" class="w-full border rounded p-2" required>
-                <option value="en" {{ old("locale", $page->locale ?? "en") == "en" ? "selected" : "" }}>English</option>
-                <option value="fr" {{ old("locale", $page->locale) == "fr" ? "selected" : "" }}>French</option>
-                <option value="de" {{ old("locale", $page->locale) == "de" ? "selected" : "" }}>German</option>
-            </select>
-            @error('locale')
-                <p class="text-red-500 text-sm mt-1 font-bold">{{ $message }}</p>
-            @enderror
+        <input type="hidden" name="locale" value="en">
+        <div class="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-600 text-white uppercase tracking-wide">
+                    Default: EN
+                </span>
+                <span class="text-slate-800 font-semibold">Editing in English (Master Source)</span>
+            </div>
+            <div class="text-xs text-slate-500 flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>French (FR) and German (DE) are automatically translated and synced when you save.</span>
+            </div>
         </div>
         
         {{-- Basic Info --}}
@@ -314,7 +330,20 @@
         </div>
 
         <div class="pt-6">
-            <button type="submit" class="w-full bg-blue-600 text-white font-bold text-lg py-3 rounded">Save Education Page</button>
+            <button type="submit" 
+                    :disabled="submitting"
+                    class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-bold text-lg py-3 rounded shadow inline-flex items-center justify-center gap-2 transition duration-150">
+                <template x-if="submitting">
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </template>
+                <template x-if="!submitting">
+                    <span>&#9203;</span>
+                </template>
+                <span x-text="submitting ? 'Saving & Translating (FR, DE)... Please wait' : 'Save Education Page'"></span>
+            </button>
         </div>
     </form>
 </div>
@@ -369,6 +398,15 @@ function selectLocalImage(quill) {
 
 function educationForm() {
     return {
+        submitting: false,
+        submitForm() {
+            if (this.submitting) return;
+            this.submitting = true;
+            const form = document.getElementById('education-form');
+            if (form) {
+                form.submit();
+            }
+        },
         figures: (@json(old('figures', $page->figures ?? []))).map(i => ({...i, _id: Math.random()})),
         rootCauses: (@json(old('root_causes', $page->root_causes ?? []))).map(i => ({...i, _id: Math.random()})),
         treatments: (@json(old('treatments', collect($page->treatments ?? [])->map(fn($t) => ['text' => $t])->toArray()))).map(i => ({...i, _id: Math.random()})),
@@ -378,29 +416,60 @@ function educationForm() {
                 setTimeout(() => this.initQuill(container, hiddenInputEl, updateCallback), 100);
                 return;
             }
-            Quill.register('modules/htmlEditButton', htmlEditButton);
-            let quill = new Quill(container, {
-                theme: 'snow',
-                modules: {
-                    htmlEditButton: { msg: 'Edit HTML Code' },
-                    toolbar: {
-                        container: [
-                            ['bold', 'italic', 'underline'],
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                            ['link', 'clean', 'image']
-                        ],
-                        handlers: {
-                            image: function() {
-                                selectLocalImage(this.quill);
-                            }
+
+            try {
+                if (typeof htmlEditButton !== 'undefined') {
+                    Quill.register('modules/htmlEditButton', htmlEditButton);
+                }
+            } catch(e) {}
+
+            try {
+                let Video = Quill.import('formats/video');
+                class SafeVideo extends Video {
+                    static create(value) {
+                        let node = super.create(value);
+                        node.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+                        node.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+                        return node;
+                    }
+                }
+                Quill.register(SafeVideo, true);
+            } catch(e) {}
+
+            let modules = {
+                toolbar: {
+                    container: [
+                        ['bold', 'italic', 'underline'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['link', 'clean', 'image', 'video']
+                    ],
+                    handlers: {
+                        image: function() {
+                            selectLocalImage(this.quill);
                         }
                     }
                 }
+            };
+
+            if (typeof htmlEditButton !== 'undefined') {
+                modules.htmlEditButton = { msg: 'Edit HTML Code' };
+            }
+
+            let quill = new Quill(container, {
+                theme: 'snow',
+                modules: modules
             });
             
             let initialVal = hiddenInputEl ? hiddenInputEl.value : '';
             if (initialVal) {
+                initialVal = initialVal.replace(/<iframe /gi, '<iframe referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ');
                 quill.clipboard.dangerouslyPasteHTML(initialVal);
+                setTimeout(() => {
+                    container.querySelectorAll('iframe').forEach(iframe => {
+                        iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+                        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+                    });
+                }, 100);
             }
             
             quill.on('text-change', function() {
@@ -434,6 +503,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
 @push('admin_head')
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <style>
   .ql-editor { min-height: 120px; font-family: inherit; font-size: inherit; }

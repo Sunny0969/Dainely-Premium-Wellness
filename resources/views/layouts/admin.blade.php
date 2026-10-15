@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>Dainely Admin CMS</title>
     {{-- CSS only — skip storefront app.js (checkout/cart) on every Admin click --}}
     @vite(['resources/css/app.css'])
