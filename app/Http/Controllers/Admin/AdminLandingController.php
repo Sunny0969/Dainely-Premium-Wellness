@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 class AdminLandingController extends AdminController
 {
     protected array $blockTypes = [
+        'rich',
         'benefits',
         'how-it-works',
         'testimonials',
@@ -52,17 +53,19 @@ class AdminLandingController extends AdminController
         return SupabaseDb::run(function () use ($request) {
             $validated = $request->validate([
                 'slug' => 'required|string|max:255',
-                'locale' => 'required|string|size:2',
                 'title' => 'required|string|max:255',
                 'meta_title' => 'nullable|string|max:255',
                 'meta_description' => 'nullable|string|max:1000',
-                'canonical_url' => 'nullable|string|max:255',
                 'shopify_product_id' => 'nullable|string|max:255',
                 'bundle_id' => 'nullable|integer',
                 'cta_label' => 'nullable|string|max:255',
                 'discount_code' => 'nullable|string|max:50',
                 'published' => 'required|boolean',
             ]);
+
+            // Admin authors in English only — FR/DE are produced by the storefront.
+            $validated['locale'] = 'en';
+            $validated['canonical_url'] = $this->autoCanonical('en', (string) $validated['slug']);
 
             LandingPage::create($validated);
             $this->forgetAdminCatalogCaches();
@@ -102,13 +105,17 @@ class AdminLandingController extends AdminController
                 'title' => 'required|string|max:255',
                 'meta_title' => 'nullable|string|max:255',
                 'meta_description' => 'nullable|string|max:1000',
-                'canonical_url' => 'nullable|string|max:255',
                 'shopify_product_id' => 'nullable|string|max:255',
                 'bundle_id' => 'nullable|integer',
                 'cta_label' => 'nullable|string|max:255',
                 'discount_code' => 'nullable|string|max:50',
                 'published' => 'required|boolean',
             ]);
+
+            $validated['canonical_url'] = $this->autoCanonical(
+                (string) ($page->locale ?: 'en'),
+                (string) $validated['slug']
+            );
 
             // Prefer one offer: if both provided, bundle wins when bundle_id set
             if (! empty($validated['bundle_id'])) {
@@ -229,6 +236,18 @@ class AdminLandingController extends AdminController
 
             return back()->with('success', 'Landing page deleted successfully!');
         }, fn () => back()->with('error', 'Database operation failed.'));
+    }
+
+    /**
+     * Canonical is derived server-side: {domain}/{locale}/{slug}.
+     * Admin never supplies it, so it can never drift from the real URL.
+     */
+    protected function autoCanonical(string $locale, string $slug): string
+    {
+        $locale = in_array($locale, ['en', 'fr', 'de'], true) ? $locale : 'en';
+        $slug = trim($slug, '/');
+
+        return rtrim(request()->getSchemeAndHttpHost(), '/').'/'.$locale.'/'.$slug;
     }
 }
 

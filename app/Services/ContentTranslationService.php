@@ -22,6 +22,21 @@ class ContentTranslationService
 
     protected const POOL_SIZE = 6;
 
+    /** Google answers one request per ~1.5k chars; longer text is split first. */
+    protected const GOOGLE_CHUNK = 1500;
+
+    /** Up to this many short snippets ride together, one response segment each. */
+    protected const GOOGLE_BATCH_COUNT = 4;
+
+    protected const GOOGLE_BATCH_CHARS = 2400;
+
+    protected const GOOGLE_BATCH_LINE = 900;
+
+    /** MyMemory free tier: ~1 request/second. Sequential + delayed, and capped. */
+    protected const MYMEMORY_MAX_CALLS = 60;
+
+    protected const MYMEMORY_DELAY_US = 350000;
+
     /**
      * @param  array<string, string|null>  $fields  keyed field => English HTML/text
      * @param  list<string>  $targets  e.g. ['fr','de']
@@ -152,7 +167,7 @@ class ContentTranslationService
             foreach ($targets as $locale) {
                 $cacheKey = $this->cacheKey($snippet, 'en', $locale);
                 $cached = Cache::get($cacheKey);
-                if (is_string($cached) && $cached !== '') {
+                if (is_string($cached) && $cached !== '' && ! $this->looksUntranslated($cached, $snippet)) {
                     $result[$snippet][$locale] = $cached;
                 } else {
                     $pending[] = [$snippet, $locale, $cacheKey];
@@ -168,7 +183,11 @@ class ContentTranslationService
             foreach ($pending as [$snippet, $locale, $cacheKey]) {
                 try {
                     $text = $this->viaDeepL($snippet, 'en', $locale);
-                    Cache::put($cacheKey, $text, now()->addDays(self::CACHE_TTL_DAYS));
+
+                    if (! $this->looksUntranslated($text, $snippet)) {
+                        Cache::put($cacheKey, $text, now()->addDays(self::CACHE_TTL_DAYS));
+                    }
+
                     $result[$snippet][$locale] = $text;
                 } catch (Throwable $e) {
                     Log::warning('DeepL snippet failed', ['error' => $e->getMessage()]);
@@ -179,65 +198,176 @@ class ContentTranslationService
             return $result;
         }
 
-        // MyMemory: chunk long texts, then pool HTTP requests.
-        $jobs = [];
-        foreach ($pending as [$snippet, $locale, $cacheKey]) {
-            foreach ($this->splitForMyMemory($snippet) as $partIndex => $part) {
-                $jobs[] = [
-                    'snippet' => $snippet,
-                    'locale' => $locale,
-                    'cacheKey' => $cacheKey,
-                    'partIndex' => $partIndex,
-                    'part' => $part,
-                ];
+        // Free providers. Google first (fast, no key, tolerates parallel calls),
+        // then MyMemory as a polite fallback — its free tier only allows about one
+        // request per second, so it must stay sequential and capped or the whole
+        // daily quota is burned by a single page and everything else stays English.
+        $meta = [];        // index => [snippet, locale, cacheKey]
+        $partResults = []; // "index\0partIndex" => translated text (null = failed)
+        $jobs = [];        // list of [i, partIndex, part, locale]
+        $jobsByIndex = []; // index => list of partIndex
+
+        foreach ($pending as $index => [$snippet, $locale, $cacheKey]) {
+            $meta[$index] = [$snippet, $locale, $cacheKey];
+
+            foreach ($this->splitText($snippet, self::GOOGLE_CHUNK) as $partIndex => $part) {
+                $jobs[] = ['i' => $index, 'partIndex' => $partIndex, 'part' => $part, 'locale' => $locale];
+                $jobsByIndex[$index][] = $partIndex;
             }
         }
 
-        $partResults = []; // snippet|locale|partIndex => translated
+        if (! $this->googleDisabled()) {
+            // Google returns exactly one response segment per input line, so a few
+            // short snippets can ride together and be split back apart by segment
+            // order — a whole page's worth of fields becomes a handful of requests
+            // instead of fifty.
+            $megaJobs = $this->batchGoogleJobs($jobs);
 
-        foreach (array_chunk($jobs, self::POOL_SIZE) as $batch) {
-            $responses = Http::pool(function (Pool $pool) use ($batch) {
-                foreach ($batch as $i => $job) {
-                    $req = $pool->as((string) $i)
-                        ->timeout(30)
-                        ->connectTimeout(10);
+            $googleBlocked = false;
 
-                    if ($this->shouldSkipSslVerify()) {
-                        $req = $req->withoutVerifying();
+            foreach (array_chunk($megaJobs, self::POOL_SIZE) as $batch) {
+                if ($googleBlocked) {
+                    // Google is throttling this client — don't burn the rest of the
+                    // batch on doomed calls; MyMemory below picks up the slack.
+                    break;
+                }
+
+                $responses = Http::pool(function (Pool $pool) use ($batch) {
+                    foreach ($batch as $i => $megaJob) {
+                        $req = $pool->as((string) $i)
+                            ->timeout(30)
+                            ->connectTimeout(10)
+                            ->withOptions($this->h2Options());
+
+                        if ($this->shouldSkipSslVerify()) {
+                            $req = $req->withoutVerifying();
+                        }
+
+                        $req->get('https://translate.googleapis.com/translate_a/single', [
+                            'client' => 'gtx',
+                            'sl' => 'en',
+                            'tl' => $megaJob['locale'],
+                            'dt' => 't',
+                            'q' => implode("\n", $megaJob['texts']),
+                        ]);
+                    }
+                });
+
+                foreach ($batch as $i => $megaJob) {
+                    $response = $responses[(string) $i] ?? null;
+
+                    if (
+                        is_object($response) && method_exists($response, 'status')
+                        && in_array($response->status(), [403, 429], true)
+                    ) {
+                        $googleBlocked = true;
+                        continue;
                     }
 
-                    $req->get('https://api.mymemory.translated.net/get', [
-                        'q' => $job['part'],
-                        'langpair' => 'en|'.$job['locale'],
-                        'de' => config('mail.from.address', 'admin@dainelylab.com'),
-                    ]);
-                }
-            });
+                    $segments = $this->parseGoogleSegments($response);
 
-            foreach ($batch as $i => $job) {
-                $response = $responses[(string) $i] ?? null;
-                $key = $job['snippet']."\0".$job['locale']."\0".$job['partIndex'];
-                $partResults[$key] = $this->parseMyMemoryResponse($response, $job['part']);
+                    if ($segments === null) {
+                        continue;
+                    }
+
+                    $texts = $megaJob['texts'];
+                    $keys = $megaJob['keys'];
+                    $translated = null;
+
+                    if (count($segments) === count($texts)) {
+                        $translated = array_map(fn ($s) => trim($s), $segments);
+                    } else {
+                        // Google splits a long line into several segments but keeps
+                        // the newlines between input lines, so rejoining and
+                        // re-splitting restores the original one-piece-per-snippet map.
+                        $rejoined = array_map(fn ($p) => trim($p), explode("\n", implode('', $segments)));
+
+                        if (count($rejoined) !== count($texts)) {
+                            $rejoined = array_values(array_filter($rejoined, fn ($p) => $p !== ''));
+                        }
+
+                        if (count($rejoined) === count($texts)) {
+                            $translated = $rejoined;
+                        } elseif (count($texts) === 1) {
+                            $translated = [trim(implode('', $segments))];
+                        }
+                    }
+
+                    if ($translated === null) {
+                        continue;
+                    }
+
+                    foreach ($translated as $k => $text) {
+                        if (! isset($keys[$k])) {
+                            break;
+                        }
+
+                        $partResults[$keys[$k]] = $text === '' ? null : $text;
+                    }
+                }
             }
         }
 
-        // Reassemble multi-part snippets and cache.
-        $grouped = [];
+        $calls = 0;
         foreach ($jobs as $job) {
-            $gKey = $job['snippet']."\0".$job['locale'];
-            $grouped[$gKey]['snippet'] = $job['snippet'];
-            $grouped[$gKey]['locale'] = $job['locale'];
-            $grouped[$gKey]['cacheKey'] = $job['cacheKey'];
-            $grouped[$gKey]['parts'][$job['partIndex']] = $partResults[
-                $job['snippet']."\0".$job['locale']."\0".$job['partIndex']
-            ] ?? $job['part'];
+            $key = $job['i']."\0".$job['partIndex'];
+            if (($partResults[$key] ?? null) !== null) {
+                continue;
+            }
+            if ($calls >= self::MYMEMORY_MAX_CALLS) {
+                break;
+            }
+
+            if ($calls > 0) {
+                usleep(self::MYMEMORY_DELAY_US);
+            }
+            $calls++;
+
+            $partResults[$key] = $this->viaMyMemory($job['part'], $job['locale']);
         }
 
-        foreach ($grouped as $group) {
-            ksort($group['parts']);
-            $text = implode(' ', $group['parts']);
-            Cache::put($group['cacheKey'], $text, now()->addDays(self::CACHE_TTL_DAYS));
-            $result[$group['snippet']][$group['locale']] = $text;
+        // Reassemble. Cache ONLY fully successful, actually-translated text —
+        // caching a fallback would freeze English text as the "translation" for 30 days.
+        $failedSnippets = 0;
+
+        foreach ($meta as $index => [$snippet, $locale, $cacheKey]) {
+            $parts = [];
+            $failed = false;
+
+            foreach ($jobsByIndex[$index] ?? [] as $partIndex) {
+                $text = $partResults[$index."\0".$partIndex] ?? null;
+
+                if ($text === null) {
+                    $failed = true;
+                    break;
+                }
+
+                $parts[$partIndex] = $text;
+            }
+
+            if ($failed || $parts === []) {
+                // Leave it English and do NOT cache: the next sync retries it.
+                $failedSnippets++;
+                $result[$snippet][$locale] = $snippet;
+
+                continue;
+            }
+
+            ksort($parts);
+            $text = implode(' ', $parts);
+
+            if (! $this->looksUntranslated($text, $snippet)) {
+                Cache::put($cacheKey, $text, now()->addDays(self::CACHE_TTL_DAYS));
+            }
+
+            $result[$snippet][$locale] = $text;
+        }
+
+        if ($failedSnippets > 0) {
+            Log::warning('Translation provider left some snippets in English — will retry.', [
+                'failed' => $failedSnippets,
+                'total' => count($meta),
+            ]);
         }
 
         // Fill any missing with original.
@@ -305,16 +435,18 @@ class ContentTranslationService
     }
 
     /**
+     * Sentence-aware splitting so long prose can travel in provider-sized pieces.
+     *
      * @return list<string>
      */
-    protected function splitForMyMemory(string $text): array
+    protected function splitText(string $text, int $limit = 450): array
     {
         $text = trim($text);
         if ($text === '') {
             return [];
         }
 
-        if (mb_strlen($text) <= 450) {
+        if (mb_strlen($text) <= $limit) {
             return [$text];
         }
 
@@ -323,7 +455,7 @@ class ContentTranslationService
         $buffer = '';
 
         foreach ($parts as $part) {
-            if (mb_strlen($buffer.' '.$part) > 450 && $buffer !== '') {
+            if (mb_strlen($buffer.' '.$part) > $limit && $buffer !== '') {
                 $out[] = $buffer;
                 $buffer = $part;
             } else {
@@ -338,41 +470,176 @@ class ContentTranslationService
         // Hard-split any remaining oversized piece.
         $final = [];
         foreach ($out as $piece) {
-            if (mb_strlen($piece) <= 450) {
+            if (mb_strlen($piece) <= $limit) {
                 $final[] = $piece;
                 continue;
             }
             $len = mb_strlen($piece);
-            for ($i = 0; $i < $len; $i += 450) {
-                $final[] = mb_substr($piece, $i, 450);
+            for ($i = 0; $i < $len; $i += $limit) {
+                $final[] = mb_substr($piece, $i, $limit);
             }
         }
 
         return $final;
     }
 
-    protected function parseMyMemoryResponse(mixed $response, string $fallback): string
+    protected function viaMyMemory(string $text, string $locale): ?string
+    {
+        $response = $this->http()->get('https://api.mymemory.translated.net/get', [
+            'q' => $text,
+            'langpair' => 'en|'.$locale,
+            'de' => config('mail.from.address', 'admin@dainelylab.com'),
+        ]);
+
+        return $this->parseMyMemoryResponse($response);
+    }
+
+    /**
+     * Pack short single-part snippets into shared requests (max count / length),
+     * grouped per locale. Anything long or multiline travels on its own.
+     *
+     * @param  list<array{i: int, partIndex: int, part: string, locale: string}>  $jobs
+     * @return list<array{locale: string, texts: list<string>, keys: list<string>, chars: int}>
+     */
+    protected function batchGoogleJobs(array $jobs): array
+    {
+        $megaJobs = [];
+        $open = []; // locale => index into $megaJobs
+
+        foreach ($jobs as $job) {
+            $text = $job['part'];
+            $key = $job['i']."\0".$job['partIndex'];
+            $length = mb_strlen($text);
+
+            $batchable = $job['partIndex'] === 0
+                && $length <= self::GOOGLE_BATCH_LINE
+                && ! str_contains($text, "\n");
+
+            $slot = $batchable && isset($open[$job['locale']]) ? $open[$job['locale']] : null;
+
+            if ($slot !== null) {
+                $megaJobs[$slot]['texts'][] = $text;
+                $megaJobs[$slot]['keys'][] = $key;
+                $megaJobs[$slot]['chars'] += $length + 1;
+
+                if (
+                    count($megaJobs[$slot]['texts']) >= self::GOOGLE_BATCH_COUNT
+                    || $megaJobs[$slot]['chars'] >= self::GOOGLE_BATCH_CHARS
+                ) {
+                    unset($open[$job['locale']]);
+                }
+
+                continue;
+            }
+
+            $megaJobs[] = [
+                'locale' => $job['locale'],
+                'texts' => [$text],
+                'keys' => [$key],
+                'chars' => $length,
+            ];
+
+            if ($batchable) {
+                $open[$job['locale']] = count($megaJobs) - 1;
+            }
+        }
+
+        return $megaJobs;
+    }
+
+    /**
+     * @return list<string>|null null = provider failed / unusable payload
+     */
+    protected function parseGoogleSegments(mixed $response): ?array
     {
         try {
             if (! is_object($response) || ! method_exists($response, 'successful') || ! $response->successful()) {
-                return $fallback;
+                return null;
+            }
+
+            $json = $response->json();
+
+            if (! is_array($json) || ! isset($json[0]) || ! is_array($json[0])) {
+                return null;
+            }
+
+            $segments = [];
+            foreach ($json[0] as $segment) {
+                if (is_array($segment) && isset($segment[0]) && is_string($segment[0])) {
+                    $segments[] = html_entity_decode($segment[0], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                }
+            }
+
+            return $segments === [] ? null : $segments;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    protected function googleDisabled(): bool
+    {
+        return filter_var(env('TRANSLATE_DISABLE_GOOGLE', false), FILTER_VALIDATE_BOOLEAN);
+    }
+
+    protected function parseMyMemoryResponse(mixed $response): ?string
+    {
+        try {
+            if (! is_object($response) || ! method_exists($response, 'successful') || ! $response->successful()) {
+                return null;
             }
 
             $translated = $response->json('responseData.translatedText');
             $status = (int) ($response->json('responseStatus') ?? 0);
 
             if ($status !== 200 || ! is_string($translated) || $translated === '') {
-                return $fallback;
+                return null;
             }
 
             if (str_starts_with(strtoupper($translated), 'INVALID ')) {
-                return $fallback;
+                return null;
             }
 
             return html_entity_decode($translated, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         } catch (Throwable) {
-            return $fallback;
+            return null;
         }
+    }
+
+    /**
+     * Public for callers that persist translations (education sync, page blocks):
+     * never write an "translation" that is still the English source.
+     */
+    public function isUntranslated(string $result, string $source): bool
+    {
+        return $this->looksUntranslated($result, $source);
+    }
+
+    /**
+     * A prose snippet whose "translation" still equals the English source is a
+     * poisoned entry left behind by a provider failure or rate limit.
+     *
+     * Two signals: a long run of identical text, or a full sentence of five or
+     * more words coming back byte-identical.
+     */
+    protected function looksUntranslated(string $cached, string $source): bool
+    {
+        if ($cached !== $source) {
+            return false;
+        }
+
+        $plain = trim(strip_tags($source));
+
+        if ($plain === '' || preg_match('/\p{L}/u', $plain) !== 1) {
+            return false;
+        }
+
+        if (mb_strlen($plain) > 40) {
+            return true;
+        }
+
+        $words = preg_split('/\s+/u', $plain, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        return count($words) >= 5;
     }
 
     protected function cacheKey(string $text, string $from, string $to): string
@@ -417,9 +684,20 @@ class ContentTranslationService
         return $text;
     }
 
+    /**
+     * Guzzle's curl handler negotiates HTTP/1.1, and Google's translate endpoints
+     * answer 429 Too Many Requests to plain HTTP/1.1 clients while serving HTTP/2
+     * normally. Forcing HTTP/2-over-TLS (curl falls back to 1.1 when unavailable)
+     * is the difference between every call failing and every call succeeding.
+     */
+    protected function h2Options(): array
+    {
+        return ['curl' => [CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2TLS]];
+    }
+
     protected function http(): \Illuminate\Http\Client\PendingRequest
     {
-        $client = Http::timeout(30)->connectTimeout(10);
+        $client = Http::timeout(30)->connectTimeout(10)->withOptions($this->h2Options());
 
         if ($this->shouldSkipSslVerify()) {
             $client = $client->withoutVerifying();

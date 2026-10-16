@@ -260,11 +260,18 @@ class AdminEducationController extends Controller
     public function syncTranslations(EducationPage $englishPage)
     {
         try {
+            // Every field × 2 locales is a real HTTP call now; the admin sync-all
+            // loop covers every page in one request, so make sure PHP is not
+            // killed mid-page.
+            @set_time_limit(300);
+
             $translator = app(\App\Services\ContentTranslationService::class);
             $targets = ['fr', 'de'];
-            
-            $textFields = ['title', 'hero_title', 'hero_description', 'author_role', 'root_causes_title', 'treatments_title', 'treatments_description'];
-            
+
+            // category is deliberately excluded: it is the English filter/grouping key
+            // the education index matches on. author_name is a person's name.
+            $textFields = ['title', 'hero_title', 'hero_description', 'author_role', 'read_time', 'root_causes_title', 'treatments_title', 'treatments_description'];
+
             $fieldsToTranslate = [];
 
             foreach ($textFields as $field) {
@@ -306,62 +313,131 @@ class AdminEducationController extends Controller
 
             $translatedPayloads = $translator->translateFields($fieldsToTranslate, $targets);
 
+            // A provider that fails (or rate-limits) hands back the English source.
+            // Never let that overwrite a translation we already have: take the fresh
+            // translation when it is real, otherwise keep what the locale row holds,
+            // otherwise fall back to English.
+            $pick = function (?string $fresh, ?string $existing, ?string $source): ?string {
+                $source = trim((string) $source);
+                $fresh = $fresh === null || $fresh === '' ? null : trim($fresh);
+                $existing = $existing === null || $existing === '' ? null : trim($existing);
+
+                if ($fresh !== null && $fresh !== $source) {
+                    return $fresh;
+                }
+
+                if ($existing !== null && $existing !== $source) {
+                    return $existing;
+                }
+
+                return null;
+            };
+
+            $columnNames = \Illuminate\Support\Facades\Schema::getColumnListing('education_pages');
+
             foreach ($targets as $locale) {
+                $localePage = EducationPage::where('slug', $englishPage->slug)->where('locale', $locale)->first();
+
                 $translatedData = $englishPage->toArray();
                 unset($translatedData['id'], $translatedData['created_at'], $translatedData['updated_at']);
                 $translatedData['locale'] = $locale;
-                
+
                 $p = $translatedPayloads[$locale] ?? [];
 
                 foreach ($textFields as $field) {
-                    if (!empty($p[$field])) $translatedData[$field] = $p[$field];
+                    $chosen = $pick(
+                        $p[$field] ?? null,
+                        $localePage->{$field} ?? null,
+                        $englishPage->{$field} ?? null
+                    );
+
+                    if ($chosen !== null) {
+                        $translatedData[$field] = $chosen;
+                    }
                 }
 
                 if (!empty($translatedData['figures'])) {
+                    $existingFigures = $localePage->figures ?? [];
                     foreach ($translatedData['figures'] as $idx => &$fig) {
-                        if (!empty($p["fig_{$idx}_val"])) $fig['value'] = $p["fig_{$idx}_val"];
-                        if (!empty($p["fig_{$idx}_label"])) $fig['label'] = $p["fig_{$idx}_label"];
+                        if (!is_array($fig)) continue;
+                        foreach (['value' => "fig_{$idx}_val", 'label' => "fig_{$idx}_label"] as $attr => $key) {
+                            if (!isset($fig[$attr])) continue;
+                            $chosen = $pick(
+                                $p[$key] ?? null,
+                                $existingFigures[$idx][$attr] ?? null,
+                                $fig[$attr]
+                            );
+                            if ($chosen !== null) $fig[$attr] = $chosen;
+                        }
                     }
+                    unset($fig);
                 }
 
                 if (!empty($translatedData['root_causes'])) {
+                    $existingRootCauses = $localePage->root_causes ?? [];
                     foreach ($translatedData['root_causes'] as $idx => &$rc) {
-                        if (!empty($p["rc_{$idx}_title"])) $rc['title'] = $p["rc_{$idx}_title"];
-                        if (!empty($p["rc_{$idx}_desc"])) $rc['description'] = $p["rc_{$idx}_desc"];
+                        if (!is_array($rc)) continue;
+                        foreach (['title' => "rc_{$idx}_title", 'description' => "rc_{$idx}_desc"] as $attr => $key) {
+                            if (!isset($rc[$attr])) continue;
+                            $chosen = $pick(
+                                $p[$key] ?? null,
+                                $existingRootCauses[$idx][$attr] ?? null,
+                                $rc[$attr]
+                            );
+                            if ($chosen !== null) $rc[$attr] = $chosen;
+                        }
                     }
+                    unset($rc);
                 }
 
                 if (!empty($translatedData['treatments'])) {
+                    $existingTreatments = $localePage->treatments ?? [];
                     foreach ($translatedData['treatments'] as $idx => &$tr) {
                         if (!is_array($tr)) {
-                            if (!empty($p["tr_{$idx}"])) $tr = $p["tr_{$idx}"];
-                        } elseif (!empty($p["tr_{$idx}_text"])) {
-                            $tr['text'] = $p["tr_{$idx}_text"];
+                            $chosen = $pick($p["tr_{$idx}"] ?? null, $existingTreatments[$idx] ?? null, $tr);
+                            if ($chosen !== null) $tr = $chosen;
+                        } elseif (isset($tr['text'])) {
+                            $chosen = $pick(
+                                $p["tr_{$idx}_text"] ?? null,
+                                $existingTreatments[$idx]['text'] ?? null,
+                                $tr['text']
+                            );
+                            if ($chosen !== null) $tr['text'] = $chosen;
                         }
                     }
+                    unset($tr);
                 }
 
                 if (!empty($translatedData['content_blocks'])) {
+                    $existingBlocks = $localePage->content_blocks ?? [];
                     foreach ($translatedData['content_blocks'] as $idx => &$cb) {
-                        if (!empty($p["cb_{$idx}_title"])) $cb['title'] = $p["cb_{$idx}_title"];
-                        if (!empty($p["cb_{$idx}_content"])) $cb['content'] = $p["cb_{$idx}_content"];
+                        if (!is_array($cb)) continue;
+                        foreach (['title' => "cb_{$idx}_title", 'content' => "cb_{$idx}_content"] as $attr => $key) {
+                            if (!isset($cb[$attr])) continue;
+                            $chosen = $pick(
+                                $p[$key] ?? null,
+                                $existingBlocks[$idx][$attr] ?? null,
+                                $cb[$attr]
+                            );
+                            if ($chosen !== null) $cb[$attr] = $chosen;
+                        }
                     }
+                    unset($cb);
                 }
 
-                $existingColumns = \Illuminate\Support\Facades\Schema::getColumnListing('education_pages');
-                $safeTranslated = array_intersect_key($translatedData, array_flip($existingColumns));
+                $safeTranslated = array_intersect_key($translatedData, array_flip($columnNames));
 
-                $actualFrPage = EducationPage::where('slug', $englishPage->slug)->where('locale', $locale)->first();
-                if ($actualFrPage) {
-                    $actualFrPage->update($safeTranslated);
-                    \App\Support\StorefrontCache::forgetEducation($actualFrPage->id);
+                if ($localePage) {
+                    $localePage->update($safeTranslated);
+                    \App\Support\StorefrontCache::forgetEducation($localePage->id);
                 } else {
                     $newPage = EducationPage::create($safeTranslated);
                     \App\Support\StorefrontCache::forgetEducation($newPage->id);
                 }
                 \Illuminate\Support\Facades\Cache::forget("education_index_pages_v1_{$locale}");
+                \Illuminate\Support\Facades\Cache::forget("nav_edu_desktop_v2_{$locale}");
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning("EducationPage syncTranslations failed: " . $e->getMessage());
         }
     }

@@ -110,6 +110,10 @@ class LandingPageController extends Controller
             }
         })->afterResponse();
 
+        // Canonical is always derived from domain + locale + slug — never from stored input.
+        $canonicalUrl = rtrim(request()->getSchemeAndHttpHost(), '/')
+            .'/'.trim($locale, '/').'/'.trim((string) $page->slug, '/');
+
         $jsonLd = Cache::remember("landing_{$page->id}_{$locale}_v3", StorefrontCache::cmsTtlSeconds(), function () use ($jsonLdBuilder, $page, $locale, $breadcrumbs, $crumbTrail) {
             $schema = $jsonLdBuilder->buildForLandingPage($page, $locale);
             $url = route('landing.show', ['locale' => $locale, 'slug' => $page->slug]);
@@ -134,6 +138,7 @@ class LandingPageController extends Controller
             'breadcrumbs'  => $crumbTrail,
             'offer'        => $offer,
             'bundleViews'  => $bundleViews,
+            'canonicalUrl' => $canonicalUrl,
         ]);
     }
 

@@ -191,6 +191,7 @@ Route::prefix('dainely-admin-panel')->group(function () {
         Route::post('/landings/{id}/blocks', [AdminLandingController::class, 'addBlock']);
         Route::post('/landings/{id}/blocks/{blockId}/update', [AdminLandingController::class, 'updateBlock']);
         Route::post('/landings/{id}/blocks/{blockId}/delete', [AdminLandingController::class, 'deleteBlock']);
+        Route::post('/landings/{id}/delete', [AdminLandingController::class, 'delete']);
 
         // Products Overlay
         Route::get('/products', [AdminProductController::class, 'index']);

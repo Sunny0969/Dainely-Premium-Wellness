@@ -88,6 +88,9 @@
   {{-- Vite Assets --}}
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+  {{-- Per-page styles that must win over the Vite bundle --}}
+  @stack('page_styles')
+
   {{-- JSON-LD Structured Data Stack --}}
   @stack('json-ld')
   {{-- Google Site Verification --}}
