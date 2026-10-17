@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Wellness Blog — Back Pain, Nerve Discomfort & Posture Guides | Dainely')
-@section('meta_description', 'Expert articles on back pain relief, Nerve Discomfort treatment, posture correction, and lumbar health from the Dainely medical team.')
+@section('title', 'Wellness Blog for Back Health and Mobility | Dainely')
+@section('meta_description', 'Read expert wellness guides on back pain, nerve discomfort, posture, mobility and recovery, with practical tips to help you stay active and move with confidence.')
 @section('og_image', asset('images/blog-hero-back-pain.jpg'))
 
 @section('content')
@@ -18,7 +18,7 @@
   <div class="container-narrow relative z-10 text-center">
     <p class="eyebrow text-gold-400 mb-4">Expert Knowledge</p>
     <h1 class="font-display font-bold text-white mb-6" style="font-size:clamp(2rem,4vw,3rem);line-height:1.1">The Dainely Wellness Journal</h1>
-    <p class="text-navy-200 text-lg max-w-xl mx-auto">Clinically accurate guides on back pain, Nerve Discomfort, posture, and recovery — written by our medical advisory team.</p>
+    <p class="text-navy-200 text-lg max-w-xl mx-auto">Clinically accurate guides on back pain, sciatica, posture, and recovery Ã¢â‚¬â€ written by our medical advisory team.</p>
   </div>
 </section>
 
@@ -45,8 +45,16 @@
     <div class="card overflow-hidden group blog-post-card" data-category="{{ $featuredArticle['category'] }}">
       <div class="grid lg:grid-cols-[1.5fr_1fr] gap-0">
         <div class="relative overflow-hidden max-h-96 lg:max-h-full">
+          @php
+            $featuredImgUrl = $featuredArticle['image'] ?? '';
+            if (empty($featuredImgUrl)) {
+                $featuredImgUrl = asset('images/blog-hero-back-pain.jpg');
+            } elseif (!\Illuminate\Support\Str::startsWith($featuredImgUrl, ['http://', 'https://', '//', '/'])) {
+                $featuredImgUrl = asset('images/' . $featuredImgUrl);
+            }
+          @endphp
           <img
-            src="{{ asset('images/' . $featuredArticle['image']) }}"
+            src="{{ $featuredImgUrl }}"
             alt="{{ $featuredArticle['title'] }}"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="eager"
@@ -65,7 +73,7 @@
           <h2 class="font-display font-bold text-navy-900 text-2xl lg:text-3xl mb-4 leading-tight">{{ $featuredArticle['title'] }}</h2>
           <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ $featuredArticle['excerpt'] }}</p>
           <div class="flex items-center gap-4 mb-6">
-            <img src="{{ asset('images/trust-doctor.png') }}" alt="{{ $featuredArticle['author'] }}" class="w-10 h-10 rounded-full object-cover">
+            <img src="{{ asset('images/trust-doctor.png') }}" loading="lazy" alt="{{ $featuredArticle['author'] }}" class="w-10 h-10 rounded-full object-cover">
             <div>
               <p class="text-slate-800 font-semibold text-sm">{{ $featuredArticle['author'] }}</p>
               <p class="text-slate-400 text-xs">{{ $featuredArticle['date'] }}</p>
@@ -90,8 +98,16 @@
       @foreach($latestArticles as $article)
       <article class="card overflow-hidden group animate-on-scroll blog-post-card" data-category="{{ $article['category'] }}">
         <div class="overflow-hidden">
+          @php
+            $artImgUrl = $article['image'] ?? '';
+            if (empty($artImgUrl)) {
+                $artImgUrl = asset('images/blog-hero-back-pain.jpg');
+            } elseif (!\Illuminate\Support\Str::startsWith($artImgUrl, ['http://', 'https://', '//', '/'])) {
+                $artImgUrl = asset('images/' . $artImgUrl);
+            }
+          @endphp
           <img
-            src="{{ asset('images/' . $article['image']) }}"
+            src="{{ $artImgUrl }}"
             alt="{{ $article['title'] }}"
             class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
@@ -107,10 +123,10 @@
           <p class="text-slate-500 text-sm leading-relaxed mb-4 line-clamp-3">{{ $article['excerpt'] }}</p>
           <div class="flex items-center justify-between pt-3 border-t border-slate-100">
             <div class="flex items-center gap-2">
-              <img src="{{ asset('images/trust-doctor.png') }}" alt="{{ $article['author'] }}" class="w-7 h-7 rounded-full object-cover">
+              <img src="{{ asset('images/trust-doctor.png') }}" loading="lazy" alt="{{ $article['author'] }}" class="w-7 h-7 rounded-full object-cover">
               <span class="text-slate-600 text-xs font-medium">{{ $article['author'] }}</span>
             </div>
-            <a href="{{ route('blog.show', ['locale' => $locale, 'slug' => $article['slug']]) }}" class="text-navy-600 text-sm font-semibold hover:text-navy-800 transition-colors">Read →</a>
+            <a href="{{ route('blog.show', ['locale' => $locale, 'slug' => $article['slug']]) }}" class="text-navy-600 text-sm font-semibold hover:text-navy-800 transition-colors">Read Ã¢â€ â€™</a>
           </div>
         </div>
       </article>
@@ -129,7 +145,7 @@
   <div class="container-narrow text-center">
     <p class="eyebrow text-gold-400 mb-4">Free Wellness Insights</p>
     <h2 class="heading-section text-white mb-4">Get Expert Back Health Tips Every Week</h2>
-    <p class="text-navy-300 mb-8">Join 12,000+ subscribers receiving our weekly clinical insights on back pain, Nerve Discomfort, and spinal health.</p>
+    <p class="text-navy-300 mb-8">Join 12,000+ subscribers receiving our weekly clinical insights on back pain, sciatica, and spinal health.</p>
     <form class="flex gap-3 max-w-md mx-auto" onsubmit="return false;">
       <input type="email" placeholder="Enter your email" class="form-input flex-1 bg-white/10 border-white/20 text-white placeholder-navy-400">
       <button type="submit" class="btn-gold-lg whitespace-nowrap">Subscribe Free</button>
@@ -196,3 +212,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+
+

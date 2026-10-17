@@ -7,8 +7,20 @@
         <h1 class="text-2xl font-bold">{{ $page->exists ? 'Edit: ' . $page->title : 'Create New Education Page' }}</h1>
         <div class="flex items-center gap-4">
             <a href="{{ url('dainely-admin-panel/education') }}" class="text-gray-500 hover:text-gray-700">Back</a>
-            <button type="button" onclick="document.getElementById('education-form').submit();" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2 rounded-lg text-sm shadow-sm">
-                Save / Publish
+            <button type="button" 
+                    @click="submitForm()" 
+                    :disabled="submitting"
+                    class="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 disabled:cursor-not-allowed text-white font-bold px-6 py-2 rounded-lg text-sm shadow-sm inline-flex items-center gap-2 transition duration-150">
+                <template x-if="submitting">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </template>
+                <template x-if="!submitting">
+                    <span>&#9203;</span>
+                </template>
+                <span x-text="submitting ? 'Saving & Translating (FR, DE)... Please wait' : 'Save / Publish'"></span>
             </button>
         </div>
     </div>
@@ -21,23 +33,28 @@
         </div>
     @endif
 
-    <form id="education-form" action="{{ $page->exists ? url('dainely-admin-panel/education/'.$page->id) : url('dainely-admin-panel/education') }}" method="POST" enctype="multipart/form-data" class="space-y-8 bg-white p-6 shadow rounded">
+    <form id="education-form" @submit="submitting = true" action="{{ $page->exists ? url('dainely-admin-panel/education/'.$page->id) : url('dainely-admin-panel/education') }}" method="POST" enctype="multipart/form-data" class="space-y-8 bg-white p-6 shadow rounded">
         @csrf
         @if($page->exists)
             @method('PUT')
         @endif
 
-        <div class="mb-4">
-            <label class="block text-sm font-bold mb-2">Language (Locale) *</label>
-            <select name="locale" class="w-full border rounded p-2" required>
-                <option value="en" {{ old("locale", $page->locale ?? "en") == "en" ? "selected" : "" }}>English</option>
-                <option value="fr" {{ old("locale", $page->locale) == "fr" ? "selected" : "" }}>French</option>
-                <option value="de" {{ old("locale", $page->locale) == "de" ? "selected" : "" }}>German</option>
-            </select>
-            @error('locale')
-                <p class="text-red-500 text-sm mt-1 font-bold">{{ $message }}</p>
-            @enderror
+        <input type="hidden" name="locale" value="en">
+        <div class="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-600 text-white uppercase tracking-wide">
+                    Default: EN
+                </span>
+                <span class="text-slate-800 font-semibold">Editing in English (Master Source)</span>
+            </div>
+            <div class="text-xs text-slate-500 flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>French (FR) and German (DE) are automatically translated and synced when you save.</span>
+            </div>
         </div>
+        
         {{-- Basic Info --}}
         <div>
             <h2 class="text-xl font-bold mb-4 border-b pb-2">1. Basic Info</h2>
@@ -72,6 +89,25 @@
             </div>
         </div>
 
+        {{-- SEO Info --}}
+        <div>
+            <h2 class="text-xl font-bold mb-4 border-b pb-2">SEO Info</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-bold mb-1">Meta Title</label>
+                    <input type="text" name="meta_title" value="{{ old('meta_title', $page->meta_title) }}" class="w-full border p-2 rounded">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Canonical URL</label>
+                    <input type="text" name="canonical_url" value="{{ old('canonical_url', $page->canonical_url) }}" class="w-full border p-2 rounded">
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="block font-bold mb-1">Meta Description</label>
+                <textarea name="meta_description" class="w-full border p-2 rounded" rows="3">{{ old('meta_description', $page->meta_description) }}</textarea>
+            </div>
+        </div>
+
         {{-- Layout Order --}}
         <div>
             <h2 class="text-xl font-bold mb-4 border-b pb-2">Layout Ordering</h2>
@@ -92,15 +128,14 @@
                         'content_blocks' => 'Extra Text Blocks'
                     ];
                 @endphp
-                
-                @foreach($currentOrder as $sectionKey)
-                    @if(isset($labels[$sectionKey]))
-                    <div class="bg-white border p-3 rounded shadow-sm flex items-center justify-between cursor-move" data-id="{{ $sectionKey }}">
-                        <div class="flex items-center gap-3">
-                            <span class="text-gray-400">⋮⋮</span>
-                            <span class="font-semibold">{{ $labels[$sectionKey] }}</span>
+                @foreach($currentOrder as $item)
+                    @if(isset($labels[$item]))
+                        <div class="bg-white border p-3 rounded cursor-move flex items-center justify-between shadow-sm" data-id="{{ $item }}">
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-400">☰</span>
+                                <span class="font-medium text-sm text-slate-700">{{ $labels[$item] }}</span>
+                            </div>
                         </div>
-                    </div>
                     @endif
                 @endforeach
             </div>
@@ -119,7 +154,7 @@
                     <label class="block font-bold mb-1">Hero Description</label>
                     <div class="bg-white">
                         <input type="hidden" name="hero_description" x-ref="hero_desc_input" value="{{ old('hero_description', $page->hero_description) }}">
-                        <div x-init="initTinyMCE($el, $refs.hero_desc_input)"></div>
+                        <div x-init="initQuill($el, $refs.hero_desc_input)"></div>
                     </div>
                 </div>
                 
@@ -130,15 +165,21 @@
                         <span class="text-xs text-gray-500">Provide an external URL...</span>
                     </div>
                     <div>
+                        <label class="block font-bold mb-1">OR Media Library ID</label>
+                        <input type="number" name="hero_media_id" value="{{ old('hero_media_id', $page->hero_media_id) }}" class="w-full border p-2 rounded" placeholder="e.g. 15">
+                        <span class="text-xs text-gray-500">Overrides URL</span>
+                    </div>
+                    <div>
                         <label class="block font-bold mb-1">OR Upload Hero Image</label>
                         <input type="file" name="hero_image_file" class="w-full border p-1.5 bg-white rounded" accept="image/*">
                         <span class="text-xs text-gray-500">...or select a file from your computer (overrides URL)</span>
                         <p class="text-xs text-rose-500 mt-1 font-medium">⚠️ Max file size: 2MB.</p>
                     </div>
                 </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-bold mb-1">Author Name (e.g. Dr. Reinholt)</label>
+                        <label class="block font-bold mb-1">Author Name (e.g. Dr. Reinhalt)</label>
                         <input type="text" name="author_name" value="{{ old('author_name', $page->author_name) }}" class="w-full border p-2 rounded">
                     </div>
                     <div>
@@ -162,22 +203,22 @@
             <h2 class="text-xl font-bold mb-4 border-b pb-2">3. Figures (e.g. 80%, #1)</h2>
             <div class="space-y-2">
                 <template x-for="(fig, index) in figures" :key="fig._id">
-                    <div class="flex gap-3 items-start">
+                    <div class="flex gap-2 items-center">
                         <input type="text" x-model="fig.value" :name="`figures[${index}][value]`" placeholder="Value (e.g. 80%)" class="border p-2 rounded w-1/3">
                         
                         <div class="bg-white flex-1 w-full relative min-h-[100px]">
                             <input type="hidden" x-model="fig.label" :name="`figures[${index}][label]`">
-                            <div x-init="initTinyMCE($el, $el.previousElementSibling, val => figures[index].label = val)"></div>
+                            <div x-init="initQuill($el, $el.previousElementSibling, val => figures[index].label = val)"></div>
                         </div>
 
                         <div class="flex gap-2 ml-2 mt-2">
                             <button type="button" x-show="index > 0" @click="figures.splice(index - 1, 0, figures.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">↑</button>
                             <button type="button" x-show="index < figures.length - 1" @click="figures.splice(index + 1, 0, figures.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">↓</button>
-                            <button type="button" @click="figures.splice(index, 1)" class="text-red-500 font-bold ml-2" title="Remove">X</button>
+                            <button type="button" @click="figures.splice(index, 1)" class="text-red-600 hover:text-red-800 text-xl font-bold">&times;</button>
                         </div>
                     </div>
                 </template>
-                <button type="button" @click="figures.push({value: '', label: '', _id: Math.random()})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Figure</button>
+                <button type="button" @click="figures.push({value: '', label: '', _id: Math.random()})" class="text-sm text-blue-600 hover:underline">+ Add Figure</button>
             </div>
         </div>
 
@@ -190,20 +231,23 @@
             </div>
             <div class="space-y-4">
                 <template x-for="(cause, index) in rootCauses" :key="cause._id">
-                    <div class="border p-4 rounded bg-gray-50">
-                        <div class="flex justify-end items-center gap-4 mb-2">
-                            <button type="button" x-show="index > 0" @click="rootCauses.splice(index - 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">↑ Move Up</button>
-                            <button type="button" x-show="index < rootCauses.length - 1" @click="rootCauses.splice(index + 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">↓ Move Down</button>
-                            <button type="button" @click="rootCauses.splice(index, 1)" class="text-red-500 hover:text-red-700 font-bold text-sm">Remove</button>
-                        </div>
+                    <div class="flex gap-3 items-start p-4 border rounded relative bg-gray-50 mb-4 group">
+                        <div class="flex-1 w-full">
                         <input type="text" x-model="cause.title" :name="`root_causes[${index}][title]`" placeholder="Cause Title" class="w-full border p-2 rounded mb-2">
                         <div class="bg-white">
                             <input type="hidden" x-model="cause.description" :name="`root_causes[${index}][description]`">
-                            <div x-init="initTinyMCE($el, $el.previousElementSibling, val => rootCauses[index].description = val)"></div>
+                            <div x-init="initQuill($el, $el.previousElementSibling, val => rootCauses[index].description = val)"></div>
                         </div>
                     </div>
+                    
+                    <div class="flex gap-2 ml-2">
+                        <button type="button" x-show="index > 0" @click="rootCauses.splice(index - 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">↑</button>
+                        <button type="button" x-show="index < rootCauses.length - 1" @click="rootCauses.splice(index + 1, 0, rootCauses.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">↓</button>
+                        <button type="button" @click="rootCauses.splice(index, 1)" class="text-red-600 hover:text-red-800 text-xl font-bold">&times;</button>
+                    </div>
+                </div>
                 </template>
-                <button type="button" @click="rootCauses.push({title: '', description: '', _id: Math.random()})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Root Cause</button>
+                <button type="button" @click="rootCauses.push({title: '', description: '', _id: Math.random()})" class="text-sm text-blue-600 hover:underline">+ Add Root Cause</button>
             </div>
         </div>
 
@@ -218,7 +262,7 @@
                 <label class="block font-bold mb-1">Section Description</label>
                 <div class="bg-white">
                     <input type="hidden" name="treatments_description" x-ref="treatments_desc_input" value="{{ old('treatments_description', $page->treatments_description) }}">
-                    <div x-init="initTinyMCE($el, $refs.treatments_desc_input)"></div>
+                    <div x-init="initQuill($el, $refs.treatments_desc_input)"></div>
                 </div>
             </div>
             <div class="space-y-2">
@@ -226,38 +270,41 @@
                     <div class="flex gap-3 items-center">
                         <div class="bg-white w-full">
                             <input type="hidden" x-model="treatment.text" :name="`treatments[${index}][text]`">
-                            <div x-init="initTinyMCE($el, $el.previousElementSibling, val => treatments[index].text = val)"></div>
+                            <div x-init="initQuill($el, $el.previousElementSibling, val => treatments[index].text = val)"></div>
                         </div>
                         <div class="flex gap-2 ml-2">
                             <button type="button" x-show="index > 0" @click="treatments.splice(index - 1, 0, treatments.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">↑</button>
                             <button type="button" x-show="index < treatments.length - 1" @click="treatments.splice(index + 1, 0, treatments.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">↓</button>
-                            <button type="button" @click="treatments.splice(index, 1)" class="text-red-500 font-bold ml-2" title="Remove">X</button>
+                            <button type="button" @click="treatments.splice(index, 1)" class="text-red-600 hover:text-red-800 text-xl font-bold">&times;</button>
                         </div>
                     </div>
                 </template>
-                <button type="button" @click="treatments.push({text: '', _id: Math.random()})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Bullet</button>
+                <button type="button" @click="treatments.push({text: '', _id: Math.random()})" class="text-sm text-blue-600 hover:underline">+ Add Bullet</button>
             </div>
         </div>
 
-        {{-- Extra Content Blocks --}}
+        {{-- Content Blocks --}}
         <div>
             <h2 class="text-xl font-bold mb-4 border-b pb-2">6. Extra Text Blocks</h2>
             <div class="space-y-4">
                 <template x-for="(block, index) in contentBlocks" :key="block._id">
-                    <div class="border p-4 rounded bg-gray-50">
-                        <div class="flex justify-end items-center gap-4 mb-2">
-                            <button type="button" x-show="index > 0" @click="contentBlocks.splice(index - 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">↑ Move Up</button>
-                            <button type="button" x-show="index < contentBlocks.length - 1" @click="contentBlocks.splice(index + 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">↓ Move Down</button>
-                            <button type="button" @click="contentBlocks.splice(index, 1)" class="text-red-500 hover:text-red-700 font-bold text-sm">Remove</button>
-                        </div>
+                    <div class="flex gap-3 items-start p-4 border rounded relative bg-gray-50 mb-4 group">
+                        <div class="flex-1 w-full">
                         <input type="text" x-model="block.title" :name="`content_blocks[${index}][title]`" placeholder="Block Heading (e.g. What is Sciatica?)" class="w-full border p-2 rounded mb-2">
                         <div class="bg-white">
                             <input type="hidden" x-model="block.content" :name="`content_blocks[${index}][content]`">
-                            <div x-init="initTinyMCE($el, $el.previousElementSibling, val => contentBlocks[index].content = val)"></div>
+                            <div x-init="initQuill($el, $el.previousElementSibling, val => contentBlocks[index].content = val)"></div>
                         </div>
                     </div>
+                    
+                    <div class="flex gap-2 ml-2">
+                        <button type="button" x-show="index > 0" @click="contentBlocks.splice(index - 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Up">↑</button>
+                        <button type="button" x-show="index < contentBlocks.length - 1" @click="contentBlocks.splice(index + 1, 0, contentBlocks.splice(index, 1)[0])" class="text-blue-600 hover:text-blue-800" title="Move Down">↓</button>
+                        <button type="button" @click="contentBlocks.splice(index, 1)" class="text-red-600 hover:text-red-800 text-xl font-bold">&times;</button>
+                    </div>
+                </div>
                 </template>
-                <button type="button" @click="contentBlocks.push({title: '', content: '', _id: Math.random()})" class="bg-gray-200 px-3 py-1 rounded text-sm">+ Add Text Block</button>
+                <button type="button" @click="contentBlocks.push({title: '', content: '', _id: Math.random()})" class="text-sm text-blue-600 hover:underline">+ Add Text Block</button>
             </div>
         </div>
 
@@ -283,51 +330,155 @@
         </div>
 
         <div class="pt-6">
-            <button type="submit" class="w-full bg-blue-600 text-white font-bold text-lg py-3 rounded">Save Education Page</button>
+            <button type="submit" 
+                    :disabled="submitting"
+                    class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-bold text-lg py-3 rounded shadow inline-flex items-center justify-center gap-2 transition duration-150">
+                <template x-if="submitting">
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </template>
+                <template x-if="!submitting">
+                    <span>&#9203;</span>
+                </template>
+                <span x-text="submitting ? 'Saving & Translating (FR, DE)... Please wait' : 'Save Education Page'"></span>
+            </button>
         </div>
     </form>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
+function selectLocalImage(quill) {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+    input.onchange = () => {
+        const file = input.files[0];
+        if (/^image\//.test(file.type)) {
+            const fd = new FormData();
+            fd.append('image', file);
+            fd.append('folder_type', 'education');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            const token = csrfToken ? csrfToken.getAttribute('content') : '';
+            
+            fetch('/dainely-admin-panel/editor-upload', {
+                method: 'POST',
+                headers: { 
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: fd
+            })
+            .then(async r => {
+                if (!r.ok) {
+                    let err = await r.json().catch(() => ({}));
+                    throw new Error(err.message || 'Server error: ' + r.status);
+                }
+                return r.json();
+            })
+            .then(result => {
+                if (result.success) {
+                    const range = quill.getSelection(true) || {index: quill.getLength()};
+                    quill.insertEmbed(range.index, 'image', result.url);
+                    quill.setSelection(range.index + 1);
+                } else { 
+                    alert('Upload failed: ' + (result.message || 'Unknown error')); 
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Upload failed: ' + e.message);
+            });
+        }
+    };
+}
+
 function educationForm() {
     return {
+        submitting: false,
+        submitForm() {
+            if (this.submitting) return;
+            this.submitting = true;
+            const form = document.getElementById('education-form');
+            if (form) {
+                form.submit();
+            }
+        },
         figures: (@json(old('figures', $page->figures ?? []))).map(i => ({...i, _id: Math.random()})),
         rootCauses: (@json(old('root_causes', $page->root_causes ?? []))).map(i => ({...i, _id: Math.random()})),
         treatments: (@json(old('treatments', collect($page->treatments ?? [])->map(fn($t) => ['text' => $t])->toArray()))).map(i => ({...i, _id: Math.random()})),
         contentBlocks: (@json(old('content_blocks', $page->content_blocks ?? []))).map(i => ({...i, _id: Math.random()})),
-        initTinyMCE(container, hiddenInputEl, updateCallback) {
-            if (typeof tinymce === 'undefined') {
-                setTimeout(() => this.initTinyMCE(container, hiddenInputEl, updateCallback), 100);
+        initQuill(container, hiddenInputEl, updateCallback) {
+            if (typeof Quill === 'undefined') {
+                setTimeout(() => this.initQuill(container, hiddenInputEl, updateCallback), 100);
                 return;
             }
-            if (!container.id) container.id = 'tinymce_' + Math.random().toString(36).substring(7);
 
-            tinymce.init({
-                target: container,
-                license_key: 'gpl',
-                base_url: 'https://cdn.jsdelivr.net/npm/tinymce@7.6.1',
-                suffix: '.min',
-                plugins: 'lists link autoresize code',
-                toolbar: 'bold italic underline | forecolor backcolor | bullist numlist | link | removeformat | code',
-                menubar: false,
-                branding: false,
-                promotion: false,
-                statusbar: false,
-                min_height: 120,
-                setup: function (editor) {
-                    let initialVal = hiddenInputEl ? hiddenInputEl.value : '';
-                    editor.on('init', function() {
-                        if (initialVal) editor.setContent(initialVal);
-                    });
-                    editor.on('change keyup paste', function () {
-                        let html = editor.getContent();
-                        if (updateCallback) updateCallback(html);
-                        if (hiddenInputEl) {
-                            hiddenInputEl.value = html;
-                            hiddenInputEl.dispatchEvent(new Event('input', { bubbles: true }));
+            try {
+                if (typeof htmlEditButton !== 'undefined') {
+                    Quill.register('modules/htmlEditButton', htmlEditButton);
+                }
+            } catch(e) {}
+
+            try {
+                let Video = Quill.import('formats/video');
+                class SafeVideo extends Video {
+                    static create(value) {
+                        let node = super.create(value);
+                        node.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+                        node.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+                        return node;
+                    }
+                }
+                Quill.register(SafeVideo, true);
+            } catch(e) {}
+
+            let modules = {
+                toolbar: {
+                    container: [
+                        ['bold', 'italic', 'underline'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['link', 'clean', 'image', 'video']
+                    ],
+                    handlers: {
+                        image: function() {
+                            selectLocalImage(this.quill);
                         }
+                    }
+                }
+            };
+
+            if (typeof htmlEditButton !== 'undefined') {
+                modules.htmlEditButton = { msg: 'Edit HTML Code' };
+            }
+
+            let quill = new Quill(container, {
+                theme: 'snow',
+                modules: modules
+            });
+            
+            let initialVal = hiddenInputEl ? hiddenInputEl.value : '';
+            if (initialVal) {
+                initialVal = initialVal.replace(/<iframe /gi, '<iframe referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ');
+                quill.clipboard.dangerouslyPasteHTML(initialVal);
+                setTimeout(() => {
+                    container.querySelectorAll('iframe').forEach(iframe => {
+                        iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+                        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
                     });
+                }, 100);
+            }
+            
+            quill.on('text-change', function() {
+                let html = quill.root.innerHTML;
+                if (html === '<p><br></p>') html = '';
+                if (updateCallback) updateCallback(html);
+                if (hiddenInputEl) {
+                    hiddenInputEl.value = html;
+                    hiddenInputEl.dispatchEvent(new Event('input', { bubbles: true }));
                 }
             });
         }
@@ -352,7 +503,8 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
 @push('admin_head')
-
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <style>
   .ql-editor { min-height: 120px; font-family: inherit; font-size: inherit; }
   .ql-toolbar.ql-snow { border-top-left-radius: 0.375rem; border-top-right-radius: 0.375rem; background: #f8fafc; border-color: #e2e8f0; }
@@ -361,7 +513,7 @@ document.addEventListener("DOMContentLoaded", function() {
 @endpush
 
 @push('admin_scripts')
-<script src="https://cdn.jsdelivr.net/npm/tinymce@7.6.1/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script src="https://unpkg.com/quill-html-edit-button@2.2.7/dist/quill.htmlEditButton.min.js"></script>
 @endpush
 @endsection
-

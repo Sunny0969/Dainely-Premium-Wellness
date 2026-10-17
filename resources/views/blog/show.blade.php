@@ -101,7 +101,15 @@
         
         {{-- 2. Cover Image --}}
         <div class="rounded-3xl overflow-hidden bg-slate-50 mb-10 border border-slate-100 flex items-center justify-center">
-          <img src="{{ asset('images/' . $article['image']) }}" alt="{{ $article['image_alt'] }}" fetchpriority="high" loading="eager" class="w-full h-auto block" style="max-height: 600px; object-fit: cover;">
+          @php
+            $showCoverUrl = $article['image'] ?? '';
+            if (empty($showCoverUrl)) {
+                $showCoverUrl = asset('images/blog-hero-back-pain.jpg');
+            } elseif (!\Illuminate\Support\Str::startsWith($showCoverUrl, ['http://', 'https://', '//', '/'])) {
+                $showCoverUrl = asset('images/' . $showCoverUrl);
+            }
+          @endphp
+          <img src="{{ $showCoverUrl }}" alt="{{ $article['image_alt'] }}" fetchpriority="high" loading="eager" class="w-full h-auto block" style="max-height: 600px; object-fit: cover;">
         </div>
 
         {{-- 3. Title --}}

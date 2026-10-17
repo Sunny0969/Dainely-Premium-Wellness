@@ -89,3 +89,16 @@
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+  if (typeof window.oaiq === 'function') {
+    window.oaiq("measure", "order_created", {
+      type: "contents",
+      currency: "{{ $order->currency_code ?? 'USD' }}",
+      amount: {{ (float) ($order->total ?? $order->total_usd ?? 0) }},
+      order_id: "{{ $order->order_number ?? '' }}"
+    });
+  }
+</script>
+@endpush

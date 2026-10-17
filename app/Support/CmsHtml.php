@@ -9,8 +9,12 @@ class CmsHtml
 {
     /**
      * Clean TinyMCE / pasted HTML for display (and optional save).
+     *
+     * @param  bool  $keepTextStyles  Keep font-size / weight / style / line-height so a Word paste
+     *                                keeps its hierarchy. The typeface is still forced back to the
+     *                                site font so the storefront keeps one voice.
      */
-    public static function normalize(?string $html): string
+    public static function normalize(?string $html, bool $keepTextStyles = false): string
     {
         $html = trim((string) $html);
         if ($html === '') {
@@ -33,26 +37,33 @@ class CmsHtml
         $html = preg_replace('/\s*face\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html) ?? $html;
         $html = preg_replace_callback(
             '/\sstyle\s*=\s*("([^"]*)"|\'([^\']*)\')/i',
-            static function (array $m): string {
+            static function (array $m) use ($keepTextStyles): string {
                 $quote = str_starts_with($m[1], '"') ? '"' : "'";
                 $style = $m[2] !== '' ? $m[2] : $m[3];
-                $parts = array_filter(array_map('trim', explode(';', (string) $style)), static function (string $decl): bool {
+
+                // Typeface is never ours to inherit — but size/weight may be when asked.
+                $drop = [
+                    'font',
+                    'font-family',
+                    'font-size',
+                    'font-style',
+                    'font-variant',
+                    'font-stretch',
+                    'font-weight',
+                    'line-height',
+                    'letter-spacing',
+                ];
+                if ($keepTextStyles) {
+                    $drop = ['font', 'font-family'];
+                }
+
+                $parts = array_filter(array_map('trim', explode(';', (string) $style)), static function (string $decl) use ($drop): bool {
                     if ($decl === '') {
                         return false;
                     }
                     $prop = strtolower(trim(explode(':', $decl, 2)[0] ?? ''));
 
-                    return ! in_array($prop, [
-                        'font',
-                        'font-family',
-                        'font-size',
-                        'font-style',
-                        'font-variant',
-                        'font-stretch',
-                        'font-weight',
-                        'line-height',
-                        'letter-spacing',
-                    ], true);
+                    return ! in_array($prop, $drop, true);
                 });
 
                 if ($parts === []) {
@@ -120,8 +131,159 @@ class CmsHtml
         }
 
         return implode('', array_map(
-            static fn (string $p): string => '<p>'.nl2br(e($p), false).'</p>',
+            static fn (string $p) => '<p>'.nl2br(e($p), false).'</p>',
             $parts
         ));
+    }
+
+    /**
+     * Force every inline text/background pair to reach WCAG AA (4.5:1) contrast.
+     *
+     * $darkBlock tells us the backdrop behind markup that declares no background of its own.
+     * Runs after normalize() so pasted Word markup is corrected before it ever ships.
+     */
+    public static function ensureContrast(string $html, bool $darkBlock = false): string
+    {
+        if (trim($html) === '') {
+            return '';
+        }
+
+        return preg_replace_callback(
+            '/\sstyle\s*=\s*("([^"]*)"|\'([^\']*)\')/i',
+            static function (array $m) use ($darkBlock): string {
+                $quote = str_starts_with($m[1], '"') ? '"' : "'";
+                $style = $m[2] !== '' ? $m[2] : $m[3];
+
+                $decls = [];
+                foreach (explode(';', (string) $style) as $decl) {
+                    $decl = trim($decl);
+                    if ($decl !== '') {
+                        $decls[] = $decl;
+                    }
+                }
+                if ($decls === []) {
+                    return $m[0];
+                }
+
+                $ownBg = null;
+                $hasColor = false;
+                foreach ($decls as $decl) {
+                    $pair = explode(':', $decl, 2);
+                    if (count($pair) !== 2) {
+                        continue;
+                    }
+                    $prop = strtolower(trim($pair[0]));
+                    if (in_array($prop, ['background-color', 'background'], true) && $ownBg === null) {
+                        $ownBg = self::parseColor(trim($pair[1]));
+                    } elseif ($prop === 'color') {
+                        $hasColor = true;
+                    }
+                }
+
+                $bgLum = $ownBg !== null ? self::relativeLuminance($ownBg) : ($darkBlock ? 0.0 : 1.0);
+                $darkBg = $bgLum < 0.4;
+                $safe = $darkBg ? '#f8fafc' : '#0f172a';
+
+                $out = [];
+                $fixed = false;
+                foreach ($decls as $decl) {
+                    $pair = explode(':', $decl, 2);
+                    if (count($pair) === 2 && strtolower(trim($pair[0])) === 'color') {
+                        $fg = self::parseColor(trim($pair[1]));
+                        if ($fg !== null && self::contrastRatio(self::relativeLuminance($fg), $bgLum) < 4.5) {
+                            $decl = 'color: '.$safe;
+                            $fixed = true;
+                        }
+                    }
+                    $out[] = $decl;
+                }
+
+                if (! $hasColor && $darkBg) {
+                    $out[] = 'color: '.$safe;
+                    $fixed = true;
+                }
+
+                if (! $fixed) {
+                    return $m[0];
+                }
+
+                return ' style='.$quote.implode('; ', $out).$quote;
+            },
+            $html
+        ) ?? $html;
+    }
+
+    /**
+     * Pull an #hex / rgb() / rgba() / named colour out of a declaration value.
+     *
+     * @return array{0:int,1:int,2:int}|null
+     */
+    protected static function parseColor(string $value): ?array
+    {
+        if (preg_match('/#([0-9a-f]{3,8})\b/i', $value, $m)) {
+            $hex = strtolower($m[1]);
+            if (strlen($hex) === 3) {
+                $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+            }
+            if (strlen($hex) === 8) {
+                if (hexdec(substr($hex, 6, 2)) < 128) {
+                    return null; // effectively transparent
+                }
+                $hex = substr($hex, 0, 6);
+            }
+            if (strlen($hex) !== 6) {
+                return null;
+            }
+
+            return [hexdec(substr($hex, 0, 2)), hexdec(substr($hex, 2, 2)), hexdec(substr($hex, 4, 2))];
+        }
+
+        if (preg_match('/rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)/i', $value, $m)) {
+            if (isset($m[4]) && $m[4] !== '' && (float) $m[4] < 0.5) {
+                return null;
+            }
+
+            return [(int) round((float) $m[1]), (int) round((float) $m[2]), (int) round((float) $m[3])];
+        }
+
+        $named = [
+            'white' => '#ffffff',
+            'black' => '#000000',
+            'transparent' => null,
+        ];
+        $name = strtolower(trim(preg_replace('/[^a-z]/i', '', $value) ?? $value));
+        if (array_key_exists($name, $named)) {
+            if ($named[$name] === null) {
+                return null;
+            }
+
+            return self::parseColor($named[$name]);
+        }
+
+        return null;
+    }
+
+    /**
+     * WCAG relative luminance of an RGB triple.
+     *
+     * @param  array{0:int,1:int,2:int}  $rgb
+     */
+    protected static function relativeLuminance(array $rgb): float
+    {
+        $channels = array_map(static function (int $c): float {
+            $v = $c / 255;
+
+            return $v <= 0.04045 ? $v / 12.92 : (($v + 0.055) / 1.055) ** 2.4;
+        }, $rgb);
+
+        return 0.2126 * $channels[0] + 0.7152 * $channels[1] + 0.0722 * $channels[2];
+    }
+
+    protected static function contrastRatio(float $fgLum, float $bgLum): float
+    {
+        $hi = max($fgLum, $bgLum);
+        $lo = min($fgLum, $bgLum);
+
+        return ($hi + 0.05) / ($lo + 0.05);
     }
 }

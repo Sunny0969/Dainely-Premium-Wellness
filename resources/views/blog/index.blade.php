@@ -45,8 +45,16 @@
     <div class="card overflow-hidden group blog-post-card" data-category="{{ $featuredArticle['category'] }}">
       <div class="grid lg:grid-cols-[1.5fr_1fr] gap-0">
         <div class="relative overflow-hidden max-h-96 lg:max-h-full">
+          @php
+            $featuredImgUrl = $featuredArticle['image'] ?? '';
+            if (empty($featuredImgUrl)) {
+                $featuredImgUrl = asset('images/blog-hero-back-pain.jpg');
+            } elseif (!\Illuminate\Support\Str::startsWith($featuredImgUrl, ['http://', 'https://', '//', '/'])) {
+                $featuredImgUrl = asset('images/' . $featuredImgUrl);
+            }
+          @endphp
           <img
-            src="{{ asset('images/' . $featuredArticle['image']) }}"
+            src="{{ $featuredImgUrl }}"
             alt="{{ $featuredArticle['title'] }}"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="eager"
@@ -90,8 +98,16 @@
       @foreach($latestArticles as $article)
       <article class="card overflow-hidden group animate-on-scroll blog-post-card" data-category="{{ $article['category'] }}">
         <div class="overflow-hidden">
+          @php
+            $artImgUrl = $article['image'] ?? '';
+            if (empty($artImgUrl)) {
+                $artImgUrl = asset('images/blog-hero-back-pain.jpg');
+            } elseif (!\Illuminate\Support\Str::startsWith($artImgUrl, ['http://', 'https://', '//', '/'])) {
+                $artImgUrl = asset('images/' . $artImgUrl);
+            }
+          @endphp
           <img
-            src="{{ asset('images/' . $article['image']) }}"
+            src="{{ $artImgUrl }}"
             alt="{{ $article['title'] }}"
             class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"

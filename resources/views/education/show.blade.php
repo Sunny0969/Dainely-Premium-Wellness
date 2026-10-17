@@ -4,6 +4,33 @@
 @section('meta_description', 'Learn practical recovery and relaxation habits covering sleep, movement, hydration, nutrition and rest to help build a sustainable active lifestyle routine.')
 @endif
 
+@php
+    $translations = [
+        'fr' => [
+            'service_badge' => 'SERVICE D\'ÉDUCATION MÉDICALE',
+            'recommended_title' => 'Recommandé pour vous',
+            'view_details' => 'Voir les détails',
+            'root_causes' => 'Causes profondes',
+            'treatments' => 'Traitements fondés sur des preuves',
+        ],
+        'de' => [
+            'service_badge' => 'MEDIZINISCHER BILDUNGSDIENST',
+            'recommended_title' => 'Für Sie empfohlen',
+            'view_details' => 'Details anzeigen',
+            'root_causes' => 'Hauptursachen',
+            'treatments' => 'Evidenzbasierte Behandlungen',
+        ],
+        'en' => [
+            'service_badge' => 'MEDICAL EDUCATION SERVICE',
+            'recommended_title' => 'Recommended For You',
+            'view_details' => 'View Details',
+            'root_causes' => 'Root Causes',
+            'treatments' => 'Evidence-Based Treatments',
+        ]
+    ];
+    $st = $translations[$locale] ?? $translations['en'];
+@endphp
+
 @section('content')
 <main class="min-h-screen bg-slate-50">
 
@@ -12,7 +39,7 @@
   <section class="bg-navy-900 text-white py-16 md:py-24">
     <div class="container-site grid md:grid-cols-2 gap-12 items-center">
       <div>
-        <div class="text-gold-500 font-bold text-sm tracking-wider uppercase mb-4">MEDICAL EDUCATION SERVICE</div>
+        <div class="text-gold-500 font-bold text-sm tracking-wider uppercase mb-4">{{ $st['service_badge'] }}</div>
         <h1 class="font-display text-white text-4xl md:text-5xl font-bold mb-6">{{ $page->hero_title }}</h1>
         
         @if(!empty($page->hero_description))
@@ -26,21 +53,52 @@
           @endif
           <div>
             <div class="font-bold">{{ $page->author_name }}</div>
-            <div class="text-slate-400 text-sm">{{ $page->author_role ?? '' }} Ã¢â‚¬Â¢ {{ $page->read_time ?? '' }}</div>
+            <div class="text-slate-400 text-sm">{{ $page->author_role ?? '' }} &bull; {{ $page->read_time ?? '' }}</div>
           </div>
         </div>
         @endif
       </div>
       
-      @if(!empty($page->hero_image) || !empty($page->hero_media_id))
-      <div class="rounded-2xl overflow-hidden relative w-full flex items-center justify-center" style="min-height: 400px;">
+      @php
+          $defaultPlaceholder = 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&q=80';
+          $showImgSrc = null;
+          if (!empty($page->hero_image)) {
+              $trimmedImg = trim($page->hero_image);
+              if (\Illuminate\Support\Str::startsWith($trimmedImg, ['http://', 'https://', '//'])) {
+                  $showImgSrc = $trimmedImg;
+              } elseif (\Illuminate\Support\Str::startsWith($trimmedImg, 'images/')) {
+                  $showImgSrc = asset($trimmedImg);
+              } elseif (file_exists(public_path('images/' . $trimmedImg))) {
+                  $showImgSrc = asset('images/' . $trimmedImg);
+              } else {
+                  try {
+                      if (\Illuminate\Support\Facades\Storage::disk('s3')->exists('education/' . $trimmedImg)) {
+                          $showImgSrc = \Illuminate\Support\Facades\Storage::disk('s3')->url('education/' . $trimmedImg);
+                      } else {
+                          $showImgSrc = $defaultPlaceholder;
+                      }
+                  } catch (\Throwable $e) {
+                      $showImgSrc = $defaultPlaceholder;
+                  }
+              }
+          } elseif (!empty($page->hero_media_id)) {
+              // handled via x-media-image
+          } else {
+              $showImgSrc = $defaultPlaceholder;
+          }
+      @endphp
+      <div class="rounded-2xl overflow-hidden relative w-full flex items-center justify-center bg-navy-950/40 border border-navy-800" style="min-height: 380px;">
         @if(!empty($page->hero_media_id))
-          <x-media-image :media-id="$page->hero_media_id" fetchpriority="high" loading="eager" class="absolute inset-0 w-full h-full object-contain" />
-        @else
-          <img src="{{ Str::startsWith($page->hero_image, ['http://', 'https://']) ? $page->hero_image : asset('images/' . $page->hero_image) }}" alt="{{ $page->hero_title }}" fetchpriority="high" loading="eager" class="absolute inset-0 w-full h-full object-contain">
+          <x-media-image :media-id="$page->hero_media_id" fetchpriority="high" loading="eager" class="w-full h-full object-cover rounded-2xl" />
+        @elseif(!empty($showImgSrc))
+          <img src="{{ $showImgSrc }}" 
+               alt="{{ $page->hero_title ?? $page->title }}" 
+               fetchpriority="high" 
+               loading="eager" 
+               class="w-full h-full object-cover rounded-2xl" 
+               onerror="this.onerror=null;this.src='{{ $defaultPlaceholder }}';">
         @endif
-        </div>
-      @endif
+      </div>
     </div>
   </section>
   @endif
@@ -86,7 +144,7 @@
     @if($sectionName === 'root_causes' && !empty($page->root_causes) && is_array($page->root_causes))
     <section class="py-16 bg-slate-50">
       <div class="container-site max-w-4xl">
-        <h2 class="text-3xl font-display font-bold text-navy-900 mb-10">{{ $page->root_causes_title ?? 'Root Causes' }}</h2>
+        <h2 class="text-3xl font-display font-bold text-navy-900 mb-10">{{ $page->root_causes_title ?: $st['root_causes'] }}</h2>
         <div class="space-y-4">
           @foreach($page->root_causes as $cause)
           <div class="bg-indigo-50/50 rounded-xl p-6 border-l-4 border-indigo-500">
@@ -103,7 +161,7 @@
     @if($sectionName === 'treatments' && !empty($page->treatments) && is_array($page->treatments))
     <section class="py-16 bg-white">
       <div class="container-site max-w-3xl">
-        <h2 class="text-3xl font-display font-bold text-navy-900 mb-6">{{ $page->treatments_title ?? 'Evidence-Based Treatments' }}</h2>
+        <h2 class="text-3xl font-display font-bold text-navy-900 mb-6">{{ $page->treatments_title ?: $st['treatments'] }}</h2>
         
         @if(!empty($page->treatments_description))
         <div class="cms-richtext text-lg max-w-none text-slate-600 mb-8">{!! str_replace('<iframe ', '<iframe referrerpolicy="strict-origin-when-cross-origin" ', $page->treatments_description ?? '') !!}</div>
@@ -111,12 +169,17 @@
 
         <ul class="space-y-4">
           @foreach($page->treatments as $treatment)
+          @php
+            $treatmentText = is_array($treatment) ? ($treatment['text'] ?? '') : $treatment;
+          @endphp
+          @if(!empty(trim(strip_tags($treatmentText ?? ''))))
           <li class="flex items-start gap-4">
             <div class="w-1.5 h-1.5 rounded-full bg-slate-400 mt-2.5 shrink-0"></div>
             <div class="cms-richtext text-lg max-w-none text-slate-700 leading-relaxed">
-              {!! str_replace('<iframe ', '<iframe referrerpolicy="strict-origin-when-cross-origin" ', $treatment ?? '') !!}
+              {!! str_replace('<iframe ', '<iframe referrerpolicy="strict-origin-when-cross-origin" ', $treatmentText ?? '') !!}
             </div>
           </li>
+          @endif
           @endforeach
         </ul>
       </div>
@@ -129,7 +192,7 @@
   @if(isset($relatedProducts) && $relatedProducts->isNotEmpty())
   <section class="py-16 bg-slate-50 border-t border-slate-100">
     <div class="container-site max-w-6xl">
-      <h2 class="text-3xl font-display font-bold text-navy-900 mb-8 text-center">Recommended For You</h2>
+      <h2 class="text-3xl font-display font-bold text-navy-900 mb-8 text-center">{{ $st['recommended_title'] }}</h2>
       
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         @foreach($relatedProducts as $product)
@@ -158,7 +221,7 @@
                 @endif
               </div>
               <a href="{{ $productUrl }}" class="mt-4 w-full bg-white border border-slate-300 text-slate-700 hover:bg-navy-900 hover:text-white hover:border-navy-900 text-center font-bold text-sm py-2.5 rounded-xl transition-colors">
-                View Details
+                {{ $st['view_details'] }}
               </a>
             </div>
           </div>

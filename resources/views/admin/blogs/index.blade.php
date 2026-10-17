@@ -83,5 +83,10 @@
             </tbody>
         </table>
     </div>
+    @if(method_exists($posts, 'hasPages') && $posts->hasPages())
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200">
+            {{ $posts->links() }}
+        </div>
+    @endif
 </div>
 @endsection

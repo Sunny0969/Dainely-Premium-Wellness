@@ -30,12 +30,12 @@ class AdminMediaController extends Controller
             
 $folderType = $request->input('folder_type', 'others');
             $folderMap = [
-                'blogs' => 'dainely/blogs',
-                'education' => 'dainely/media/Education',
-                'landing' => 'dainely/media/Landing page',
-                'others' => 'dainely/media/others'
+                'blogs' => 'blogs',
+                'education' => 'education',
+                'landing' => 'Landing Pages',
+                'others' => 'others'
             ];
-            $baseFolder = $folderMap[$folderType] ?? 'dainely/media/others';
+            $baseFolder = $folderMap[$folderType] ?? 'others';
             $path = $file->storePubliclyAs($baseFolder, $filename, 's3');
             
             if (!$path) {

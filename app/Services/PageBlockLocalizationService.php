@@ -41,7 +41,18 @@ class PageBlockLocalizationService
 
             $cached = Cache::get($cacheKey);
             if (is_array($cached) && isset($cached['title'], $cached['content'])) {
-                return $this->withCopy($block, (string) $cached['title'], (string) $cached['content']);
+                $cachedTitle = (string) $cached['title'];
+                $cachedContent = (string) $cached['content'];
+
+                // An entry that still reads as English is a provider failure from an
+                // earlier run — downgrade it so it expires in minutes, then translate
+                // again instead of freezing English on the storefront for 30 days.
+                if (! $this->translator->isUntranslated($cachedTitle, $title)
+                    && ! $this->translator->isUntranslated($cachedContent, $content)) {
+                    return $this->withCopy($block, $cachedTitle, $cachedContent);
+                }
+
+                Cache::put($cacheKey, $cached, now()->addSeconds(600));
             }
 
             $translatedTitle = $title;
@@ -60,12 +71,15 @@ class PageBlockLocalizationService
                     && trim(strip_tags($title.$content)) !== '') {
                     $translatedTitle = $title;
                     $translatedContent = $content;
-                } else {
-                    Cache::put($cacheKey, [
-                        'title'   => $translatedTitle,
-                        'content' => $translatedContent,
-                    ], now()->addDays(30));
                 }
+
+                $translated = ! $this->translator->isUntranslated($translatedTitle, $title)
+                    && ! $this->translator->isUntranslated($translatedContent, $content);
+
+                Cache::put($cacheKey, [
+                    'title'   => $translatedTitle,
+                    'content' => $translatedContent,
+                ], now()->addSeconds($translated ? 30 * 86400 : 600));
             } catch (Throwable $e) {
                 Log::warning('Page block auto-translate failed', [
                     'block_id' => $id,
@@ -91,13 +105,17 @@ class PageBlockLocalizationService
         }
 
         return (object) [
-            'id'         => (int) ($block->id ?? 0),
-            'locale'     => (string) ($block->locale ?? 'en'),
-            'block_type' => (string) ($block->block_type ?? ''),
-            'title'      => (string) ($block->title ?? ''),
-            'content'    => (string) ($block->content ?? ''),
-            'sort_order' => (int) ($block->sort_order ?? 0),
-            'visible'    => (bool) ($block->visible ?? true),
+            'id'               => (int) ($block->id ?? 0),
+            'locale'           => (string) ($block->locale ?? 'en'),
+            'block_type'       => (string) ($block->block_type ?? ''),
+            'title'            => (string) ($block->title ?? ''),
+            'content'          => (string) ($block->content ?? ''),
+            'sort_order'       => (int) ($block->sort_order ?? 0),
+            'visible'          => (bool) ($block->visible ?? true),
+            'display_position' => ($block->display_position ?? null) !== null ? (string) $block->display_position : null,
+            'is_global'        => (bool) ($block->is_global ?? false),
+            'bg_color'         => ($block->bg_color ?? null) !== null && $block->bg_color !== '' ? (string) $block->bg_color : null,
+            'text_color'       => ($block->text_color ?? null) !== null && $block->text_color !== '' ? (string) $block->text_color : null,
         ];
     }
 

@@ -53,7 +53,7 @@ class AdminBundleController extends AdminController
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
                 $filename = time() . '-' . \Illuminate\Support\Str::slug($validated['title']) . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('dainely/media/others', $filename, 's3');
+                $path = $file->storePubliclyAs('others', $filename, 's3');
                 $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
                 $imageArray = ['url' => $filename];
             }
@@ -122,7 +122,7 @@ class AdminBundleController extends AdminController
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
                 $filename = time() . '-' . \Illuminate\Support\Str::slug($validated['title']) . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('dainely/media/others', $filename, 's3');
+                $path = $file->storePubliclyAs('others', $filename, 's3');
                 $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
                 $validated['images'] = ['url' => $filename];
             }

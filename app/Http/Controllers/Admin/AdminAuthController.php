@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 
 class AdminAuthController extends Controller
 {
@@ -29,10 +31,9 @@ class AdminAuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $adminEmail = config('app.admin_email', env('ADMIN_EMAIL', 'admin@dainelylab.com'));
-        $adminPassword = config('app.admin_password', env('ADMIN_PASSWORD', 'admin12345'));
+        $savedCreds = $this->getSavedCredentials();
 
-        if ($credentials['email'] === $adminEmail && $credentials['password'] === $adminPassword) {
+        if ($credentials['email'] === $savedCreds['email'] && $credentials['password'] === $savedCreds['password']) {
             session()->put('admin_authenticated', true);
             return redirect('/dainely-admin-panel/dashboard')->with('success', 'Welcome back, Administrator!');
         }
@@ -40,6 +41,54 @@ class AdminAuthController extends Controller
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->onlyInput('email');
+    }
+
+    private function getSavedCredentials()
+    {
+        // 1. JSON file se uthao
+        $jsonPath = storage_path('app/admin_credentials.json');
+        if (File::exists($jsonPath)) {
+            $data = json_decode(File::get($jsonPath), true);
+            if ($data && isset($data['email']) && isset($data['password'])) {
+                return $data;
+            }
+        }
+
+        // 2. Agar json nahi hai to .env se uthao
+        return [
+            'email' => config('app.admin_email', env('ADMIN_EMAIL', 'admin@dainelylab.com')),
+            'password' => config('app.admin_password', env('ADMIN_PASSWORD', 'admin12345'))
+        ];
+    }
+
+    private function saveCredentialsPermanently($newEmail, $newPassword)
+    {
+        // JSON file mein update karo
+        $jsonPath = storage_path('app/admin_credentials.json');
+        File::put($jsonPath, json_encode(['email' => $newEmail, 'password' => $newPassword]));
+
+        // .env file ko update karne ki koshish karo
+        $envPath = base_path('.env');
+        if (File::exists($envPath) && is_writable($envPath)) {
+            $env = File::get($envPath);
+            if (preg_match('/^ADMIN_EMAIL=.*$/m', $env)) {
+                $env = preg_replace('/^ADMIN_EMAIL=.*$/m', 'ADMIN_EMAIL="' . $newEmail . '"', $env);
+            } else {
+                $env .= "\nADMIN_EMAIL=\"" . $newEmail . "\"";
+            }
+
+            if (preg_match('/^ADMIN_PASSWORD=.*$/m', $env)) {
+                $env = preg_replace('/^ADMIN_PASSWORD=.*$/m', 'ADMIN_PASSWORD="' . $newPassword . '"', $env);
+            } else {
+                $env .= "\nADMIN_PASSWORD=\"" . $newPassword . "\"";
+            }
+            File::put($envPath, $env);
+        }
+
+        try {
+            Artisan::call('config:clear');
+            Artisan::call('cache:clear');
+        } catch (\Exception $e) {}
     }
 
     public function profile()
@@ -54,35 +103,14 @@ class AdminAuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $path = base_path('.env');
-        if (file_exists($path)) {
-            $env = file_get_contents($path);
-            
-            // Update ADMIN_EMAIL
-            if (preg_match('/^ADMIN_EMAIL=.*$/m', $env)) {
-                $env = preg_replace('/^ADMIN_EMAIL=.*$/m', 'ADMIN_EMAIL="' . $validated['email'] . '"', $env);
-            } else {
-                $env .= "\nADMIN_EMAIL=\"" . $validated['email'] . "\"";
-            }
-
-            // Update ADMIN_PASSWORD
-            if (preg_match('/^ADMIN_PASSWORD=.*$/m', $env)) {
-                $env = preg_replace('/^ADMIN_PASSWORD=.*$/m', 'ADMIN_PASSWORD="' . $validated['password'] . '"', $env);
-            } else {
-                $env .= "\nADMIN_PASSWORD=\"" . $validated['password'] . "\"";
-            }
-            file_put_contents($path, $env);
-        }
-
-        \Illuminate\Support\Facades\Artisan::call('config:clear');
-        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        $this->saveCredentialsPermanently($validated['email'], $validated['password']);
         
-        return back()->with('success', 'Admin credentials updated successfully.');
+        return back()->with('success', 'Admin credentials updated successfully! New password is now active.');
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
         session()->forget('admin_authenticated');
-        return redirect('/dainely-admin-panel/login')->with('success', 'Logged out successfully.');
+        return redirect('/dainely-admin-panel/login')->with('success', 'You have been logged out.');
     }
 }

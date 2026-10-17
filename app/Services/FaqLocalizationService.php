@@ -176,6 +176,15 @@ class FaqLocalizationService
             try {
                 $q = $this->translator->translateContent($faq->question, 'en', $locale);
                 $a = $this->translator->translateContent($faq->answer, 'en', $locale);
+
+                // A provider failure hands the English text back instead of throwing.
+                if ($this->translator->isUntranslated($q, $faq->question)
+                    || $this->translator->isUntranslated($a, $faq->answer)) {
+                    $failed++;
+                    $q = $faq->question;
+                    $a = $faq->answer;
+                }
+
                 $translated[] = [
                     'question' => $q,
                     'answer'   => $a,
@@ -195,9 +204,10 @@ class FaqLocalizationService
             }
         }
 
-        // Only cache successful translations (not English fallbacks).
-        if ($translated !== [] && $failed === 0) {
-            Cache::put($cacheKey, $translated, now()->addDays(30));
+        // Real translations can be pinned; English leftovers only for a few minutes
+        // so the next request retries instead of freezing them for 30 days.
+        if ($translated !== []) {
+            Cache::put($cacheKey, $translated, now()->addSeconds($failed === 0 ? 30 * 86400 : 600));
         }
 
         return $this->normalize(collect($translated));

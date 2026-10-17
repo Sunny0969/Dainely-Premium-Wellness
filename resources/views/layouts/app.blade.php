@@ -88,6 +88,9 @@
   {{-- Vite Assets --}}
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+  {{-- Per-page styles that must win over the Vite bundle --}}
+  @stack('page_styles')
+
   {{-- JSON-LD Structured Data Stack --}}
   @stack('json-ld')
   {{-- Google Site Verification --}}
@@ -101,6 +104,9 @@
     gtag('js', new Date());
     gtag('config', 'G-56C8977Q6N');
   </script>
+
+  {{-- OpenAI Ads Measurement Pixel --}}
+  <script>!function(w,d,s,u){if(w.oaiq)return;var q=function(){q.q.push(arguments)};q.q=[];w.oaiq=q;var j=d.createElement(s);j.async=1;j.src=u;var f=d.getElementsByTagName(s)[0];f.parentNode.insertBefore(j,f)}(window,document,"script","https://bzrcdn.openai.com/sdk/oaiq.min.js");oaiq("init",{pixelId:"2MMXMQStphduPRvhYriNzS",debug:true});</script>
 </head>
 <body class="min-h-screen flex flex-col" x-data="scrollTop()">
 <script>
