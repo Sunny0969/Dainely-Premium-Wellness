@@ -73,6 +73,12 @@ class AdminEducationController extends Controller
         \Illuminate\Support\Facades\Cache::forget('nav_edu_desktop_v2_fr');
         \Illuminate\Support\Facades\Cache::forget('nav_edu_desktop_v2_de');
 
+        // Full-page HTML snapshots for listing pages + homepage nav.
+        \App\Http\Middleware\StaticIsrCache::forgetPath(
+            'en/education', 'fr/education', 'de/education',
+            'en', 'fr', 'de'
+        );
+
         return redirect('/dainely-admin-panel/education')->with('success', "All {$count} education pages synced & translated to FR and DE successfully!");
     }
 
@@ -107,6 +113,8 @@ class AdminEducationController extends Controller
             }
             throw $e;
         }
+
+        \App\Support\StorefrontCache::forgetEducation($page->id, $page->slug);
 
         return redirect('/dainely-admin-panel/education')->with('success', 'Education Page created successfully.');
     }
@@ -166,7 +174,7 @@ class AdminEducationController extends Controller
             throw $e;
         }
 
-        \App\Support\StorefrontCache::forgetEducation($page->id);
+        \App\Support\StorefrontCache::forgetEducation($page->id, $page->slug);
         return back()->with('success', 'Education Page updated successfully.');
     }
 
@@ -178,11 +186,11 @@ class AdminEducationController extends Controller
         if (!empty($slug)) {
             $allRows = EducationPage::where('slug', $slug)->get();
             foreach ($allRows as $item) {
-                \App\Support\StorefrontCache::forgetEducation($item->id);
+                \App\Support\StorefrontCache::forgetEducation($item->id, $item->slug);
                 $item->delete();
             }
         } else {
-            \App\Support\StorefrontCache::forgetEducation($page->id);
+            \App\Support\StorefrontCache::forgetEducation($page->id, $page->slug);
             $page->delete();
         }
 
@@ -429,10 +437,10 @@ class AdminEducationController extends Controller
 
                 if ($localePage) {
                     $localePage->update($safeTranslated);
-                    \App\Support\StorefrontCache::forgetEducation($localePage->id);
+                    \App\Support\StorefrontCache::forgetEducation($localePage->id, $localePage->slug);
                 } else {
                     $newPage = EducationPage::create($safeTranslated);
-                    \App\Support\StorefrontCache::forgetEducation($newPage->id);
+                    \App\Support\StorefrontCache::forgetEducation($newPage->id, $newPage->slug);
                 }
                 \Illuminate\Support\Facades\Cache::forget("education_index_pages_v1_{$locale}");
                 \Illuminate\Support\Facades\Cache::forget("nav_edu_desktop_v2_{$locale}");

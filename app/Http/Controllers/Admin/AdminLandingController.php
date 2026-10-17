@@ -67,8 +67,12 @@ class AdminLandingController extends AdminController
             $validated['locale'] = 'en';
             $validated['canonical_url'] = $this->autoCanonical('en', (string) $validated['slug']);
 
-            LandingPage::create($validated);
+            $page = LandingPage::create($validated);
             $this->forgetAdminCatalogCaches();
+
+            // Drop any stale full-page snapshot left over from an earlier visit
+            // (e.g. the slug previously 404'd or rendered an empty page).
+            \App\Support\StorefrontCache::forgetLanding((int) $page->id, 'en', (string) $validated['slug']);
 
             return back()->with('success', 'Landing page created successfully!');
         }, fn () => back()->with('error', 'Database operation failed.'));
@@ -134,9 +138,16 @@ class AdminLandingController extends AdminController
                 $validated['discount_code'] = strtoupper(trim($validated['discount_code']));
             }
 
+            $oldSlug = (string) $page->slug;
+
             $page->update($validated);
 
             \App\Support\StorefrontCache::forgetLanding((int) $id, (string) $page->locale, (string) $page->slug);
+
+            // Renamed slug: purge the old URL's HTML snapshot too.
+            if ($oldSlug !== '' && $oldSlug !== (string) $page->slug) {
+                \App\Support\StorefrontCache::forgetLanding((int) $id, (string) $page->locale, $oldSlug);
+            }
 
             return back()->with('success', 'Landing page updated successfully!');
         }, fn () => back()->with('error', 'Database operation failed.'));
