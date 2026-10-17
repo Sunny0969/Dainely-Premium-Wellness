@@ -185,16 +185,46 @@ class StorefrontCache
             Cache::forget(self::landingKey($slug, $locale));
             foreach (['en', 'fr', 'de'] as $loc) {
                 Cache::forget(self::landingKey($slug, $loc));
+                // Full-page HTML snapshots (StaticIsrCache) are keyed by path.
+                \App\Http\Middleware\StaticIsrCache::forgetPath($loc.'/'.trim($slug, '/'));
             }
         }
     }
 
-    public static function forgetEducation(int $educationId): void
+    public static function forgetEducation(int $educationId, ?string $slug = null): void
     {
+        $slug = is_string($slug) && $slug !== '' ? trim($slug, '/') : null;
+
+        if ($slug === null) {
+            try {
+                $resolved = SupabaseDb::run(
+                    fn () => \App\Models\Catalog\EducationPage::query()->where('id', $educationId)->value('slug'),
+                    null
+                );
+                $slug = is_string($resolved) && $resolved !== '' ? trim($resolved, '/') : null;
+            } catch (\Throwable) {
+                $slug = null;
+            }
+        }
+
         foreach (['en', 'fr', 'de'] as $locale) {
             Cache::forget(self::educationCmsKey($educationId, $locale));
             Cache::forget(self::relatedKey('education', $educationId, $locale));
+
+            if ($slug !== null) {
+                \App\Http\Middleware\StaticIsrCache::forgetPath($locale.'/education/'.$slug);
+            }
         }
+
+        // Listing page + homepage (nav education titles) also embed this content.
+        \App\Http\Middleware\StaticIsrCache::forgetPath(
+            'en/education',
+            'fr/education',
+            'de/education',
+            'en',
+            'fr',
+            'de'
+        );
     }
 
     public static function forgetRelated(string $sourceType, int $sourceId): void
