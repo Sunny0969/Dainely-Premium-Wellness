@@ -23,13 +23,37 @@
         \App\Support\CmsHtml::normalize((string) $content, true),
         $darkBlock
     );
+
+    $align = $block->display_position ?? 'content_only';
+    $imageUrl = $block->image_url ?? null;
+    $hasSideImage = !empty($imageUrl) && in_array($align, ['image_left', 'image_right'], true);
 @endphp
 <section class="rich-block py-12">
-    <div class="container-site max-w-4xl mx-auto px-4">
+    <div class="container-site {{ $hasSideImage ? 'max-w-6xl' : 'max-w-4xl' }} mx-auto px-4">
         @if(!empty($title))
-            <h2 class="text-3xl font-bold mb-6 text-center" style="color: {{ $ink }}">{{ $title }}</h2>
+            <h2 class="text-3xl font-bold mb-8 text-center" style="color: {{ $ink }}">{{ $title }}</h2>
         @endif
-        <div class="cms-richtext landing-richtext{{ $darkBlock ? ' landing-richtext--dark' : '' }}"
-             style="color: {{ $ink }}">{!! $html !!}</div>
+
+        @if($hasSideImage)
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
+                @if($align === 'image_left')
+                    <div class="w-full flex justify-center">
+                        <img src="{{ $imageUrl }}" alt="{{ $title ?? 'Section Image' }}" class="w-full max-w-lg rounded-2xl shadow-lg object-cover max-h-[520px]">
+                    </div>
+                    <div class="cms-richtext landing-richtext{{ $darkBlock ? ' landing-richtext--dark' : '' }}"
+                         style="color: {{ $ink }}">{!! $html !!}</div>
+                @else
+                    <div class="cms-richtext landing-richtext{{ $darkBlock ? ' landing-richtext--dark' : '' }}"
+                         style="color: {{ $ink }}">{!! $html !!}</div>
+                    <div class="w-full flex justify-center">
+                        <img src="{{ $imageUrl }}" alt="{{ $title ?? 'Section Image' }}" class="w-full max-w-lg rounded-2xl shadow-lg object-cover max-h-[520px]">
+                    </div>
+                @endif
+            </div>
+        @else
+            <div class="cms-richtext landing-richtext{{ $darkBlock ? ' landing-richtext--dark' : '' }}"
+                 style="color: {{ $ink }}">{!! $html !!}</div>
+        @endif
     </div>
 </section>
+

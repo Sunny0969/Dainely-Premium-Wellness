@@ -214,6 +214,126 @@
         border-radius: 10px;
     }
 
+    /* Alignment support (Quill editor alignments & inline styles) */
+    .landing-richtext .ql-align-center,
+    .cms-richtext .ql-align-center,
+    .landing-richtext [align="center"],
+    .cms-richtext [align="center"],
+    .landing-richtext [style*="text-align: center"],
+    .cms-richtext [style*="text-align: center"],
+    .landing-richtext [style*="text-align:center"],
+    .cms-richtext [style*="text-align:center"] {
+        text-align: center !important;
+    }
+
+    .landing-richtext .ql-align-right,
+    .cms-richtext .ql-align-right,
+    .landing-richtext [align="right"],
+    .cms-richtext [align="right"],
+    .landing-richtext [style*="text-align: right"],
+    .cms-richtext [style*="text-align: right"],
+    .landing-richtext [style*="text-align:right"],
+    .cms-richtext [style*="text-align:right"] {
+        text-align: right !important;
+    }
+
+    .landing-richtext .ql-align-left,
+    .cms-richtext .ql-align-left,
+    .landing-richtext [align="left"],
+    .cms-richtext [align="left"],
+    .landing-richtext [style*="text-align: left"],
+    .cms-richtext [style*="text-align: left"],
+    .landing-richtext [style*="text-align:left"],
+    .cms-richtext [style*="text-align:left"] {
+        text-align: left !important;
+    }
+
+    .landing-richtext .ql-align-justify,
+    .cms-richtext .ql-align-justify,
+    .landing-richtext [style*="text-align: justify"],
+    .cms-richtext [style*="text-align: justify"],
+    .landing-richtext [style*="text-align:justify"],
+    .cms-richtext [style*="text-align:justify"] {
+        text-align: justify !important;
+    }
+
+    /* Images inside aligned blocks */
+    .landing-richtext .ql-align-center img,
+    .cms-richtext .ql-align-center img,
+    .landing-richtext [align="center"] img,
+    .cms-richtext [align="center"] img,
+    .landing-richtext [style*="text-align: center"] img,
+    .cms-richtext [style*="text-align: center"] img,
+    .landing-richtext [style*="text-align:center"] img,
+    .cms-richtext [style*="text-align:center"] img {
+        display: inline-block !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .landing-richtext .ql-align-right img,
+    .cms-richtext .ql-align-right img,
+    .landing-richtext [align="right"] img,
+    .cms-richtext [align="right"] img,
+    .landing-richtext [style*="text-align: right"] img,
+    .cms-richtext [style*="text-align: right"] img,
+    .landing-richtext [style*="text-align:right"] img,
+    .cms-richtext [style*="text-align:right"] img {
+        display: inline-block !important;
+        margin-left: auto !important;
+        margin-right: 0 !important;
+    }
+
+    .landing-richtext .ql-align-left img,
+    .cms-richtext .ql-align-left img,
+    .landing-richtext [align="left"] img,
+    .cms-richtext [align="left"] img,
+    .landing-richtext [style*="text-align: left"] img,
+    .cms-richtext [style*="text-align: left"] img,
+    .landing-richtext [style*="text-align:left"] img,
+    .cms-richtext [style*="text-align:left"] img {
+        display: inline-block !important;
+        margin-left: 0 !important;
+        margin-right: auto !important;
+    }
+
+    /* Images with direct alignment classes */
+    .landing-richtext img.ql-align-center,
+    .cms-richtext img.ql-align-center {
+        display: block !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .landing-richtext img.ql-align-right,
+    .cms-richtext img.ql-align-right {
+        display: block !important;
+        margin-left: auto !important;
+        margin-right: 0 !important;
+    }
+
+    .landing-richtext img.ql-align-left,
+    .cms-richtext img.ql-align-left {
+        display: block !important;
+        margin-left: 0 !important;
+        margin-right: auto !important;
+    }
+
+    /* Quill font sizes */
+    .landing-richtext .ql-size-small, .cms-richtext .ql-size-small { font-size: 0.75em !important; }
+    .landing-richtext .ql-size-large, .cms-richtext .ql-size-large { font-size: 1.5em !important; }
+    .landing-richtext .ql-size-huge, .cms-richtext .ql-size-huge { font-size: 2.25em !important; }
+
+    /* Quill indents */
+    .landing-richtext .ql-indent-1, .cms-richtext .ql-indent-1 { padding-left: 3em !important; }
+    .landing-richtext .ql-indent-2, .cms-richtext .ql-indent-2 { padding-left: 6em !important; }
+    .landing-richtext .ql-indent-3, .cms-richtext .ql-indent-3 { padding-left: 9em !important; }
+    .landing-richtext .ql-indent-4, .cms-richtext .ql-indent-4 { padding-left: 12em !important; }
+    .landing-richtext .ql-indent-5, .cms-richtext .ql-indent-5 { padding-left: 15em !important; }
+    .landing-richtext .ql-indent-6, .cms-richtext .ql-indent-6 { padding-left: 18em !important; }
+    .landing-richtext .ql-indent-7, .cms-richtext .ql-indent-7 { padding-left: 21em !important; }
+    .landing-richtext .ql-indent-8, .cms-richtext .ql-indent-8 { padding-left: 24em !important; }
+
     .landing-richtext table {
         border: 1px solid #cbd5e1 !important; /* wins over the black rule Quill bakes into pasted tables */
         border-collapse: collapse;
@@ -341,6 +461,7 @@
                 'ctaUrl' => $offer['checkout_url'] ?? null,
                 'ctaLabel' => $offer['label'] ?? null,
                 'bundleView' => ($bundleViews[$block->id] ?? null),
+                'block' => $block,
             ])
         </div>
     @endforeach

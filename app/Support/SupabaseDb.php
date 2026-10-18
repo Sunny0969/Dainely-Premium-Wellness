@@ -133,6 +133,11 @@ class SupabaseDb
      */
     protected static function tcpReachable(): bool
     {
+        if (request()->isMethod('POST') || request()->boolean('retry_supabase')) {
+            \Illuminate\Support\Facades\Cache::forget('supabase.tcp_fail');
+            \Illuminate\Support\Facades\Cache::forget('admin.supabase_ping_fail');
+        }
+
         if (\Illuminate\Support\Facades\Cache::get('supabase.tcp_fail') === true) {
             return false;
         }

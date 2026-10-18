@@ -87,12 +87,15 @@ class ShopifyCheckoutService
             return ['success' => false, 'error' => 'No valid product variants found in cart.'];
         }
 
+        $returnUrl = $this->getReturnUrl();
+        $checkoutSource = $this->getCheckoutSource();
+
         $input = [
             'lines' => $lines,
             'attributes' => [
-                ['key' => 'checkout_source', 'value' => 'Laravel Client Side'],
+                ['key' => 'checkout_source', 'value' => $checkoutSource],
                 ['key' => 'app_locale', 'value' => app()->getLocale()],
-                ['key' => 'return_url', 'value' => (string) config('shopify.checkout_return_url', config('app.url'))],
+                ['key' => 'return_url', 'value' => $returnUrl],
             ],
         ];
 
@@ -145,7 +148,7 @@ GRAPHQL;
             $checkoutUrl = $cart['checkoutUrl'];
             
             // Append a return_to parameter to instruct Shopify to show a "Return to cart" back button
-            $returnTo = urlencode(route('cart.index', ['locale' => app()->getLocale()]));
+            $returnTo = urlencode($returnUrl . '/' . app()->getLocale() . '/cart');
             $separator = str_contains($checkoutUrl, '?') ? '&' : '?';
             $checkoutUrl .= $separator . 'return_to=' . $returnTo;
 
@@ -185,8 +188,9 @@ GRAPHQL;
         $input = [
             'lineItems' => $lineItems,
             'customAttributes' => [
-                ['key' => 'checkout_source', 'value' => 'Laravel Client Side'],
+                ['key' => 'checkout_source', 'value' => $this->getCheckoutSource()],
                 ['key' => 'app_locale', 'value' => app()->getLocale()],
+                ['key' => 'return_url', 'value' => $this->getReturnUrl()],
             ],
         ];
 
@@ -335,4 +339,20 @@ GRAPHQL;
             'json' => $response->json() ?? [],
         ];
     }
+
+    public function getCheckoutSource(): string
+    {
+        $source = (string) config('shopify.checkout_source', env('SHOPIFY_CHECKOUT_SOURCE'));
+        return !empty($source) ? $source : 'Dainely Storefront';
+    }
+
+    public function getReturnUrl(): string
+    {
+        $url = (string) config('shopify.checkout_return_url', env('SHOPIFY_CHECKOUT_RETURN_URL'));
+        if (empty($url) || str_contains($url, 'localhost') || str_contains($url, '127.0.0.1')) {
+            $url = 'https://dainely.com';
+        }
+        return rtrim($url, '/');
+    }
 }
+

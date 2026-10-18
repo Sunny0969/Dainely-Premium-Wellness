@@ -185,6 +185,87 @@ class AdminLandingController extends AdminController
                     ->delete();
             }
 
+            // Save / Sync Layout Blocks when blocks are submitted
+            if ($request->has('blocks_synced')) {
+                $rawBlocks = (array) $request->input('blocks', []);
+                $submittedBlockIds = [];
+                $order = 1;
+
+                foreach ($rawBlocks as $bData) {
+                    $blockId = ! empty($bData['id']) ? (int) $bData['id'] : null;
+                    $title = isset($bData['title']) ? trim((string) $bData['title']) : null;
+                    $blockType = ! empty($bData['block_type']) ? trim((string) $bData['block_type']) : 'rich';
+                    $content = isset($bData['content']) ? (string) $bData['content'] : '';
+                    $bgColor = ! empty($bData['bg_color']) ? trim((string) $bData['bg_color']) : null;
+                    $displayPosition = ! empty($bData['display_position']) ? trim((string) $bData['display_position']) : 'content_only';
+                    $imageUrl = ! empty($bData['image_url']) ? trim((string) $bData['image_url']) : null;
+                    $visible = !empty($bData['visible']) ? true : false;
+                    $sortOrder = isset($bData['sort_order']) && $bData['sort_order'] !== '' ? (int) $bData['sort_order'] : $order;
+
+                    if (!empty($content)) {
+                        $content = \App\Support\CmsHtml::cleanMediaUrls($content);
+                        $content = \App\Services\HtmlImageProcessor::processBase64Images($content, 'landing-pages/' . $page->slug);
+                    }
+
+                    if ($imageUrl) {
+                        $imageUrl = \App\Support\CmsHtml::cleanMediaUrls($imageUrl);
+                    }
+
+                    if ($blockId) {
+                        $block = PageBlock::where('blockable_type', LandingPage::class)
+                            ->where('blockable_id', $page->id)
+                            ->where('id', $blockId)
+                            ->first();
+
+                        if ($block) {
+                            $block->update([
+                                'block_type'       => $blockType ?: 'rich',
+                                'title'            => $title ?: null,
+                                'content'          => $content,
+                                'bg_color'         => $bgColor,
+                                'display_position' => $displayPosition,
+                                'image_url'        => $imageUrl,
+                                'visible'          => $visible,
+                                'sort_order'       => $sortOrder,
+                            ]);
+                            $submittedBlockIds[] = $block->id;
+                            $order++;
+                            continue;
+                        }
+                    }
+
+                    // Only create if there's either title, content, or an image
+                    if (!empty($title) || !empty($content) || !empty($imageUrl)) {
+                        $newBlock = PageBlock::create([
+                            'blockable_type'   => LandingPage::class,
+                            'blockable_id'     => $page->id,
+                            'locale'           => $page->locale ?: 'en',
+                            'block_type'       => $blockType ?: 'rich',
+                            'title'            => $title ?: null,
+                            'content'          => $content,
+                            'bg_color'         => $bgColor,
+                            'display_position' => $displayPosition,
+                            'image_url'        => $imageUrl,
+                            'visible'          => $visible,
+                            'sort_order'       => $sortOrder,
+                        ]);
+                        $submittedBlockIds[] = $newBlock->id;
+                        $order++;
+                    }
+                }
+
+                // If any blocks were marked for deletion
+                if ($request->has('deleted_blocks')) {
+                    $deletedIds = array_filter(array_map('intval', (array) $request->input('deleted_blocks', [])));
+                    if (!empty($deletedIds)) {
+                        PageBlock::where('blockable_type', LandingPage::class)
+                            ->where('blockable_id', $page->id)
+                            ->whereIn('id', $deletedIds)
+                            ->delete();
+                    }
+                }
+            }
+
             \App\Support\StorefrontCache::forgetLanding((int) $id, (string) $page->locale, (string) $page->slug);
 
             // Renamed slug: purge the old URL's HTML snapshot too.
@@ -192,7 +273,7 @@ class AdminLandingController extends AdminController
                 \App\Support\StorefrontCache::forgetLanding((int) $id, (string) $page->locale, $oldSlug);
             }
 
-            return back()->with('success', 'Landing page updated successfully!');
+            return back()->with('success', 'Landing page and layout blocks saved successfully!');
         }, fn () => back()->with('error', 'Database operation failed.'));
     }
 
@@ -212,12 +293,19 @@ class AdminLandingController extends AdminController
                 'sort_order' => 'nullable|integer',
                 'bg_color' => 'nullable|string|max:7',
                 'text_color' => 'nullable|string|max:7',
+                'display_position' => 'nullable|string|max:100',
+                'image_url' => 'nullable|string|max:1000',
             ]);
 
             $content = $validated['content'] ?? '';
             if (!empty($content)) {
                 $content = \App\Support\CmsHtml::cleanMediaUrls($content);
                 $content = \App\Services\HtmlImageProcessor::processBase64Images($content, 'landing-pages/' . $page->slug);
+            }
+
+            $imageUrl = $validated['image_url'] ?? null;
+            if ($imageUrl) {
+                $imageUrl = \App\Support\CmsHtml::cleanMediaUrls($imageUrl);
             }
 
             $page->pageBlocks()->create([
@@ -228,6 +316,8 @@ class AdminLandingController extends AdminController
                 'sort_order' => !empty($validated['sort_order']) ? (int) $validated['sort_order'] : 1,
                 'bg_color' => $validated['bg_color'] ?? null,
                 'text_color' => $validated['text_color'] ?? null,
+                'display_position' => $validated['display_position'] ?? 'content_only',
+                'image_url' => $imageUrl,
                 'visible' => true,
             ]);
 
@@ -254,6 +344,8 @@ class AdminLandingController extends AdminController
                 'visible' => 'nullable|boolean',
                 'bg_color' => 'nullable|string|max:7',
                 'text_color' => 'nullable|string|max:7',
+                'display_position' => 'nullable|string|max:100',
+                'image_url' => 'nullable|string|max:1000',
             ]);
 
             $updateData = [];
@@ -285,6 +377,18 @@ class AdminLandingController extends AdminController
 
             if ($request->has('text_color')) {
                 $updateData['text_color'] = $validated['text_color'];
+            }
+
+            if ($request->has('display_position')) {
+                $updateData['display_position'] = $validated['display_position'];
+            }
+
+            if ($request->has('image_url')) {
+                $imageUrl = $validated['image_url'];
+                if ($imageUrl) {
+                    $imageUrl = \App\Support\CmsHtml::cleanMediaUrls($imageUrl);
+                }
+                $updateData['image_url'] = $imageUrl;
             }
 
             if (!empty($updateData)) {

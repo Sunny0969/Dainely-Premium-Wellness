@@ -21,8 +21,11 @@ return [
     // Square is temporary fallback only — enable via FEATURES_SQUARE_FALLBACK + ?square=1
     'native_checkout'         => filter_var(env('SHOPIFY_NATIVE_CHECKOUT', true), FILTER_VALIDATE_BOOLEAN),
 
+    // Source name displayed in Shopify order attributes (replaces "Laravel Client Side")
+    'checkout_source'         => env('SHOPIFY_CHECKOUT_SOURCE', 'Dainely Storefront'),
+
     // Used as cart attribute when native Shopify checkout is enabled (for theme redirects).
-    'checkout_return_url'     => env('SHOPIFY_CHECKOUT_RETURN_URL', env('APP_URL', '')),
+    'checkout_return_url'     => env('SHOPIFY_CHECKOUT_RETURN_URL', 'https://dainely.com'),
     'client_id'       => env('SHOPIFY_KEY', env('SHOPIFY_CLIENT_ID', '')),
     'client_secret'   => env('SHOPIFY_SECRET', env('SHOPIFY_CLIENT_SECRET', '')),
     'webhook_secret'  => env('SHOPIFY_WEBHOOK_SECRET', ''),

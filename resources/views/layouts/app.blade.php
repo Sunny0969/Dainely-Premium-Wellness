@@ -76,6 +76,20 @@
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     img{max-width:100%;height:auto}
     #site-header img[alt="Dainely"]{height:2.75rem;width:auto}
+
+    /* Quill rich-text alignments across all storefront CMS components */
+    .cms-richtext .ql-align-center, .landing-richtext .ql-align-center { text-align: center !important; }
+    .cms-richtext .ql-align-right, .landing-richtext .ql-align-right { text-align: right !important; }
+    .cms-richtext .ql-align-left, .landing-richtext .ql-align-left { text-align: left !important; }
+    .cms-richtext .ql-align-justify, .landing-richtext .ql-align-justify { text-align: justify !important; }
+
+    .cms-richtext .ql-align-center img, .landing-richtext .ql-align-center img { display: inline-block !important; margin-left: auto !important; margin-right: auto !important; }
+    .cms-richtext .ql-align-right img, .landing-richtext .ql-align-right img { display: inline-block !important; margin-left: auto !important; margin-right: 0 !important; }
+    .cms-richtext .ql-align-left img, .landing-richtext .ql-align-left img { display: inline-block !important; margin-left: 0 !important; margin-right: auto !important; }
+
+    .cms-richtext img.ql-align-center, .landing-richtext img.ql-align-center { display: block !important; margin-left: auto !important; margin-right: auto !important; }
+    .cms-richtext img.ql-align-right, .landing-richtext img.ql-align-right { display: block !important; margin-left: auto !important; margin-right: 0 !important; }
+    .cms-richtext img.ql-align-left, .landing-richtext img.ql-align-left { display: block !important; margin-left: 0 !important; margin-right: auto !important; }
   </style>
 
   {{-- Favicon --}}

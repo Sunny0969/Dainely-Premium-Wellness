@@ -543,12 +543,52 @@
 
 .cms-richtext ol {
   list-style-type: decimal !important;
+  counter-reset: cms-ol-counter;
 }
 
 .cms-richtext ul ul {
   list-style-type: circle !important;
   margin-top: 0.35em !important;
   margin-bottom: 0.35em !important;
+}
+
+/* Support Quill 2 semantic lists */
+.cms-richtext ol:has(li[data-list="bullet"]),
+.cms-richtext ol:has(li[data-list="ordered"]) {
+  list-style-type: none !important;
+  padding-left: 0 !important;
+}
+
+.cms-richtext li[data-list] {
+  list-style-type: none !important;
+  padding-left: 1.5rem !important;
+  position: relative !important;
+}
+
+.cms-richtext li[data-list] > .ql-ui {
+  display: none !important;
+}
+
+.cms-richtext li[data-list="bullet"]::before {
+  content: "•";
+  position: absolute;
+  left: 0.25rem;
+  color: #475569;
+  font-weight: 700;
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.cms-richtext li[data-list="ordered"] {
+  counter-increment: cms-ol-counter;
+}
+
+.cms-richtext li[data-list="ordered"]::before {
+  content: counter(cms-ol-counter) ".";
+  position: absolute;
+  left: 0;
+  color: #475569;
+  font-weight: 700;
 }
 
 .cms-richtext li {
@@ -562,6 +602,95 @@
   margin: 0 !important;
   display: inline;
 }
+
+/* Alignments (Quill and inline styles) */
+.cms-richtext .ql-align-center,
+.cms-richtext [align="center"],
+.cms-richtext [style*="text-align: center"],
+.cms-richtext [style*="text-align:center"] {
+  text-align: center !important;
+}
+
+.cms-richtext .ql-align-right,
+.cms-richtext [align="right"],
+.cms-richtext [style*="text-align: right"],
+.cms-richtext [style*="text-align:right"] {
+  text-align: right !important;
+}
+
+.cms-richtext .ql-align-left,
+.cms-richtext [align="left"],
+.cms-richtext [style*="text-align: left"],
+.cms-richtext [style*="text-align:left"] {
+  text-align: left !important;
+}
+
+.cms-richtext .ql-align-justify,
+.cms-richtext [style*="text-align: justify"],
+.cms-richtext [style*="text-align:justify"] {
+  text-align: justify !important;
+}
+
+/* Images inside aligned blocks */
+.cms-richtext .ql-align-center img,
+.cms-richtext [align="center"] img,
+.cms-richtext [style*="text-align: center"] img,
+.cms-richtext [style*="text-align:center"] img {
+  display: inline-block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.cms-richtext .ql-align-right img,
+.cms-richtext [align="right"] img,
+.cms-richtext [style*="text-align: right"] img,
+.cms-richtext [style*="text-align:right"] img {
+  display: inline-block !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
+.cms-richtext .ql-align-left img,
+.cms-richtext [align="left"] img,
+.cms-richtext [style*="text-align: left"] img,
+.cms-richtext [style*="text-align:left"] img {
+  display: inline-block !important;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+
+.cms-richtext img.ql-align-center {
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.cms-richtext img.ql-align-right {
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
+.cms-richtext img.ql-align-left {
+  display: block !important;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+
+/* Quill font sizes */
+.cms-richtext .ql-size-small { font-size: 0.75em !important; }
+.cms-richtext .ql-size-large { font-size: 1.5em !important; }
+.cms-richtext .ql-size-huge { font-size: 2.25em !important; }
+
+/* Quill indents */
+.cms-richtext .ql-indent-1 { padding-left: 3em !important; }
+.cms-richtext .ql-indent-2 { padding-left: 6em !important; }
+.cms-richtext .ql-indent-3 { padding-left: 9em !important; }
+.cms-richtext .ql-indent-4 { padding-left: 12em !important; }
+.cms-richtext .ql-indent-5 { padding-left: 15em !important; }
+.cms-richtext .ql-indent-6 { padding-left: 18em !important; }
+.cms-richtext .ql-indent-7 { padding-left: 21em !important; }
+.cms-richtext .ql-indent-8 { padding-left: 24em !important; }
 
 .cms-richtext table {
   width: 100%;
@@ -586,6 +715,29 @@
 .cms-richtext a {
   color: #1e3a5f;
   text-decoration: underline;
+}
+
+.cms-richtext pre,
+.cms-richtext .ql-code-block-container {
+  background: #1e293b !important;
+  border-radius: 8px !important;
+  color: #f1f5f9 !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+  margin: 1.25rem 0 !important;
+  overflow-x: auto !important;
+  padding: 1rem 1.25rem !important;
+  border: 1px solid #334155 !important;
+}
+
+.cms-richtext .ql-code-block {
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  font-family: inherit !important;
+  color: inherit !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Hide duplicate in-page Order Now on mobile — sticky bar handles checkout */

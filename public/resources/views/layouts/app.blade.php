@@ -25,8 +25,8 @@
   </script>
 
   {{-- SEO Meta --}}
-  <title>@yield('title', 'Dainely â€” Premium Wellness for Back Pain & Nerve Discomfort Relief')</title>
-  <meta name="description" content="@yield('meta_description', 'Clinically developed wellness solutions for back pain, Nerve Discomfort, and posture. Trusted by thousands worldwide.')">
+  <title>@yield('title', 'Dainely — Premium Wellness for Back Pain & Sciatica Relief')</title>
+  <meta name="description" content="@yield('meta_description', 'Clinically developed wellness solutions for back pain, sciatica, and posture. Trusted by thousands worldwide.')">
   @if (View::hasSection('meta_canonical'))
     @yield('meta_canonical')
   @else
@@ -38,51 +38,27 @@
     $supportedLocales = ['en', 'fr', 'de'];
     $currentRouteName = Route::currentRouteName();
     $currentRouteParams = Route::current() ? Route::current()->parameters() : [];
-    
-    if (!function_exists('get_localized_url_for_dainely')) {
-        function get_localized_url_for_dainely($targetLocale, $routeName, $params) {
-            if ($routeName === 'blog.show' && isset($params['slug'])) {
-                $article = \App\Models\BlogPost::with('translations')->whereHas('translations', function($q) use ($params) {
-                    $q->where('slug', $params['slug']);
-                })->first();
-                if ($article) {
-                    $trans = $article->translation($targetLocale);
-                    if ($trans && !empty($trans->slug)) {
-                        return route('blog.show', ['locale' => $targetLocale, 'slug' => $trans->slug]);
-                    }
-                }
-            }
-            if ($routeName) {
-                try {
-                    return route($routeName, array_merge($params, ['locale' => $targetLocale]));
-                } catch (\Exception $e) {
-                    // Fallback if route fails
-                }
-            }
-            return '/' . $targetLocale . preg_replace('#^/(en|fr|de)(/|$)#', '/', request()->getPathInfo());
-        }
-    }
   @endphp
   @if($currentRouteName)
     @foreach($supportedLocales as $lang)
-      <link rel="alternate" hreflang="{{ $lang }}" href="{{ get_localized_url_for_dainely($lang, $currentRouteName, $currentRouteParams) }}">
+      <link rel="alternate" hreflang="{{ $lang }}" href="{{ route($currentRouteName, array_merge($currentRouteParams, ['locale' => $lang])) }}">
     @endforeach
-    <link rel="alternate" hreflang="x-default" href="{{ get_localized_url_for_dainely('en', $currentRouteName, $currentRouteParams) }}">
+    <link rel="alternate" hreflang="x-default" href="{{ route($currentRouteName, array_merge($currentRouteParams, ['locale' => 'en'])) }}">
   @endif
 
   @yield('meta_schema')
 
   {{-- Open Graph --}}
   <meta property="og:type" content="@yield('og_type', 'website')">
-  <meta property="og:title" content="@yield('og_title', 'Dainely â€” Premium Wellness')">
-  <meta property="og:description" content="@yield('og_description', 'Clinically developed wellness solutions for back pain and Nerve Discomfort.')">
+  <meta property="og:title" content="@yield('og_title', 'Dainely — Premium Wellness')">
+  <meta property="og:description" content="@yield('og_description', 'Clinically developed wellness solutions for back pain and sciatica.')">
   <meta property="og:image" content="@yield('og_image', asset('images/og-default.jpg'))">
   <meta property="og:url" content="{{ url()->current() }}">
   <meta property="og:site_name" content="Dainely">
 
   {{-- Twitter Card --}}
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="@yield('og_title', 'Dainely â€” Premium Wellness')">
+  <meta name="twitter:title" content="@yield('og_title', 'Dainely — Premium Wellness')">
   <meta name="twitter:description" content="@yield('og_description', 'Clinically developed wellness solutions.')">
   <meta name="twitter:image" content="@yield('og_image', asset('images/og-default.jpg'))">
 
@@ -92,7 +68,6 @@
   <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
   <link rel="dns-prefetch" href="https://cdn.shopify.com">
   <link rel="dns-prefetch" href="https://judge.me">
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
 
   {{-- Critical fallback styles if the Vite CSS bundle fails to load --}}
@@ -101,6 +76,20 @@
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     img{max-width:100%;height:auto}
     #site-header img[alt="Dainely"]{height:2.75rem;width:auto}
+
+    /* Quill rich-text alignments across all storefront CMS components */
+    .cms-richtext .ql-align-center, .landing-richtext .ql-align-center { text-align: center !important; }
+    .cms-richtext .ql-align-right, .landing-richtext .ql-align-right { text-align: right !important; }
+    .cms-richtext .ql-align-left, .landing-richtext .ql-align-left { text-align: left !important; }
+    .cms-richtext .ql-align-justify, .landing-richtext .ql-align-justify { text-align: justify !important; }
+
+    .cms-richtext .ql-align-center img, .landing-richtext .ql-align-center img { display: inline-block !important; margin-left: auto !important; margin-right: auto !important; }
+    .cms-richtext .ql-align-right img, .landing-richtext .ql-align-right img { display: inline-block !important; margin-left: auto !important; margin-right: 0 !important; }
+    .cms-richtext .ql-align-left img, .landing-richtext .ql-align-left img { display: inline-block !important; margin-left: 0 !important; margin-right: auto !important; }
+
+    .cms-richtext img.ql-align-center, .landing-richtext img.ql-align-center { display: block !important; margin-left: auto !important; margin-right: auto !important; }
+    .cms-richtext img.ql-align-right, .landing-richtext img.ql-align-right { display: block !important; margin-left: auto !important; margin-right: 0 !important; }
+    .cms-richtext img.ql-align-left, .landing-richtext img.ql-align-left { display: block !important; margin-left: 0 !important; margin-right: auto !important; }
   </style>
 
   {{-- Favicon --}}
@@ -113,8 +102,25 @@
   {{-- Vite Assets --}}
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+  {{-- Per-page styles that must win over the Vite bundle --}}
+  @stack('page_styles')
+
   {{-- JSON-LD Structured Data Stack --}}
   @stack('json-ld')
+  {{-- Google Site Verification --}}
+  <meta name="google-site-verification" content="KLOG-bpPUFkGi-gjAIf48JcXX2otS8n3xQVhCla8bGc" />
+
+  {{-- Google Analytics (gtag.js) --}}
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-56C8977Q6N"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-56C8977Q6N');
+  </script>
+
+  {{-- OpenAI Ads Measurement Pixel --}}
+  <script>!function(w,d,s,u){if(w.oaiq)return;var q=function(){q.q.push(arguments)};q.q=[];w.oaiq=q;var j=d.createElement(s);j.async=1;j.src=u;var f=d.getElementsByTagName(s)[0];f.parentNode.insertBefore(j,f)}(window,document,"script","https://bzrcdn.openai.com/sdk/oaiq.min.js");oaiq("init",{pixelId:"2MMXMQStphduPRvhYriNzS",debug:true});</script>
 </head>
 <body class="min-h-screen flex flex-col" x-data="scrollTop()">
 <script>

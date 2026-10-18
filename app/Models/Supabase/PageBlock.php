@@ -27,6 +27,7 @@ class PageBlock extends Model
         'is_global',
         'bg_color',
         'text_color',
+        'image_url',
     ];
 
     protected $casts = [
