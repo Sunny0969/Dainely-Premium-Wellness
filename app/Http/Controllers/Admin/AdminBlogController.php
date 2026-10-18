@@ -72,9 +72,21 @@ class AdminBlogController extends AdminController
         $featuredImagePath = null;
         if ($request->hasFile('featured_image')) {
             $file = $request->file('featured_image');
-            $filename = time() . '-' . Str::slug($request->input('translations.en.title')) . '.' . $file->getClientOriginalExtension();
-            $path = $file->storePubliclyAs('blogs', $filename, 's3');
-            $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
+            $filename = time() . '-' . Str::slug($request->input('translations.en.title', 'blog')) . '.' . $file->getClientOriginalExtension();
+            
+            $localBlogsDir = public_path('images/blogs');
+            if (!file_exists($localBlogsDir)) {
+                @mkdir($localBlogsDir, 0755, true);
+            }
+            $file->move($localBlogsDir, $filename);
+            @copy($localBlogsDir . '/' . $filename, public_path('images/' . $filename));
+            
+            try {
+                \Illuminate\Support\Facades\Storage::disk('s3')->putFileAs('blogs', new \Illuminate\Http\File($localBlogsDir . '/' . $filename), $filename);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('S3 store blog cover error: ' . $e->getMessage());
+            }
+
             $featuredImagePath = $filename;
         }
 
@@ -230,19 +242,35 @@ class AdminBlogController extends AdminController
 
         $featuredImagePath = $post->featured_image;
         if ($request->hasFile('featured_image')) {
-            if ($featuredImagePath && file_exists(public_path('images/' . $featuredImagePath))) {
-                @unlink(public_path('images/' . $featuredImagePath));
+            if ($featuredImagePath) {
+                if (file_exists(public_path('images/' . $featuredImagePath))) {
+                    @unlink(public_path('images/' . $featuredImagePath));
+                }
+                if (file_exists(public_path('images/blogs/' . $featuredImagePath))) {
+                    @unlink(public_path('images/blogs/' . $featuredImagePath));
+                }
             }
             $file = $request->file('featured_image');
             $filename = time() . '-' . Str::slug($request->input('translations.en.title', 'blog')) . '.' . $file->getClientOriginalExtension();
-            $path = $file->storePubliclyAs('blogs', $filename, 's3');
-            $filename = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
+
+            $localBlogsDir = public_path('images/blogs');
+            if (!file_exists($localBlogsDir)) {
+                @mkdir($localBlogsDir, 0755, true);
+            }
+            $file->move($localBlogsDir, $filename);
+            @copy($localBlogsDir . '/' . $filename, public_path('images/' . $filename));
+
+            try {
+                \Illuminate\Support\Facades\Storage::disk('s3')->putFileAs('blogs', new \Illuminate\Http\File($localBlogsDir . '/' . $filename), $filename);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('S3 update blog cover error: ' . $e->getMessage());
+            }
+
             $featuredImagePath = $filename;
         } elseif ($request->file('featured_image')) {
             // The file was sent but failed to upload (e.g. upload_max_filesize error)
             return back()->with('error', 'The file was received but failed to upload. Error code: ' . $request->file('featured_image')->getError());
         } elseif (!empty($_FILES['featured_image']['name'])) {
-            // It's in $_FILES but Laravel doesn't see it as a valid file?
             return back()->with('error', 'File exists in $_FILES but Laravel rejected it. Error code: ' . ($_FILES['featured_image']['error'] ?? 'unknown'));
         }
 
@@ -373,8 +401,13 @@ class AdminBlogController extends AdminController
             return redirect('/dainely-admin-panel/blogs')->with('error', 'Blog post not found.');
         }
 
-        if ($post->featured_image && file_exists(public_path('images/' . $post->featured_image))) {
-            @unlink(public_path('images/' . $post->featured_image));
+        if ($post->featured_image) {
+            if (file_exists(public_path('images/' . $post->featured_image))) {
+                @unlink(public_path('images/' . $post->featured_image));
+            }
+            if (file_exists(public_path('images/blogs/' . $post->featured_image))) {
+                @unlink(public_path('images/blogs/' . $post->featured_image));
+            }
         }
 
         $post->translations()->delete();

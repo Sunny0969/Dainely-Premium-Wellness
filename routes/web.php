@@ -141,6 +141,72 @@ Route::middleware(['api'])->prefix('webhooks')->group(function () {
     Route::post('/square', [SquareWebhookController::class, 'handle'])->name('webhooks.square');
 });
 
+// ──────────────── S3 Storage Media Proxy / Streamer & Blogs Route ────────────
+Route::get('/blogs/{path}', function ($path) {
+    $cleanPath = ltrim($path, '/');
+    if (file_exists(public_path('blogs/' . $cleanPath))) {
+        return response()->file(public_path('blogs/' . $cleanPath));
+    }
+    if (file_exists(public_path('images/blogs/' . $cleanPath))) {
+        return response()->file(public_path('images/blogs/' . $cleanPath));
+    }
+    if (file_exists(public_path('images/' . $cleanPath))) {
+        return response()->file(public_path('images/' . $cleanPath));
+    }
+    $basename = basename($cleanPath);
+    if (file_exists(public_path('images/' . $basename))) {
+        return response()->file(public_path('images/' . $basename));
+    }
+    $disk = \Illuminate\Support\Facades\Storage::disk('s3');
+    foreach ([$cleanPath, 'blogs/' . $cleanPath, 'dainely/media/blogs/' . $cleanPath, 'optimized/editor/' . $cleanPath] as $tryKey) {
+        if ($disk->exists($tryKey)) {
+            $mime = $disk->mimeType($tryKey) ?: 'image/jpeg';
+            $stream = $disk->readStream($tryKey);
+            return response()->stream(function () use ($stream) {
+                fpassthru($stream);
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
+            }, 200, [
+                'Content-Type' => $mime,
+                'Cache-Control' => 'public, max-age=31536000, immutable',
+            ]);
+        }
+    }
+    abort(404);
+})->where('path', '.*');
+
+Route::get('/storage/s3/{path}', function ($path) {
+    $cleanPath = ltrim($path, '/');
+    if (file_exists(public_path('images/' . $cleanPath))) {
+        return response()->file(public_path('images/' . $cleanPath));
+    }
+    if (file_exists(public_path('images/blogs/' . $cleanPath))) {
+        return response()->file(public_path('images/blogs/' . $cleanPath));
+    }
+    $basename = basename($cleanPath);
+    if (file_exists(public_path('images/' . $basename))) {
+        return response()->file(public_path('images/' . $basename));
+    }
+    $disk = \Illuminate\Support\Facades\Storage::disk('s3');
+    foreach ([$cleanPath, 'blogs/' . $cleanPath, 'dainely/media/' . $cleanPath, 'optimized/editor/' . $cleanPath] as $tryKey) {
+        if ($disk->exists($tryKey)) {
+            $mime = $disk->mimeType($tryKey) ?: 'application/octet-stream';
+            $stream = $disk->readStream($tryKey);
+            return response()->stream(function () use ($stream) {
+                fpassthru($stream);
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
+            }, 200, [
+                'Content-Type' => $mime,
+                'Cache-Control' => 'public, max-age=31536000, immutable',
+            ]);
+        }
+    }
+    abort(404);
+})->where('path', '.*')->name('s3.media');
+
 // ──────────────── XML Sitemap ─────────────────────────────────────────────────────────────
 Route::get('/sitemap.xml', function() {
     return response(file_get_contents(base_path('public/sitemap.xml')), 200, [

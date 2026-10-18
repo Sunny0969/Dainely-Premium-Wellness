@@ -543,12 +543,52 @@
 
 .cms-richtext ol {
   list-style-type: decimal !important;
+  counter-reset: cms-ol-counter;
 }
 
 .cms-richtext ul ul {
   list-style-type: circle !important;
   margin-top: 0.35em !important;
   margin-bottom: 0.35em !important;
+}
+
+/* Support Quill 2 semantic lists */
+.cms-richtext ol:has(li[data-list="bullet"]),
+.cms-richtext ol:has(li[data-list="ordered"]) {
+  list-style-type: none !important;
+  padding-left: 0 !important;
+}
+
+.cms-richtext li[data-list] {
+  list-style-type: none !important;
+  padding-left: 1.5rem !important;
+  position: relative !important;
+}
+
+.cms-richtext li[data-list] > .ql-ui {
+  display: none !important;
+}
+
+.cms-richtext li[data-list="bullet"]::before {
+  content: "•";
+  position: absolute;
+  left: 0.25rem;
+  color: #475569;
+  font-weight: 700;
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.cms-richtext li[data-list="ordered"] {
+  counter-increment: cms-ol-counter;
+}
+
+.cms-richtext li[data-list="ordered"]::before {
+  content: counter(cms-ol-counter) ".";
+  position: absolute;
+  left: 0;
+  color: #475569;
+  font-weight: 700;
 }
 
 .cms-richtext li {
@@ -586,6 +626,29 @@
 .cms-richtext a {
   color: #1e3a5f;
   text-decoration: underline;
+}
+
+.cms-richtext pre,
+.cms-richtext .ql-code-block-container {
+  background: #1e293b !important;
+  border-radius: 8px !important;
+  color: #f1f5f9 !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+  margin: 1.25rem 0 !important;
+  overflow-x: auto !important;
+  padding: 1rem 1.25rem !important;
+  border: 1px solid #334155 !important;
+}
+
+.cms-richtext .ql-code-block {
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  font-family: inherit !important;
+  color: inherit !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Hide duplicate in-page Order Now on mobile — sticky bar handles checkout */

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Supabase\Faq;
 use App\Models\Supabase\LandingPage;
 use App\Models\Supabase\PageBlock;
 use App\Models\Supabase\Product;
@@ -84,7 +85,7 @@ class AdminLandingController extends AdminController
             return redirect('/dainely-admin-panel/landings')->with('error', 'Database offline. Cannot edit landing page.');
         }
 
-        $page = SupabaseDb::run(fn () => LandingPage::with('pageBlocks')->findOrFail($id));
+        $page = SupabaseDb::run(fn () => LandingPage::with(['pageBlocks', 'faqs'])->findOrFail($id));
         if (! $page) {
             return redirect('/dainely-admin-panel/landings')->with('error', 'Page not found.');
         }
@@ -121,26 +122,68 @@ class AdminLandingController extends AdminController
                 (string) $validated['slug']
             );
 
-            // Prefer one offer: if both provided, bundle wins when bundle_id set
-            if (! empty($validated['bundle_id'])) {
-                $validated['bundle_id'] = (int) $validated['bundle_id'];
-            } else {
-                $validated['bundle_id'] = null;
-            }
-
-            if (empty($validated['shopify_product_id'])) {
-                $validated['shopify_product_id'] = null;
-            }
-
-            if (empty($validated['discount_code'])) {
-                $validated['discount_code'] = null;
-            } else {
-                $validated['discount_code'] = strtoupper(trim($validated['discount_code']));
-            }
+            $validated['bundle_id'] = ! empty($validated['bundle_id'] ?? null) ? (int) $validated['bundle_id'] : null;
+            $validated['shopify_product_id'] = ! empty($validated['shopify_product_id'] ?? null) ? $validated['shopify_product_id'] : null;
+            $validated['discount_code'] = ! empty($validated['discount_code'] ?? null) ? strtoupper(trim($validated['discount_code'])) : null;
 
             $oldSlug = (string) $page->slug;
 
             $page->update($validated);
+
+            // Save / Sync FAQs when FAQ section was submitted
+            if ($request->has('faqs_synced')) {
+                $rawFaqs = (array) $request->input('faqs', []);
+                $submittedIds = [];
+                $order = 0;
+
+                foreach ($rawFaqs as $fData) {
+                    $question = trim($fData['question'] ?? '');
+                    $answer = trim($fData['answer'] ?? '');
+                    if ($question === '' && $answer === '') {
+                        continue;
+                    }
+
+                    $faqId = ! empty($fData['id']) ? (int) $fData['id'] : null;
+
+                    if ($faqId) {
+                        $faq = Faq::where('faqable_type', LandingPage::class)
+                            ->where('faqable_id', $page->id)
+                            ->where('id', $faqId)
+                            ->first();
+
+                        if ($faq) {
+                            $faq->update([
+                                'question'   => $question,
+                                'answer'     => $answer,
+                                'sort_order' => $order,
+                                'approved'   => true,
+                                'locale'     => $page->locale ?: 'en',
+                            ]);
+                            $submittedIds[] = $faq->id;
+                            $order++;
+                            continue;
+                        }
+                    }
+
+                    $newFaq = Faq::create([
+                        'faqable_type' => LandingPage::class,
+                        'faqable_id'   => $page->id,
+                        'locale'       => $page->locale ?: 'en',
+                        'question'     => $question,
+                        'answer'       => $answer,
+                        'sort_order'   => $order,
+                        'approved'     => true,
+                    ]);
+                    $submittedIds[] = $newFaq->id;
+                    $order++;
+                }
+
+                // Delete any FAQs that were removed from the UI
+                Faq::where('faqable_type', LandingPage::class)
+                    ->where('faqable_id', $page->id)
+                    ->whereNotIn('id', $submittedIds)
+                    ->delete();
+            }
 
             \App\Support\StorefrontCache::forgetLanding((int) $id, (string) $page->locale, (string) $page->slug);
 
@@ -163,24 +206,26 @@ class AdminLandingController extends AdminController
             $page = LandingPage::findOrFail($id);
 
             $validated = $request->validate([
-                'block_type' => 'required|string|in:'.implode(',', $this->blockTypes),
+                'block_type' => 'nullable|string|in:'.implode(',', $this->blockTypes),
                 'title' => 'nullable|string|max:255',
                 'content' => 'nullable|string',
-                'sort_order' => 'required|integer',
+                'sort_order' => 'nullable|integer',
                 'bg_color' => 'nullable|string|max:7',
                 'text_color' => 'nullable|string|max:7',
             ]);
 
-            if (!empty($validated['content'])) {
-                $validated['content'] = \App\Services\HtmlImageProcessor::processBase64Images($validated['content'], 'landing-pages/' . $page->slug);
+            $content = $validated['content'] ?? '';
+            if (!empty($content)) {
+                $content = \App\Support\CmsHtml::cleanMediaUrls($content);
+                $content = \App\Services\HtmlImageProcessor::processBase64Images($content, 'landing-pages/' . $page->slug);
             }
 
             $page->pageBlocks()->create([
                 'locale' => $page->locale,
-                'block_type' => $validated['block_type'],
-                'title' => $validated['title'],
-                'content' => $validated['content'],
-                'sort_order' => $validated['sort_order'],
+                'block_type' => $validated['block_type'] ?? 'rich',
+                'title' => $validated['title'] ?? null,
+                'content' => $content,
+                'sort_order' => !empty($validated['sort_order']) ? (int) $validated['sort_order'] : 1,
                 'bg_color' => $validated['bg_color'] ?? null,
                 'text_color' => $validated['text_color'] ?? null,
                 'visible' => true,
@@ -205,17 +250,46 @@ class AdminLandingController extends AdminController
             $validated = $request->validate([
                 'title' => 'nullable|string|max:255',
                 'content' => 'nullable|string',
-                'sort_order' => 'required|integer',
-                'visible' => 'required|boolean',
+                'sort_order' => 'nullable|integer',
+                'visible' => 'nullable|boolean',
                 'bg_color' => 'nullable|string|max:7',
                 'text_color' => 'nullable|string|max:7',
             ]);
 
-            if (!empty($validated['content'])) {
-                $validated['content'] = \App\Services\HtmlImageProcessor::processBase64Images($validated['content'], 'landing-pages/' . $page->slug);
+            $updateData = [];
+
+            if ($request->has('title')) {
+                $updateData['title'] = $validated['title'];
             }
 
-            $block->update($validated);
+            if ($request->has('content')) {
+                $content = $validated['content'];
+                if (!empty($content)) {
+                    $content = \App\Support\CmsHtml::cleanMediaUrls($content);
+                    $content = \App\Services\HtmlImageProcessor::processBase64Images($content, 'landing-pages/' . $page->slug);
+                }
+                $updateData['content'] = $content;
+            }
+
+            if ($request->has('sort_order')) {
+                $updateData['sort_order'] = (int) $validated['sort_order'];
+            }
+
+            if ($request->has('visible')) {
+                $updateData['visible'] = (bool) $validated['visible'];
+            }
+
+            if ($request->has('bg_color')) {
+                $updateData['bg_color'] = $validated['bg_color'];
+            }
+
+            if ($request->has('text_color')) {
+                $updateData['text_color'] = $validated['text_color'];
+            }
+
+            if (!empty($updateData)) {
+                $block->update($updateData);
+            }
 
             \App\Support\StorefrontCache::forgetLanding((int) $id, (string) $page->locale, (string) $page->slug);
 

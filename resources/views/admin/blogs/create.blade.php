@@ -190,10 +190,8 @@ function selectLocalImage(quill) {
         }
     };
 }
-            }).catch(e => alert('Upload failed'));
-        }
-    };
-}Quill.register("modules/htmlEditButton", htmlEditButton);</script>
+Quill.register("modules/htmlEditButton", htmlEditButton);
+</script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const locales = ['en', 'fr', 'de'];

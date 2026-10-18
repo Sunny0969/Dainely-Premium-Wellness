@@ -28,7 +28,7 @@ class AdminMediaController extends Controller
 
             $filename = time() . '-' . Str::random(10) . '.' . $file->getClientOriginalExtension();
             
-$folderType = $request->input('folder_type', 'others');
+            $folderType = $request->input('folder_type', 'others');
             $folderMap = [
                 'blogs' => 'blogs',
                 'education' => 'education',
@@ -36,13 +36,32 @@ $folderType = $request->input('folder_type', 'others');
                 'others' => 'others'
             ];
             $baseFolder = $folderMap[$folderType] ?? 'others';
-            $path = $file->storePubliclyAs($baseFolder, $filename, 's3');
-            
-            if (!$path) {
-                return response()->json(['success' => 0, 'message' => 'Failed to store image on the remote E2 server.'], 500);
+
+            // 1. Save locally in public/images/{baseFolder}
+            $localDir = public_path('images/' . $baseFolder);
+            if (!file_exists($localDir)) {
+                @mkdir($localDir, 0755, true);
             }
-            
-            $url = Storage::disk('s3')->url($path);
+            $file->move($localDir, $filename);
+
+            // If it's blogs, also copy to public/blogs/ and public/images/
+            if ($baseFolder === 'blogs') {
+                $publicBlogs = public_path('blogs');
+                if (!file_exists($publicBlogs)) {
+                    @mkdir($publicBlogs, 0755, true);
+                }
+                @copy($localDir . '/' . $filename, $publicBlogs . '/' . $filename);
+                @copy($localDir . '/' . $filename, public_path('images/' . $filename));
+            }
+
+            // 2. Also upload to S3
+            try {
+                Storage::disk('s3')->putFileAs($baseFolder, new \Illuminate\Http\File($localDir . '/' . $filename), $filename);
+            } catch (\Throwable $e) {
+                Log::warning('S3 editor upload error: ' . $e->getMessage());
+            }
+
+            $url = asset('images/' . $baseFolder . '/' . $filename);
 
             return response()->json([
                 'success' => 1,

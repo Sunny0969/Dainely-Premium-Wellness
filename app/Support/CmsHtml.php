@@ -8,6 +8,36 @@ namespace App\Support;
 class CmsHtml
 {
     /**
+     * Fix media.dainely.com CDN URLs by rewriting them to local /images/ or /storage/s3/ proxy.
+     */
+    public static function cleanMediaUrls(?string $html): string
+    {
+        if (empty($html)) {
+            return '';
+        }
+
+        // Replace direct CDN URLs that return 403 Forbidden
+        $html = preg_replace_callback(
+            '/https?:\/\/media\.dainely\.com\/dainely-media\/([^\s"\'<>]+)/i',
+            static function (array $m): string {
+                $subPath = ltrim(urldecode($m[1]), '/');
+                $localPath = public_path('images/' . $subPath);
+                if (file_exists($localPath)) {
+                    return asset('images/' . $subPath);
+                }
+                $basename = basename($subPath);
+                if (file_exists(public_path('images/' . $basename))) {
+                    return asset('images/' . $basename);
+                }
+                return url('/storage/s3/' . $subPath);
+            },
+            $html
+        ) ?? $html;
+
+        return $html;
+    }
+
+    /**
      * Clean TinyMCE / pasted HTML for display (and optional save).
      *
      * @param  bool  $keepTextStyles  Keep font-size / weight / style / line-height so a Word paste
@@ -20,6 +50,8 @@ class CmsHtml
         if ($html === '') {
             return '';
         }
+
+        $html = self::cleanMediaUrls($html);
 
         // Recover content that was accidentally stored HTML-entity-encoded.
         if (str_contains($html, '&lt;') && ! preg_match('/<(?:p|ul|ol|li|strong|b|em|u|br|table|a)\b/i', $html)) {

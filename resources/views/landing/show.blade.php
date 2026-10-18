@@ -90,6 +90,57 @@
         padding-left: 1.6rem;
     }
 
+    .landing-richtext ul {
+        list-style-type: disc;
+    }
+
+    .landing-richtext ol {
+        list-style-type: decimal;
+    }
+
+    /* Support Quill 2 semantic markup where both bullets and numbers use <ol><li data-list="..."> */
+    .landing-richtext ol:has(li[data-list="bullet"]),
+    .landing-richtext ol:has(li[data-list="ordered"]) {
+        list-style-type: none !important;
+        padding-left: 0 !important;
+    }
+
+    .landing-richtext li[data-list] {
+        list-style-type: none !important;
+        padding-left: 1.5rem !important;
+        position: relative !important;
+    }
+
+    .landing-richtext li[data-list] > .ql-ui {
+        display: none !important;
+    }
+
+    .landing-richtext li[data-list="bullet"]::before {
+        content: "•";
+        position: absolute;
+        left: 0.25rem;
+        color: #475569;
+        font-weight: 700;
+        font-size: 1.2em;
+        line-height: 1;
+    }
+
+    .landing-richtext ol {
+        counter-reset: landing-ol-counter;
+    }
+
+    .landing-richtext li[data-list="ordered"] {
+        counter-increment: landing-ol-counter;
+    }
+
+    .landing-richtext li[data-list="ordered"]::before {
+        content: counter(landing-ol-counter) ".";
+        position: absolute;
+        left: 0;
+        color: #475569;
+        font-weight: 700;
+    }
+
     .landing-richtext li {
         margin: 0.35rem 0;
     }
@@ -109,14 +160,27 @@
         padding: 0.75rem 1rem;
     }
 
-    .landing-richtext pre {
-        background: #0f172a;
+    .landing-richtext pre,
+    .landing-richtext .ql-code-block-container {
+        background: #1e293b;
         border-radius: 8px;
-        color: #e2e8f0;
+        color: #f1f5f9;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         font-size: 0.9rem;
+        line-height: 1.6;
         margin: 1.4rem 0;
         overflow-x: auto;
-        padding: 1rem;
+        padding: 1rem 1.25rem;
+        border: 1px solid #334155;
+    }
+
+    .landing-richtext .ql-code-block {
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: inherit;
+        color: inherit;
+        margin: 0;
+        padding: 0;
     }
 
     .landing-richtext code {
@@ -222,6 +286,11 @@
         color: #93c5fd;
     }
 
+    .landing-richtext.landing-richtext--dark li[data-list="bullet"]::before,
+    .landing-richtext.landing-richtext--dark li[data-list="ordered"]::before {
+        color: #93c5fd;
+    }
+
     .landing-richtext.landing-richtext--dark hr {
         border-top-color: #334155;
     }
@@ -253,18 +322,6 @@
 @section('content')
 @include('components.breadcrumbs', ['items' => $breadcrumbs ?? []])
 <div class="landing-page-container py-12">
-    <div class="container-site max-w-4xl mx-auto px-4">
-        <h1 class="text-4xl font-extrabold text-navy-900 mb-4 text-center">{{ $page->title }}</h1>
-        @if(!empty($offer) && in_array($offer['type'] ?? null, ['product', 'bundle'], true))
-            <p class="text-center text-sm text-slate-500 mb-8">
-                @if(($offer['type'] ?? null) === 'product' && !empty($offer['product']))
-                    Offer: {{ $offer['product']->title }}
-                @elseif(($offer['type'] ?? null) === 'bundle' && !empty($offer['bundle']))
-                    Bundle: {{ $offer['bundle']->title }}
-                @endif
-            </p>
-        @endif
-    </div>
 
     @foreach($blocks as $index => $block)
         @php
@@ -287,6 +344,26 @@
             ])
         </div>
     @endforeach
+
+    {{-- Landing Page FAQs --}}
+    @if(!empty($faqs) && (is_countable($faqs) ? count($faqs) : $faqs->count()) > 0)
+        <div class="landing-faqs-section container-site max-w-4xl mx-auto px-4 mt-14 mb-8" id="faqs">
+            <h2 class="text-3xl font-extrabold text-navy-900 mb-8 text-center">{{ __('Frequently Asked Questions') }}</h2>
+            <div class="space-y-4 max-w-3xl mx-auto">
+                @foreach($faqs as $faq)
+                    <details class="group bg-white border border-slate-200 rounded-xl px-5 py-4 transition shadow-sm">
+                        <summary class="font-semibold text-navy-900 cursor-pointer list-none flex justify-between gap-4">
+                            <span>{{ $faq->question }}</span>
+                            <span class="text-slate-400 group-open:rotate-180 transition">▾</span>
+                        </summary>
+                        <div class="mt-3 text-slate-600 text-sm leading-relaxed cms-richtext">
+                            {!! nl2br(e($faq->answer)) !!}
+                        </div>
+                    </details>
+                @endforeach
+            </div>
+        </div>
+    @endif
 
     {{-- Sticky / fallback checkout CTA when offer is linked --}}
     @if(!empty($offer['checkout_url']) && in_array($offer['type'] ?? null, ['product', 'bundle'], true))

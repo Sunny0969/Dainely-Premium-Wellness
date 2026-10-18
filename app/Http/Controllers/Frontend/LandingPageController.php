@@ -30,7 +30,8 @@ class LandingPageController extends Controller
             function () use ($slug, $locale) {
                 return SupabaseDb::run(function () use ($slug, $locale) {
                     $page = LandingPage::with([
-                        'pageBlocks' => fn($q) => $q->where('locale', $locale)->visible()->orderBy('sort_order')
+                        'pageBlocks' => fn($q) => $q->where('locale', $locale)->visible()->orderBy('sort_order'),
+                        'faqs' => fn($q) => $q->where('approved', true)->orderBy('sort_order'),
                     ])
                         ->where('slug', $slug)
                         ->where('locale', $locale)
@@ -39,7 +40,8 @@ class LandingPageController extends Controller
 
                     if (! $page) {
                         $page = LandingPage::with([
-                            'pageBlocks' => fn($q) => $q->where('locale', 'en')->visible()->orderBy('sort_order')
+                            'pageBlocks' => fn($q) => $q->where('locale', 'en')->visible()->orderBy('sort_order'),
+                            'faqs' => fn($q) => $q->where('approved', true)->orderBy('sort_order'),
                         ])
                             ->where('slug', $slug)
                             ->where('locale', 'en')
@@ -74,8 +76,9 @@ class LandingPageController extends Controller
                     }
 
                     return [
-                        'page' => $page,
+                        'page'   => $page,
                         'blocks' => $blocks,
+                        'faqs'   => $page->faqs ?? collect(),
                     ];
                 }, null);
             }
@@ -88,6 +91,7 @@ class LandingPageController extends Controller
         /** @var LandingPage $page */
         $page = $payload['page'];
         $blocks = $payload['blocks'] ?? collect();
+        $faqs = $payload['faqs'] ?? ($page->faqs ?? collect());
 
         $relatedLinks = $related->for('landing_page', (int) $page->id, $locale);
         $crumbTrail = $breadcrumbs->forLandingPage($page, $locale);
@@ -132,6 +136,7 @@ class LandingPageController extends Controller
         return view('landing.show', [
             'page'         => $page,
             'blocks'       => $blocks,
+            'faqs'         => $faqs,
             'schemaJson'   => json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'locale'       => $locale,
             'relatedLinks' => $relatedLinks,

@@ -133,10 +133,11 @@
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Cover Image</label>
                     <div class="mb-3">
+                        @php $currentCover = $post->resolveFeaturedImage(); @endphp
                         <img id="current-cover-preview" 
-                             src="{{ $post->featured_image ? (\Illuminate\Support\Str::startsWith($post->featured_image, ['http://', 'https://']) ? $post->featured_image : asset('images/' . $post->featured_image)) : '' }}" 
+                             src="{{ $currentCover }}" 
                              alt="current cover" 
-                             class="w-full h-32 object-cover rounded-lg border border-slate-200 mb-1 {{ !$post->featured_image ? 'hidden' : '' }}">
+                             class="w-full h-32 object-cover rounded-lg border border-slate-200 mb-1 {{ !$currentCover ? 'hidden' : '' }}">
                         <span id="current-cover-filename" class="text-xs text-slate-400 block {{ !$post->featured_image ? 'hidden' : '' }}">
                             Current: {{ $post->featured_image }}
                         </span>
@@ -221,10 +222,8 @@ function selectLocalImage(quill) {
         }
     };
 }
-            }).catch(e => alert('Upload failed'));
-        }
-    };
-}Quill.register("modules/htmlEditButton", htmlEditButton);</script>
+Quill.register("modules/htmlEditButton", htmlEditButton);
+</script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const locales = ['en', 'fr', 'de'];

@@ -29,6 +29,25 @@ class LandingOfferService
         $label = trim((string) ($page->cta_label ?: '')) ?: __('Shop Now');
         $discount = trim((string) ($page->discount_code ?: '')) ?: null;
 
+        if ($page->shopify_product_id) {
+            $product = $this->findProduct($page->shopify_product_id);
+            if ($product) {
+                $productUrl = route('products.show', [
+                    'locale' => $locale,
+                    'slug' => $product->handle ?: $product->id,
+                ]);
+
+                return [
+                    'type' => 'product',
+                    'label' => $label,
+                    'checkout_url' => $productUrl,
+                    'product' => $product,
+                    'bundle' => null,
+                    'discount_code' => $discount,
+                ];
+            }
+        }
+
         if ($page->bundle_id) {
             $bundle = SupabaseDb::run(
                 fn () => ProductBundle::with('items.product')
@@ -44,20 +63,6 @@ class LandingOfferService
                     'checkout_url' => route('landing.checkout', ['locale' => $locale, 'id' => $page->id]),
                     'product' => null,
                     'bundle' => $bundle,
-                    'discount_code' => $discount,
-                ];
-            }
-        }
-
-        if ($page->shopify_product_id) {
-            $product = $this->findProduct($page->shopify_product_id);
-            if ($product) {
-                return [
-                    'type' => 'product',
-                    'label' => $label,
-                    'checkout_url' => route('landing.checkout', ['locale' => $locale, 'id' => $page->id]),
-                    'product' => $product,
-                    'bundle' => null,
                     'discount_code' => $discount,
                 ];
             }
@@ -81,12 +86,12 @@ class LandingOfferService
 
         $offer = $this->resolve($page, $locale);
 
-        if ($offer['type'] === 'bundle' && $offer['bundle']) {
-            return $this->addBundle($offer['bundle'], $locale);
-        }
-
         if ($offer['type'] === 'product' && $offer['product']) {
             return $this->addProduct($offer['product'], $locale);
+        }
+
+        if ($offer['type'] === 'bundle' && $offer['bundle']) {
+            return $this->addBundle($offer['bundle'], $locale);
         }
 
         return redirect()
@@ -115,20 +120,10 @@ class LandingOfferService
 
     protected function addProduct(Product $product, string $locale): RedirectResponse
     {
-        CheckoutCart::addItem([
-            'product_id' => (string) $product->id,
-            'title' => $product->title,
-            'subtitle' => null,
-            'image' => $product->featured_image ?: asset('images/dainely-belt-product.png'),
-            'price' => (float) $product->price,
-            'compare_at_price' => $product->compare_at_price ? (float) $product->compare_at_price : null,
-            'quantity' => 1,
-            'variant_id' => $product->variant_id,
-            'sku' => $product->sku,
-            'source' => 'shopify',
+        return redirect()->route('products.show', [
+            'locale' => $locale,
+            'slug'   => $product->handle ?: $product->id,
         ]);
-
-        return redirect()->route('checkout.index', ['locale' => $locale]);
     }
 
     protected function addBundle(ProductBundle $bundle, string $locale): RedirectResponse

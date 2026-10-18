@@ -33,8 +33,9 @@
                     @endphp
                     <tr class="hover:bg-slate-50/80 transition duration-150">
                         <td class="px-6 py-4 whitespace-nowrap">
-                            @if($post->featured_image)
-                                <img src="{{ (\Illuminate\Support\Str::startsWith($post->featured_image, ['http://', 'https://']) ? $post->featured_image : asset('images/' . $post->featured_image)) }}" alt="cover" class="w-12 h-12 object-cover rounded-lg border border-slate-200">
+                            @php $coverUrl = $post->resolveFeaturedImage(); @endphp
+                            @if($post->featured_image && $coverUrl)
+                                <img src="{{ $coverUrl }}" alt="cover" class="w-12 h-12 object-cover rounded-lg border border-slate-200">
                             @else
                                 <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 text-xs border border-dashed border-slate-300">No img</div>
                             @endif
